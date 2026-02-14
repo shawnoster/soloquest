@@ -2,14 +2,46 @@
 
 ## Unreleased
 
+### Breaking Changes: Package Rename
+
+**The package has been renamed from `starforged` to `soloquest`** to better reflect its purpose as a multi-system solo journaling CLI rather than being tied to a specific game.
+
+#### What Changed
+- CLI command: `starforged` → `soloquest`
+- Package name: `starforged-cli` → `soloquest`
+- Environment variable: `STARFORGED_ADVENTURES_DIR` → `SOLOQUEST_ADVENTURES_DIR`
+- Default directory: `~/starforged-adventures/` → `~/soloquest-adventures/`
+- Config directory: `~/.config/starforged/` → `~/.config/soloquest/`
+
+#### Migration Guide
+
+**For users with the default directory:**
+```bash
+# Option 1: Rename your existing directory
+mv ~/starforged-adventures ~/soloquest-adventures
+
+# Option 2: Point to existing location
+export SOLOQUEST_ADVENTURES_DIR="$HOME/starforged-adventures"
+```
+
+**For users with custom directory:**
+```bash
+# Update your environment variable
+# Old: export STARFORGED_ADVENTURES_DIR="/path/to/adventures"
+# New:
+export SOLOQUEST_ADVENTURES_DIR="/path/to/adventures"
+```
+
+**Note:** Your game data files (saves, sessions, journals) are fully compatible - only the directory location reference changes.
+
 ### Added
-- **Configurable Adventures Directory** — All adventure data (saves, sessions, journal) now defaults to `~/starforged-adventures/` instead of the CLI repo directory
-- Environment variable `STARFORGED_ADVENTURES_DIR` to customize where adventures are stored
+- **Configurable Adventures Directory** — All adventure data (saves, sessions, journal) now defaults to `~/soloquest-adventures/` instead of the CLI repo directory
+- Environment variable `SOLOQUEST_ADVENTURES_DIR` to customize where adventures are stored
 - Adventures directory location displayed on startup
 - Documentation: `docs/adventures-directory.md` with configuration guide and Obsidian integration examples
 
 ### Changed
-- **Breaking**: Adventure files moved from local `saves/`, `sessions/`, `journal/` to `~/starforged-adventures/` by default
+- **Breaking**: Adventure files moved from local `saves/`, `sessions/`, `journal/` to `~/soloquest-adventures/` by default
 - Session export filenames now include optional title slug: `session_001_first_mission.md`
 - Journal files follow naming convention: `{character_slug}_journal.md`
 

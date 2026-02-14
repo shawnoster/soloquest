@@ -1,11 +1,11 @@
 # Adventures Directory Configuration
 
-By default, Starforged CLI stores all your adventure data (saves, sessions, journal) in `~/starforged-adventures/`. This keeps your game data separate from the CLI tool itself.
+By default, Starforged CLI stores all your adventure data (saves, sessions, journal) in `~/soloquest-adventures/`. This keeps your game data separate from the CLI tool itself.
 
 ## Directory Structure
 
 ```
-~/starforged-adventures/
+~/soloquest-adventures/
 ├── saves/      # Character save files (.json)
 ├── sessions/   # Individual session markdown files
 └── journal/    # Cumulative journal markdown files
@@ -22,29 +22,29 @@ By default, Starforged CLI stores all your adventure data (saves, sessions, jour
 
 ### Option 1: Environment Variable (Recommended)
 
-Set `STARFORGED_ADVENTURES_DIR` to any directory:
+Set `SOLOQUEST_ADVENTURES_DIR` to any directory:
 
 ```bash
 # In your ~/.bashrc or ~/.zshrc
-export STARFORGED_ADVENTURES_DIR="$HOME/Documents/ObsidianVault/Starforged"
+export SOLOQUEST_ADVENTURES_DIR="$HOME/Documents/ObsidianVault/Starforged"
 
 # Or run one-time
-STARFORGED_ADVENTURES_DIR="$HOME/my-campaigns" starforged
+SOLOQUEST_ADVENTURES_DIR="$HOME/my-campaigns" soloquest
 ```
 
 ### Option 2: Default Location
 
 If no configuration is provided, adventures are stored in:
-- `~/starforged-adventures/`
+- `~/soloquest-adventures/`
 
 ## Example: Obsidian Integration
 
 ```bash
 # Point to your Obsidian vault
-export STARFORGED_ADVENTURES_DIR="$HOME/Documents/ObsidianVault/TTRPG/Starforged"
+export SOLOQUEST_ADVENTURES_DIR="$HOME/Documents/ObsidianVault/TTRPG/Starforged"
 
 # Run the CLI - sessions will appear in your vault automatically
-starforged
+soloquest
 ```
 
 Your Obsidian vault will now contain:
@@ -60,14 +60,14 @@ TTRPG/Starforged/
 
 ## Tips
 
-- **Use absolute paths** in `STARFORGED_ADVENTURES_DIR`
+- **Use absolute paths** in `SOLOQUEST_ADVENTURES_DIR`
 - **Backup regularly** if storing in a cloud-synced folder
 - **Git-friendly** — Session markdown files are plain text and version-control friendly
 - **Share adventures** — Point multiple users to a shared network directory for collaborative worldbuilding
 
 ## Future: Config File Support
 
-A future update will add support for `~/.config/starforged/config.toml`:
+A future update will add support for `~/.config/soloquest/config.toml`:
 
 ```toml
 adventures_dir = "~/Documents/ObsidianVault/Starforged"
