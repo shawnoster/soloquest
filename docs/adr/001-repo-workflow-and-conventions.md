@@ -19,7 +19,9 @@ This is a personal project — a solo journaling CLI companion for Ironsworn: St
   - `docs/<short-description>` — documentation only
   - `chore/<short-description>` — tooling, CI, dependencies
 - Feature branches are merged into `main` via **pull requests**.
-- PRs should have a short title (<70 chars) and a body with a summary and test plan.
+- **PR titles MUST follow Conventional Commits format** (e.g., `feat: add session export`, `fix: handle Unicode on Windows`)
+- PR body should include a **Summary** section (bullet points) and **Test plan**
+- Keep PR titles under 70 chars
 - Delete feature branches after merge.
 
 ### Commit Messages

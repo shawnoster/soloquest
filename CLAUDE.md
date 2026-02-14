@@ -11,6 +11,13 @@
 - Use Conventional Commits: `feat:`, `fix:`, `refactor:`, `docs:`, `test:`, `chore:`
 - Summary under 72 chars. Body explains *why*, not *what*.
 
+## Pull Requests
+
+- **PR titles MUST follow Conventional Commits format** (same as commit messages)
+- Examples: `feat: add character creation`, `fix: handle empty vow list`
+- Body should include Summary section (bullet points) and Test plan
+- Keep PR titles under 70 chars
+
 ## Code Quality
 
 - Run `make check` (lint + tests) before pushing.
