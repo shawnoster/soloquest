@@ -101,7 +101,7 @@ def move_result_panel(
 def oracle_result_panel(table_name: str, roll: int, result: str) -> None:
     body = f"[dim]{roll}[/dim]  →  [bold]{result}[/bold]"
     console.print(
-        Panel(body, title=f"[bold]ORACLE: {table_name.upper()}[/bold]", border_style="magenta")
+        Panel(body, title=f"[bold]ORACLE: {table_name.upper()}[/bold]", border_style="bright_cyan")
     )
 
 
@@ -252,7 +252,7 @@ def log_entry(entry: LogEntry) -> None:
         case EntryKind.MOVE:
             console.print(f"[dim blue]▸ {entry.text}[/dim blue]")
         case EntryKind.ORACLE:
-            console.print(f"[dim magenta]◈ {entry.text}[/dim magenta]")
+            console.print(f"[bright_cyan]◈ {entry.text}[/bright_cyan]")
         case EntryKind.MECHANICAL:
             console.print(f"[dim italic]{entry.text}[/dim italic]")
         case EntryKind.NOTE:
