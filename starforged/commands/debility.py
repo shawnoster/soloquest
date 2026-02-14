@@ -34,6 +34,11 @@ def handle_debility(state: GameState, args: list[str], flags: set[str]) -> None:
     debility = matches[0]
     now_active = state.character.toggle_debility(debility)
 
+    if now_active is None:
+        display.error(f"Invalid debility '{debility}'.")
+        display.info(f"  Valid: {', '.join(DEBILITY_NAMES)}")
+        return
+
     if now_active:
         display.warn(f"Debility added: {debility.capitalize()}")
     else:

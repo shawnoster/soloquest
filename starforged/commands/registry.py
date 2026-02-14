@@ -12,6 +12,17 @@ if TYPE_CHECKING:
 # Commands that don't need argument parsing
 BARE_COMMANDS = {"char", "log", "burn", "end", "forsake", "help", "quit", "q"}
 
+# Command aliases — short forms for common commands
+COMMAND_ALIASES = {
+    "m": "move",
+    "o": "oracle",
+    "c": "char",
+    "v": "vow",
+    "p": "progress",
+    "f": "fulfill",
+    "h": "help",
+}
+
 
 @dataclass
 class ParsedCommand:
@@ -38,6 +49,8 @@ def parse_command(line: str) -> ParsedCommand | None:
         return None
 
     name = tokens[0].lower()
+    # Resolve aliases
+    name = COMMAND_ALIASES.get(name, name)
     flags: set[str] = set()
     args: list[str] = []
 
@@ -64,12 +77,12 @@ def fuzzy_match_command(name: str, known: list[str]) -> str | None:
 
 
 COMMAND_HELP: dict[str, str] = {
-    "move": "/move [name] — resolve a move (e.g. /move strike)",
-    "oracle": "/oracle [table] — consult an oracle (e.g. /oracle action theme)",
-    "vow": "/vow [rank] [text] — create a vow",
-    "progress": "/progress [vow] — mark progress on a vow",
-    "fulfill": "/fulfill [vow] — attempt to fulfill a vow",
-    "char": "/char — show character sheet",
+    "move": "/move [name] (alias: /m) — resolve a move (e.g. /move strike)",
+    "oracle": "/oracle [table] (alias: /o) — consult an oracle (e.g. /oracle action theme)",
+    "vow": "/vow [rank] [text] (alias: /v) — create a vow",
+    "progress": "/progress [vow] (alias: /p) — mark progress on a vow",
+    "fulfill": "/fulfill [vow] (alias: /f) — attempt to fulfill a vow",
+    "char": "/char (alias: /c) — show character sheet",
     "log": "/log — show session log so far",
     "note": "/note [text] — add a scene note",
     "health": "/health +N or -N — adjust health",
@@ -82,6 +95,6 @@ COMMAND_HELP: dict[str, str] = {
     "forsake": "/forsake — forsake a vow (costs spirit)",
     "settings": "/settings dice [digital|physical|mixed] — change dice mode",
     "end": "/end — end session and export journal",
-    "help": "help or help [topic] — show help",
+    "help": "/help (alias: /h) — show help",
     "quit": "/quit — quit without saving",
 }
