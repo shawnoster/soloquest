@@ -50,7 +50,7 @@ class TestExportSession:
     def test_uses_yaml_frontmatter(self, tmp_sessions, sample_character, sample_session):
         """Session export uses YAML frontmatter for metadata."""
         path = export_session(sample_session, sample_character)
-        content = path.read_text()
+        content = path.read_text(encoding="utf-8")
 
         # Should start with YAML frontmatter
         assert content.startswith("---\n")
@@ -72,7 +72,7 @@ class TestExportSession:
         path = export_session(sample_session, sample_character)
         assert path.name == "session_001.md"
 
-        content = path.read_text()
+        content = path.read_text(encoding="utf-8")
         assert "# Session 1\n" in content
         # No title field in frontmatter if empty
         assert "title:" not in content
@@ -80,7 +80,7 @@ class TestExportSession:
     def test_includes_session_entries(self, tmp_sessions, sample_character, sample_session):
         """Session export includes all journal entries."""
         path = export_session(sample_session, sample_character)
-        content = path.read_text()
+        content = path.read_text(encoding="utf-8")
 
         assert "I arrive at the abandoned mining station." in content
         assert "Face Danger (wits) → weak hit" in content
@@ -89,7 +89,7 @@ class TestExportSession:
     def test_includes_session_stats(self, tmp_sessions, sample_character, sample_session):
         """Session export includes footer with stats."""
         path = export_session(sample_session, sample_character)
-        content = path.read_text()
+        content = path.read_text(encoding="utf-8")
 
         assert "1 moves" in content
         assert "1 oracles" in content
@@ -98,7 +98,7 @@ class TestExportSession:
     def test_frontmatter_properly_closed(self, tmp_sessions, sample_character, sample_session):
         """Frontmatter has closing --- before markdown content."""
         path = export_session(sample_session, sample_character)
-        content = path.read_text()
+        content = path.read_text(encoding="utf-8")
 
         lines = content.split("\n")
         # Find both frontmatter delimiters
