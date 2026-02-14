@@ -6,16 +6,16 @@ from datetime import datetime
 
 import pytest
 
-from starforged.journal.exporter import export_session
-from starforged.models.character import Character, Stats
-from starforged.models.session import Session
+from soloquest.journal.exporter import export_session
+from soloquest.models.character import Character, Stats
+from soloquest.models.session import Session
 
 
 @pytest.fixture
 def tmp_sessions(tmp_path, monkeypatch):
     """Redirect sessions directory to temp path."""
     tmp_sessions_dir = tmp_path / "sessions"
-    from starforged.journal import exporter
+    from soloquest.journal import exporter
 
     monkeypatch.setattr(exporter, "_sessions_dir", lambda: tmp_sessions_dir)
     return tmp_sessions_dir

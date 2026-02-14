@@ -1,6 +1,6 @@
 """Tests for move resolution logic."""
 
-from starforged.engine.moves import (
+from soloquest.engine.moves import (
     OutcomeTier,
     check_match,
     momentum_burn_outcome,

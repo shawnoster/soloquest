@@ -25,17 +25,17 @@ dev: ## Install with dev dependencies
 	uv sync --group dev
 
 run: ## Run the CLI
-	uv run starforged
+	uv run soloquest
 
 test: ## Run tests with coverage
 	uv run pytest
 
 lint: ## Lint with ruff
-	uv run ruff check starforged tests
+	uv run ruff check soloquest tests
 
 format: ## Auto-format code with ruff
-	uv run ruff format starforged tests
-	uv run ruff check --fix starforged tests
+	uv run ruff format soloquest tests
+	uv run ruff check --fix soloquest tests
 
 check: lint test ## Run lint + tests
 

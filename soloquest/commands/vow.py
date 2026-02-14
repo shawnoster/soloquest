@@ -4,11 +4,11 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from starforged.models.vow import Vow, VowRank, fuzzy_match_vow
-from starforged.ui import display
+from soloquest.models.vow import Vow, VowRank, fuzzy_match_vow
+from soloquest.ui import display
 
 if TYPE_CHECKING:
-    from starforged.loop import GameState
+    from soloquest.loop import GameState
 
 VOW_RANKS = [r.value for r in VowRank]
 
@@ -71,7 +71,7 @@ def handle_progress(state: GameState, args: list[str], flags: set[str]) -> None:
 
 def handle_fulfill(state: GameState, args: list[str], flags: set[str]) -> None:
     """Attempt to fulfill a vow via progress roll (delegated to move handler)."""
-    from starforged.commands.move import handle_move
+    from soloquest.commands.move import handle_move
 
     # Route to the fulfill_your_vow move
     handle_move(state, ["fulfill", "your", "vow"], flags)

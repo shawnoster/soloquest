@@ -6,11 +6,11 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from starforged.models.character import Character
-    from starforged.models.session import Session
+    from soloquest.models.character import Character
+    from soloquest.models.session import Session
 
-from starforged.config import journal_dir, sessions_dir
-from starforged.models.session import EntryKind
+from soloquest.config import journal_dir, sessions_dir
+from soloquest.models.session import EntryKind
 
 
 def _sessions_dir() -> Path:

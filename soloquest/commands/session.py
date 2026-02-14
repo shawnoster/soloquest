@@ -6,13 +6,13 @@ from typing import TYPE_CHECKING
 
 from rich.prompt import Prompt
 
-from starforged.journal.exporter import append_to_journal, export_session
-from starforged.models.session import EntryKind
-from starforged.state.save import save_game
-from starforged.ui import display
+from soloquest.journal.exporter import append_to_journal, export_session
+from soloquest.models.session import EntryKind
+from soloquest.state.save import save_game
+from soloquest.ui import display
 
 if TYPE_CHECKING:
-    from starforged.loop import GameState
+    from soloquest.loop import GameState
 
 
 def handle_log(state: GameState, args: list[str], flags: set[str]) -> None:
@@ -101,7 +101,7 @@ def handle_end(state: GameState, args: list[str], flags: set[str]) -> None:
 
 
 def handle_help(state: GameState, args: list[str], flags: set[str]) -> None:
-    from starforged.commands.registry import COMMAND_HELP
+    from soloquest.commands.registry import COMMAND_HELP
 
     if not args:
         display.rule("Help")

@@ -4,11 +4,11 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from starforged.engine.dice import DiceMode, make_dice_provider
-from starforged.ui import display
+from soloquest.engine.dice import DiceMode, make_dice_provider
+from soloquest.ui import display
 
 if TYPE_CHECKING:
-    from starforged.loop import GameState
+    from soloquest.loop import GameState
 
 TRACKS = {"health", "spirit", "supply"}
 

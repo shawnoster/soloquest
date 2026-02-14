@@ -8,32 +8,32 @@ from pathlib import Path
 from prompt_toolkit import PromptSession
 from prompt_toolkit.history import InMemoryHistory
 
-from starforged.commands.character import (
+from soloquest.commands.character import (
     handle_char,
     handle_momentum,
     handle_settings,
     handle_track,
 )
-from starforged.commands.debility import handle_debility
-from starforged.commands.move import handle_move
-from starforged.commands.oracle import handle_oracle
-from starforged.commands.registry import COMMAND_HELP, parse_command
-from starforged.commands.roll import handle_roll
-from starforged.commands.session import handle_end, handle_help, handle_log, handle_note
-from starforged.commands.vow import handle_fulfill, handle_progress, handle_vow
-from starforged.engine.dice import (
+from soloquest.commands.debility import handle_debility
+from soloquest.commands.move import handle_move
+from soloquest.commands.oracle import handle_oracle
+from soloquest.commands.registry import COMMAND_HELP, parse_command
+from soloquest.commands.roll import handle_roll
+from soloquest.commands.session import handle_end, handle_help, handle_log, handle_note
+from soloquest.commands.vow import handle_fulfill, handle_progress, handle_vow
+from soloquest.engine.dice import (
     DiceMode,
     DigitalDice,
     MixedDice,
     PhysicalDice,
     make_dice_provider,
 )
-from starforged.engine.oracles import OracleTable, load_oracles
-from starforged.models.character import Character
-from starforged.models.session import Session
-from starforged.models.vow import Vow
-from starforged.state.save import autosave
-from starforged.ui import display
+from soloquest.engine.oracles import OracleTable, load_oracles
+from soloquest.models.character import Character
+from soloquest.models.session import Session
+from soloquest.models.vow import Vow
+from soloquest.state.save import autosave
+from soloquest.ui import display
 
 DATA_DIR = Path(__file__).parent / "data"
 
@@ -176,7 +176,7 @@ def run_session(
                 case "roll":
                     handle_roll(state, cmd.args, cmd.flags)
                 case "forsake":
-                    from starforged.commands.move import _handle_forsake_vow
+                    from soloquest.commands.move import _handle_forsake_vow
 
                     _handle_forsake_vow(state)
                 case "settings":

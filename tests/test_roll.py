@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from starforged.commands.roll import DICE_PATTERN
+from soloquest.commands.roll import DICE_PATTERN
 
 
 class TestDicePattern:

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from starforged.models.session import EntryKind, LogEntry, Session
+from soloquest.models.session import EntryKind, LogEntry, Session
 
 
 class TestLogEntry:

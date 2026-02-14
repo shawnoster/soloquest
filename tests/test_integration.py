@@ -10,19 +10,19 @@ from pathlib import Path
 
 import pytest
 
-from starforged.engine.dice import Die
-from starforged.engine.moves import (
+from soloquest.engine.dice import Die
+from soloquest.engine.moves import (
     OutcomeTier,
     check_match,
     resolve_move,
     resolve_outcome,
     would_momentum_improve,
 )
-from starforged.engine.oracles import load_oracles
-from starforged.models.character import Character, Stats
-from starforged.models.vow import SPIRIT_COST, Vow, VowRank
+from soloquest.engine.oracles import load_oracles
+from soloquest.models.character import Character, Stats
+from soloquest.models.vow import SPIRIT_COST, Vow, VowRank
 
-DATA_DIR = Path(__file__).parent.parent / "starforged" / "data"
+DATA_DIR = Path(__file__).parent.parent / "soloquest" / "data"
 
 
 # ── Deterministic dice stub ────────────────────────────────────────────────────
@@ -235,7 +235,7 @@ class TestVowCharacterIntegration:
         assert self.vow.fulfilled is True
 
     def test_progress_to_max(self):
-        from starforged.models.vow import MAX_TICKS
+        from soloquest.models.vow import MAX_TICKS
 
         # Fill all the way
         while self.vow.ticks < MAX_TICKS:

@@ -1,6 +1,6 @@
 """Tests for the Character model."""
 
-from starforged.models.character import (
+from soloquest.models.character import (
     MOMENTUM_MAX_BASE,
     MOMENTUM_RESET_BASE,
     Character,

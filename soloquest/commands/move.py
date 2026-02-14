@@ -6,8 +6,8 @@ from typing import TYPE_CHECKING
 
 from rich.prompt import Confirm, Prompt
 
-from starforged.engine.dice import MixedDice, roll_action_dice, roll_challenge_dice
-from starforged.engine.moves import (
+from soloquest.engine.dice import MixedDice, roll_action_dice, roll_challenge_dice
+from soloquest.engine.moves import (
     MoveResult,
     OutcomeTier,
     check_match,
@@ -15,10 +15,10 @@ from starforged.engine.moves import (
     resolve_outcome,
     would_momentum_improve,
 )
-from starforged.ui import display
+from soloquest.ui import display
 
 if TYPE_CHECKING:
-    from starforged.loop import GameState
+    from soloquest.loop import GameState
 
 
 def fuzzy_match_move(query: str, move_data: dict) -> list[str]:
@@ -102,7 +102,7 @@ def handle_move(state: GameState, args: list[str], flags: set[str]) -> None:
 
     # Offer momentum burn if it would improve outcome
     if would_momentum_improve(result.outcome, state.character.momentum, c1, c2):
-        from starforged.engine.moves import momentum_burn_outcome
+        from soloquest.engine.moves import momentum_burn_outcome
 
         burn_tier = momentum_burn_outcome(state.character.momentum, c1, c2)
         tier_label = {
@@ -245,7 +245,7 @@ def _offer_pay_the_price(state: GameState, flags: set[str]) -> None:
     """On a miss, offer to roll Pay the Price oracle."""
     display.console.print()
     if Confirm.ask("  Roll Pay the Price oracle?", default=True):
-        from starforged.engine.oracles import roll_oracle
+        from soloquest.engine.oracles import roll_oracle
 
         table = state.oracles.get("pay_the_price")
         if not table:
@@ -262,7 +262,7 @@ def _offer_pay_the_price(state: GameState, flags: set[str]) -> None:
 
 def _handle_progress_roll(state: GameState, move_key: str, move: dict, flags: set[str]) -> None:
     """Handle a progress roll (Fulfill Vow, Take Decisive Action, etc.)."""
-    from starforged.models.vow import fuzzy_match_vow
+    from soloquest.models.vow import fuzzy_match_vow
 
     move_name = move["name"]
     vow = None
@@ -355,7 +355,7 @@ def _handle_ask_the_oracle(state: GameState, flags: set[str]) -> None:
 
 def _handle_forsake_vow(state: GameState) -> None:
     """Forsake Your Vow — remove a vow and suffer spirit loss."""
-    from starforged.models.vow import SPIRIT_COST, fuzzy_match_vow
+    from soloquest.models.vow import SPIRIT_COST, fuzzy_match_vow
 
     active = [v for v in state.vows if not v.fulfilled]
     if not active:
