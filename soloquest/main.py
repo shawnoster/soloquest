@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+import argparse
+from pathlib import Path
+
 from rich.prompt import Prompt
 
 from soloquest.engine.dice import DiceMode
@@ -82,8 +85,45 @@ def new_character() -> tuple[Character, list[Vow], DiceMode]:
     return character, vows, dice_mode
 
 
+def parse_args() -> argparse.Namespace:
+    """Parse command-line arguments."""
+    parser = argparse.ArgumentParser(
+        prog="soloquest",
+        description="A solo journaling CLI for tabletop RPGs",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  soloquest                                    # Use default directory
+  soloquest -d ~/my-campaigns                  # Use custom directory
+  soloquest --adventures-dir ./test-campaign   # Use relative path
+
+For more information: https://github.com/shawnoster/solo-cli
+        """,
+    )
+    parser.add_argument(
+        "-d",
+        "--adventures-dir",
+        type=Path,
+        metavar="PATH",
+        help="path to adventures directory (saves, sessions, journal)",
+    )
+    parser.add_argument(
+        "--version",
+        action="version",
+        version="%(prog)s 0.1.0",
+    )
+    return parser.parse_args()
+
+
 def main() -> None:
-    from soloquest.config import get_adventures_dir
+    from soloquest.config import get_adventures_dir, set_adventures_dir
+
+    # Parse command-line arguments
+    args = parse_args()
+
+    # Set adventures directory from CLI argument if provided
+    if args.adventures_dir:
+        set_adventures_dir(args.adventures_dir)
 
     display.splash()
 

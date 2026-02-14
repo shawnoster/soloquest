@@ -152,10 +152,16 @@ By default, all your adventure data is stored in `~/soloquest-adventures/`:
 - `sessions/` — individual session markdown
 - `journal/` — cumulative journal markdown
 
-**Configure your own location** to integrate with Obsidian, Logseq, or any personal wiki:
+**Use a custom location** to integrate with Obsidian, Logseq, or any personal wiki:
 
 ```bash
+# Option 1: Command-line argument (recommended)
+soloquest -d ~/Documents/ObsidianVault/Starforged
+soloquest --adventures-dir ./my-campaign
+
+# Option 2: Environment variable
 export SOLOQUEST_ADVENTURES_DIR="$HOME/Documents/ObsidianVault/Starforged"
+soloquest
 ```
 
 See [Adventures Directory Configuration](docs/adventures-directory.md) for details.
