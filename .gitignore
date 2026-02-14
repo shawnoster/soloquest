@@ -27,6 +27,9 @@ saves/
 sessions/
 journal/
 
+# Copyrighted game assets — reference only, not for redistribution
+docs/Ironsworn-Starforged-Assets-Sheets.pdf
+
 # Editor
 .vscode/
 .idea/
