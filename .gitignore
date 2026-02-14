@@ -32,6 +32,9 @@ coverage.xml
 # Copyrighted game assets — reference only, not for redistribution
 docs/Ironsworn-Starforged-Assets-Sheets.pdf
 
+# Claude Code
+.claude/settings.local.json
+
 # Editor
 .vscode/
 .idea/
