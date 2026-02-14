@@ -94,13 +94,17 @@ def main() -> None:
             f"  [dim]Last played:[/dim] [bold]{character.name}[/bold]  Session {session_count}"
         )
         display.console.print()
-        display.info("  [r] Resume last session")
-        display.info("  [n] New character")
+        display.console.print("  +-- Choose an action ----------------------------+", markup=False)
+        display.console.print("  |                                                |", markup=False)
+        display.console.print("  |  [r] Resume last session                       |", markup=False)
+        display.console.print("  |  [n] New character                             |", markup=False)
         if len(saves) > 1:
-            display.info("  [l] Load different character")
+            display.console.print("  |  [l] Load different character                  |", markup=False)
+        display.console.print("  |                                                |", markup=False)
+        display.console.print("  +------------------------------------------------+", markup=False)
         display.console.print()
 
-        choice = Prompt.ask("  >", default="r").strip().lower()
+        choice = Prompt.ask("  Choice (r/n" + ("/l" if len(saves) > 1 else "") + ")", default="r").strip().lower()
 
         if choice == "r":
             pass  # use loaded character
@@ -108,9 +112,15 @@ def main() -> None:
             character, vows, dice_mode = new_character()
             session_count = 0
         elif choice == "l" and len(saves) > 1:
+            display.console.print()
+            display.console.print("  +-- Saved Characters ----------------------------+", markup=False)
+            display.console.print("  |                                                |", markup=False)
             for i, name in enumerate(saves, 1):
-                display.info(f"  [{i}] {name}")
-            raw = Prompt.ask("  Choose character")
+                display.console.print(f"  |  [{i}] {name:<43} |", markup=False)
+            display.console.print("  |                                                |", markup=False)
+            display.console.print("  +------------------------------------------------+", markup=False)
+            display.console.print()
+            raw = Prompt.ask("  Choose character (1-" + str(len(saves)) + ")")
             try:
                 idx = int(raw) - 1
                 char_name = saves[idx]
@@ -122,7 +132,11 @@ def main() -> None:
 
     else:
         # No existing saves
-        display.info("  No saves found. Let's create your character.")
+        display.console.print("  +-- No saves found ------------------------------+", markup=False)
+        display.console.print("  |                                                |", markup=False)
+        display.console.print("  |  Let's create your character.                  |", markup=False)
+        display.console.print("  |                                                |", markup=False)
+        display.console.print("  +------------------------------------------------+", markup=False)
         display.console.print()
         character, vows, dice_mode = new_character()
         session_count = 0

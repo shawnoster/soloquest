@@ -4,7 +4,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from starforged.engine.oracles import OracleResult, fuzzy_match_oracle, roll_oracle
+from starforged.engine.dice import roll_oracle
+from starforged.engine.oracles import OracleResult, fuzzy_match_oracle
 from starforged.ui import display
 
 if TYPE_CHECKING:
