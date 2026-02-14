@@ -46,7 +46,7 @@ def save_game(
     # Create backup if save file exists
     if path.exists():
         backup_path = path.with_suffix(".json.bak")
-        backup_path.write_text(path.read_text())
+        backup_path.write_text(path.read_text(encoding="utf-8"), encoding="utf-8")
 
     data = {
         "character": character.to_dict(),
@@ -56,7 +56,7 @@ def save_game(
             "dice_mode": dice_mode.value,
         },
     }
-    path.write_text(json.dumps(data, indent=2))
+    path.write_text(json.dumps(data, indent=2), encoding="utf-8")
     return path
 
 
@@ -80,12 +80,12 @@ def load_game(character_name: str) -> tuple[Character, list[Vow], int, DiceMode]
     backup_path = path.with_suffix(".json.bak")
 
     try:
-        data = json.loads(path.read_text())
+        data = json.loads(path.read_text(encoding="utf-8"))
     except (json.JSONDecodeError, FileNotFoundError, KeyError) as e:
         # Try to recover from backup
         if backup_path.exists():
             try:
-                data = json.loads(backup_path.read_text())
+                data = json.loads(backup_path.read_text(encoding="utf-8"))
             except (json.JSONDecodeError, KeyError):
                 raise ValueError(
                     f"Save file corrupted and backup also invalid: {e}"
@@ -116,7 +116,7 @@ def load_most_recent() -> tuple[Character, list[Vow], int, DiceMode] | None:
         return None
 
     try:
-        data = json.loads(saves[0].read_text())
+        data = json.loads(saves[0].read_text(encoding="utf-8"))
         character = Character.from_dict(data["character"])
         vows = [Vow.from_dict(v) for v in data.get("vows", [])]
         session_count = data.get("session_count", 0)
