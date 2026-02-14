@@ -73,3 +73,13 @@ class Vow:
 def fuzzy_match_vow(query: str, vows: list[Vow]) -> list[Vow]:
     q = query.lower()
     return [v for v in vows if q in v.description.lower()]
+
+
+# Spirit cost when forsaking a vow, by rank
+SPIRIT_COST: dict[VowRank, int] = {
+    VowRank.TROUBLESOME: 1,
+    VowRank.DANGEROUS: 2,
+    VowRank.FORMIDABLE: 3,
+    VowRank.EXTREME: 4,
+    VowRank.EPIC: 5,
+}

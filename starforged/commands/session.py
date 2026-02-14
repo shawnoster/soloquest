@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 from rich.prompt import Prompt
 
 from starforged.journal.exporter import append_to_journal, export_session
+from starforged.models.session import EntryKind
 from starforged.state.save import save_game
 from starforged.ui import display
 
@@ -15,13 +16,20 @@ if TYPE_CHECKING:
 
 
 def handle_log(state: GameState, args: list[str], flags: set[str]) -> None:
-    """Show the full session log."""
+    """Show the full session log. /log --moves shows only moves, /log --compact skips mechanical."""
     if not state.session.entries:
         display.info("No entries in this session yet.")
         return
 
+    compact = "compact" in flags
+    moves_only = "moves" in flags
+
     display.rule(f"Session {state.session.number} Log")
     for entry in state.session.entries:
+        if moves_only and entry.kind not in (EntryKind.MOVE, EntryKind.ORACLE):
+            continue
+        if compact and entry.kind == EntryKind.MECHANICAL:
+            continue
         display.log_entry(entry)
     display.console.print()
 
@@ -45,12 +53,27 @@ def handle_end(state: GameState, args: list[str], flags: set[str]) -> None:
     if title:
         state.session.title = title
 
-    # Summary
-    moves = sum(1 for e in state.session.entries if e.kind.value == "move")
-    oracles = sum(1 for e in state.session.entries if e.kind.value == "oracle")
-    display.info(f"  Moves made: {moves}")
-    display.info(f"  Oracles consulted: {oracles}")
-    display.info(f"  Journal entries: {len(state.session.entries)}")
+    # Summary stats
+    entries = state.session.entries
+    moves_count = sum(1 for e in entries if e.kind == EntryKind.MOVE)
+    oracles_count = sum(1 for e in entries if e.kind == EntryKind.ORACLE)
+    journal_count = sum(1 for e in entries if e.kind == EntryKind.JOURNAL)
+    notes_count = sum(1 for e in entries if e.kind == EntryKind.NOTE)
+
+    active_vows = sum(1 for v in state.vows if not v.fulfilled)
+    fulfilled_vows = sum(1 for v in state.vows if v.fulfilled)
+
+    display.info(f"  Moves rolled:        {moves_count}")
+    display.info(f"  Oracles consulted:   {oracles_count}")
+    display.info(f"  Journal entries:     {journal_count}")
+    if notes_count:
+        display.info(f"  Notes:               {notes_count}")
+    if fulfilled_vows:
+        display.info(f"  Vows fulfilled:      {fulfilled_vows}")
+    display.info(f"  Active vows:         {active_vows}")
+    display.info(
+        f"  Momentum:            {state.character.momentum:+d}/{state.character.momentum_max}"
+    )
     display.console.print()
 
     # Save character state

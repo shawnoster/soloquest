@@ -10,7 +10,7 @@ if TYPE_CHECKING:
     pass
 
 # Commands that don't need argument parsing
-BARE_COMMANDS = {"char", "log", "burn", "end", "help", "quit", "q"}
+BARE_COMMANDS = {"char", "log", "burn", "end", "forsake", "help", "quit", "q"}
 
 
 @dataclass
@@ -66,7 +66,6 @@ def fuzzy_match_command(name: str, known: list[str]) -> str | None:
 COMMAND_HELP: dict[str, str] = {
     "move": "/move [name] — resolve a move (e.g. /move strike)",
     "oracle": "/oracle [table] — consult an oracle (e.g. /oracle action theme)",
-    "roll": "/roll [dice] — raw roll (e.g. /roll 2d10)",
     "vow": "/vow [rank] [text] — create a vow",
     "progress": "/progress [vow] — mark progress on a vow",
     "fulfill": "/fulfill [vow] — attempt to fulfill a vow",
@@ -79,6 +78,8 @@ COMMAND_HELP: dict[str, str] = {
     "momentum": "/momentum +N or -N — adjust momentum",
     "burn": "/burn — burn momentum to improve last roll",
     "debility": "/debility [name] — toggle a debility (wounded, shaken, unprepared, etc.)",
+    "roll": "/roll [dice] — raw dice roll (e.g. /roll d6, /roll 2d10)",
+    "forsake": "/forsake — forsake a vow (costs spirit)",
     "settings": "/settings dice [digital|physical|mixed] — change dice mode",
     "end": "/end — end session and export journal",
     "help": "help or help [topic] — show help",

@@ -18,6 +18,7 @@ from starforged.commands.debility import handle_debility
 from starforged.commands.move import handle_move
 from starforged.commands.oracle import handle_oracle
 from starforged.commands.registry import COMMAND_HELP, parse_command
+from starforged.commands.roll import handle_roll
 from starforged.commands.session import handle_end, handle_help, handle_log, handle_note
 from starforged.commands.vow import handle_fulfill, handle_progress, handle_vow
 from starforged.engine.dice import (
@@ -48,6 +49,7 @@ AUTOSAVE_AFTER = {
     "supply",
     "momentum",
     "debility",
+    "forsake",
 }
 
 
@@ -150,6 +152,12 @@ def run_session(
                 handle_momentum(state, cmd.args, cmd.flags)
             case "debility":
                 handle_debility(state, cmd.args, cmd.flags)
+            case "roll":
+                handle_roll(state, cmd.args, cmd.flags)
+            case "forsake":
+                from starforged.commands.move import _handle_forsake_vow
+
+                _handle_forsake_vow(state)
             case "settings":
                 handle_settings(state, cmd.args, cmd.flags)
             case "end":

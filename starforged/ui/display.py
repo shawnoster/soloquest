@@ -40,7 +40,14 @@ def rule(title: str = "") -> None:
     console.print(Rule(title, style="dim blue"))
 
 
-def move_result_panel(move_name: str, result: MoveResult, outcome_text: str) -> None:
+def move_result_panel(
+    move_name: str,
+    result: MoveResult,
+    outcome_text: str,
+    stat_name: str = "",
+    mom_delta: int = 0,
+    is_progress_roll: bool = False,
+) -> None:
     """Render a move result as a Rich panel."""
     match result.outcome:
         case OutcomeTier.STRONG_HIT:
@@ -55,14 +62,16 @@ def move_result_panel(move_name: str, result: MoveResult, outcome_text: str) -> 
 
     lines: list[str] = []
 
-    if result.burned_momentum:
+    if is_progress_roll:
+        lines.append(f"Progress score: [bold]{result.action_score}[/bold]")
+    elif result.burned_momentum:
         lines.append(f"Burned momentum ({result.momentum_used:+d}) as action score")
         lines.append("")
     else:
-        stat_part = f"{result.stat} (stat)"
+        stat_label = stat_name.capitalize() if stat_name else "stat"
         adds_part = f" + {result.adds} (adds)" if result.adds else ""
         lines.append(
-            f"Action:  d6({result.action_die}) + {stat_part}{adds_part}"
+            f"Action:  d6({result.action_die}) + {stat_label}({result.stat}){adds_part}"
             f" = [bold]{result.action_score}[/bold]"
         )
 
@@ -80,6 +89,10 @@ def move_result_panel(move_name: str, result: MoveResult, outcome_text: str) -> 
 
     lines.append("")
     lines.append(f"[dim]{outcome_text}[/dim]")
+
+    if mom_delta:
+        lines.append("")
+        lines.append(f"[dim]Momentum {mom_delta:+d}[/dim]")
 
     body = "\n".join(lines)
     console.print(Panel(body, title=f"[bold]{move_name.upper()}[/bold]", border_style="blue"))

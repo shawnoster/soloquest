@@ -105,5 +105,5 @@ def _show_vows(vows: list[Vow]) -> None:
 def _show_vow_track(vow: Vow) -> None:
     boxes = vow.boxes_filled
     partial = vow.partial_ticks
-    bar = "▓" * boxes + ("░" if partial else "") + "□" * (10 - boxes - (1 if partial else 0))
+    bar = "▓" * boxes + ("▒" if partial else "") + "□" * (10 - boxes - (1 if partial else 0))
     display.info(f"  {bar}  {vow.progress_score}/10")
