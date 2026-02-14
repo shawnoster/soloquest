@@ -17,7 +17,13 @@
       "Bash(gh repo create:*)",
       "Bash(git checkout:*)",
       "Bash(git push:*)",
-      "Bash(gh pr create:*)"
+      "Bash(gh pr create:*)",
+      "Bash(make check:*)",
+      "Bash(uv run:*)",
+      "Bash(STARFORGED_ADVENTURES_DIR=\"/tmp/test-adventures\" uv run:*)",
+      "Bash(git restore:*)",
+      "mcp__github__create_pull_request",
+      "Bash(git pull:*)"
     ]
   }
 }

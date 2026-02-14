@@ -67,15 +67,19 @@ def export_session(session: Session, character: Character) -> Path:
         filename = f"session_{session.number:03d}.md"
     path = sessions_directory / filename
 
-    # Build markdown content
+    # Build markdown content with YAML frontmatter
     lines = []
 
-    # Header
+    # YAML frontmatter
     title = session.title or f"Session {session.number}"
+    lines.append("---\n")
+    lines.append(f"session: {session.number}\n")
+    lines.append(f"character: {character.name}\n")
+    lines.append(f"date: {session.started_at.strftime('%Y-%m-%d')}\n")
+    if session.title:
+        lines.append(f"title: {session.title}\n")
+    lines.append("---\n\n")
     lines.append(f"# {title}\n")
-    lines.append(f"**Character:** {character.name}\n")
-    lines.append(f"**Date:** {session.started_at.strftime('%Y-%m-%d')}\n")
-    lines.append("\n---\n")
 
     # Entries
     for entry in session.entries:
@@ -128,7 +132,8 @@ def append_to_journal(session: Session, character: Character) -> Path:
     # If journal doesn't exist, create with header
     if not path.exists():
         header = f"# {character.name} — Journal\n\n"
-        header += f"**Homeworld:** {character.homeworld}\n\n"
+        if character.homeworld:
+            header += f"- **Homeworld:** {character.homeworld}\n\n"
         header += "---\n"
         path.write_text(header + content)
     else:
