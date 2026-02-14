@@ -90,6 +90,28 @@ uv run ruff check .
 uv run ruff format .
 ```
 
+### CI/CD
+
+This project uses GitHub Actions for continuous integration and automated releases:
+
+- **PR Checks** — Every pull request runs linting (`ruff`) and tests (`pytest`) automatically
+- **Semantic Release** — Commits to `main` trigger automatic version bumps and GitHub releases based on [Conventional Commits](https://www.conventionalcommits.org/)
+  - `feat:` commits trigger minor version bumps (0.x.0)
+  - `fix:` commits trigger patch version bumps (0.0.x)
+  - `BREAKING CHANGE:` in commit body triggers major version bumps (x.0.0)
+- **Automated Changelog** — `CHANGELOG.md` is automatically updated with each release
+
+**Commit Message Format:**
+```bash
+<type>: <description>
+
+[optional body]
+
+[optional footer(s)]
+```
+
+**Types:** `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `chore`, `ci`, `build`
+
 ---
 
 ## Commands
