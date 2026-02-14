@@ -20,9 +20,31 @@ By default, Starforged CLI stores all your adventure data (saves, sessions, jour
 
 ## Configuration
 
-### Option 1: Environment Variable (Recommended)
+The adventures directory can be configured in three ways (in priority order):
 
-Set `SOLOQUEST_ADVENTURES_DIR` to any directory:
+### Option 1: Command-Line Argument (Recommended)
+
+Pass the directory path directly when launching:
+
+```bash
+# Use short flag
+soloquest -d ~/Documents/ObsidianVault/Starforged
+
+# Or long flag
+soloquest --adventures-dir ~/my-campaigns
+
+# Relative paths work too
+soloquest -d ./test-campaign
+```
+
+**Benefits:**
+- ✅ Most explicit and clear
+- ✅ Easy to switch between campaigns
+- ✅ Works great with shell aliases
+
+### Option 2: Environment Variable
+
+Set `SOLOQUEST_ADVENTURES_DIR` in your shell:
 
 ```bash
 # In your ~/.bashrc or ~/.zshrc
@@ -32,7 +54,11 @@ export SOLOQUEST_ADVENTURES_DIR="$HOME/Documents/ObsidianVault/Starforged"
 SOLOQUEST_ADVENTURES_DIR="$HOME/my-campaigns" soloquest
 ```
 
-### Option 2: Default Location
+**Benefits:**
+- ✅ Set once, use everywhere
+- ✅ Good for a single primary campaign
+
+### Option 3: Default Location
 
 If no configuration is provided, adventures are stored in:
 - `~/soloquest-adventures/`
@@ -40,10 +66,11 @@ If no configuration is provided, adventures are stored in:
 ## Example: Obsidian Integration
 
 ```bash
-# Point to your Obsidian vault
-export SOLOQUEST_ADVENTURES_DIR="$HOME/Documents/ObsidianVault/TTRPG/Starforged"
+# Option A: Use command-line argument
+soloquest -d ~/Documents/ObsidianVault/TTRPG/Starforged
 
-# Run the CLI - sessions will appear in your vault automatically
+# Option B: Set environment variable
+export SOLOQUEST_ADVENTURES_DIR="$HOME/Documents/ObsidianVault/TTRPG/Starforged"
 soloquest
 ```
 
@@ -60,7 +87,12 @@ TTRPG/Starforged/
 
 ## Tips
 
-- **Use absolute paths** in `SOLOQUEST_ADVENTURES_DIR`
+- **Multiple campaigns?** Create shell aliases:
+  ```bash
+  alias starforged-main='soloquest -d ~/campaigns/starforged-main'
+  alias starforged-test='soloquest -d ~/campaigns/test-game'
+  ```
+- **Use absolute paths** for consistency
 - **Backup regularly** if storing in a cloud-synced folder
 - **Git-friendly** — Session markdown files are plain text and version-control friendly
 - **Share adventures** — Point multiple users to a shared network directory for collaborative worldbuilding

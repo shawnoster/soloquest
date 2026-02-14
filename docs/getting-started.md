@@ -522,7 +522,7 @@ Debilities are lasting conditions that reduce your momentum:
 
 ### Session Export
 
-When you end a session with `/end`, the CLI creates a markdown file in your adventures directory (default: `~/Documents/Ironsworn/adventures/`).
+When you end a session with `/end`, the CLI creates a markdown file in your adventures directory (default: `~/soloquest-adventures/`).
 
 **Export includes:**
 - Session number and date
@@ -532,12 +532,16 @@ When you end a session with `/end`, the CLI creates a markdown file in your adve
 
 **Configuring adventures directory:**
 
-Create a `config.toml` file in `~/.config/soloquest/` (or platform equivalent):
+```bash
+# Option 1: Command-line argument (recommended)
+soloquest -d ~/Documents/ObsidianVault/Starforged
 
-```toml
-[adventures]
-directory = "/path/to/your/wiki/adventures"
+# Option 2: Environment variable
+export SOLOQUEST_ADVENTURES_DIR="$HOME/Documents/ObsidianVault/Starforged"
+soloquest
 ```
+
+See [Adventures Directory Configuration](adventures-directory.md) for more details.
 
 ---
 
