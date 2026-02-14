@@ -103,6 +103,26 @@ def run_session(
     display.session_header(session_count, "")
     display.info(f"  Character: {character.name}  |  Dice: {dice_mode.value}")
     display.info("  Type to journal. /help for commands.")
+
+    # Show context when resuming (not first session)
+    if session_count > 1:
+        display.console.print()
+        display.rule("Continuing Your Journey")
+
+        # Show active vows
+        active_vows = [v for v in vows if not v.fulfilled]
+        if active_vows:
+            display.console.print("  [bold]Active Vows:[/bold]")
+            for vow in active_vows[:3]:  # Show up to 3 vows
+                boxes = "█" * vow.boxes_filled + "░" * (10 - vow.boxes_filled)
+                display.console.print(
+                    f"    [dim]• {vow.description} [{vow.rank}] {boxes}[/dim]"
+                )
+        else:
+            display.console.print("  [dim]No active vows[/dim]")
+
+        display.rule()
+
     display.console.print()
 
     history = InMemoryHistory()
@@ -128,61 +148,75 @@ def run_session(
             state._unsaved_entries += 1
             continue
 
-        # Dispatch
-        match cmd.name:
-            case "move":
-                handle_move(state, cmd.args, cmd.flags)
-            case "oracle":
-                handle_oracle(state, cmd.args, cmd.flags)
-            case "vow":
-                handle_vow(state, cmd.args, cmd.flags)
-            case "progress":
-                handle_progress(state, cmd.args, cmd.flags)
-            case "fulfill":
-                handle_fulfill(state, cmd.args, cmd.flags)
-            case "char":
-                handle_char(state, cmd.args, cmd.flags)
-            case "log":
-                handle_log(state, cmd.args, cmd.flags)
-            case "note":
-                handle_note(state, cmd.args, cmd.flags)
-            case "health" | "spirit" | "supply":
-                handle_track(state, cmd.name, cmd.args)
-            case "momentum":
-                handle_momentum(state, cmd.args, cmd.flags)
-            case "debility":
-                handle_debility(state, cmd.args, cmd.flags)
-            case "roll":
-                handle_roll(state, cmd.args, cmd.flags)
-            case "forsake":
-                from starforged.commands.move import _handle_forsake_vow
+        # Dispatch with error handling
+        try:
+            match cmd.name:
+                case "move":
+                    handle_move(state, cmd.args, cmd.flags)
+                case "oracle":
+                    handle_oracle(state, cmd.args, cmd.flags)
+                case "vow":
+                    handle_vow(state, cmd.args, cmd.flags)
+                case "progress":
+                    handle_progress(state, cmd.args, cmd.flags)
+                case "fulfill":
+                    handle_fulfill(state, cmd.args, cmd.flags)
+                case "char":
+                    handle_char(state, cmd.args, cmd.flags)
+                case "log":
+                    handle_log(state, cmd.args, cmd.flags)
+                case "note":
+                    handle_note(state, cmd.args, cmd.flags)
+                case "health" | "spirit" | "supply":
+                    handle_track(state, cmd.name, cmd.args)
+                case "momentum":
+                    handle_momentum(state, cmd.args, cmd.flags)
+                case "debility":
+                    handle_debility(state, cmd.args, cmd.flags)
+                case "roll":
+                    handle_roll(state, cmd.args, cmd.flags)
+                case "forsake":
+                    from starforged.commands.move import _handle_forsake_vow
 
-                _handle_forsake_vow(state)
-            case "settings":
-                handle_settings(state, cmd.args, cmd.flags)
-            case "end":
-                handle_end(state, cmd.args, cmd.flags)
-            case "help":
-                handle_help(state, cmd.args, cmd.flags)
-            case "quit" | "q":
-                _confirm_quit(state)
-            case _:
-                known = list(COMMAND_HELP.keys())
-                close = [k for k in known if k.startswith(cmd.name)]
-                if close:
-                    display.warn(
-                        f"Unknown command '/{cmd.name}'. Did you mean: "
-                        + ", ".join(f"/{c}" for c in close)
-                        + "?"
-                    )
-                else:
-                    display.error(f"Unknown command '/{cmd.name}'. Type /help for commands.")
-                continue  # skip autosave on unknown commands
+                    _handle_forsake_vow(state)
+                case "settings":
+                    handle_settings(state, cmd.args, cmd.flags)
+                case "end":
+                    handle_end(state, cmd.args, cmd.flags)
+                case "help":
+                    handle_help(state, cmd.args, cmd.flags)
+                case "quit" | "q":
+                    _confirm_quit(state)
+                case _:
+                    known = list(COMMAND_HELP.keys())
+                    close = [k for k in known if k.startswith(cmd.name)]
+                    if close:
+                        display.warn(
+                            f"Unknown command '/{cmd.name}'. Did you mean: "
+                            + ", ".join(f"/{c}" for c in close)
+                            + "?"
+                        )
+                    else:
+                        display.error(f"Unknown command '/{cmd.name}'. Type /help for commands.")
+                    continue  # skip autosave on unknown commands
 
-        # Autosave after mechanical commands
-        if cmd.name in AUTOSAVE_AFTER:
-            autosave(state.character, state.vows, state.session_count, state.dice_mode)
-            state._unsaved_entries = 0
+            # Autosave after mechanical commands
+            if cmd.name in AUTOSAVE_AFTER:
+                autosave(state.character, state.vows, state.session_count, state.dice_mode)
+                state._unsaved_entries = 0
+
+        except ValueError as e:
+            display.error(f"Invalid value: {e}")
+            display.info("  Type /help for usage information.")
+        except KeyError as e:
+            display.error(f"Missing data: {e}")
+            display.warn("  Your save file may be corrupted.")
+        except AttributeError as e:
+            display.error(f"Invalid attribute: {e}")
+            display.info("  This is a bug. Please report it.")
+        except Exception as e:
+            display.error(f"Unexpected error: {e}")
+            display.warn("  Game state preserved. Continue playing.")
 
 
 def _handle_interrupt(state: GameState) -> None:

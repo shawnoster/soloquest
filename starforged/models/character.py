@@ -31,7 +31,11 @@ class Stats:
     wits: int = 1
 
     def get(self, name: str) -> int:
-        return getattr(self, name.lower())
+        """Get a stat by name. Raises ValueError if stat name is invalid."""
+        name_lower = name.lower()
+        if name_lower not in ("edge", "heart", "iron", "shadow", "wits"):
+            raise ValueError(f"Invalid stat name: {name}")
+        return getattr(self, name_lower)
 
     def as_dict(self) -> dict[str, int]:
         return {
@@ -92,11 +96,12 @@ class Character:
         self.momentum = self.momentum_reset
         return old
 
-    def toggle_debility(self, name: str) -> bool:
-        """Toggle a debility on/off. Returns True if now active, False if removed."""
+    def toggle_debility(self, name: str) -> bool | None:
+        """Toggle a debility on/off. Returns True if now active, False if removed, None if invalid."""
         name = name.lower()
         if name not in DEBILITY_NAMES:
-            raise ValueError(f"Unknown debility: {name}")
+            # Return None instead of raising to allow graceful handling
+            return None
         if name in self.debilities:
             self.debilities.discard(name)
             # Re-clamp momentum to new max

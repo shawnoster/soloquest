@@ -20,6 +20,63 @@ uv run starforged
 uv run python -m starforged.main
 ```
 
+**New to Starforged CLI?** See the [Getting Started Guide](docs/getting-started.md) for a complete walkthrough.
+
+---
+
+## Example Session
+
+Here's what a typical session looks like:
+
+```
+═══════════════════════════════════════════════════════════════════════════════
+Session 1
+═══════════════════════════════════════════════════════════════════════════════
+  Character: Maya Okonkwo  |  Dice: digital
+  Type to journal. /help for commands.
+
+> I step through the airlock into the derelict mining station. Emergency lights flicker overhead.
+
+> /move face danger wits
+
+───────────────────────────────────────────────────────────────────────────────
+Move: Face Danger
+───────────────────────────────────────────────────────────────────────────────
+
+Face Danger (Wits +2)
+  Action: 5 + 2 = 7  vs  Challenge: 3, 8
+
+Result: WEAK HIT
+  You succeed, but with a cost or complication.
+
+> I navigate safely but spot recent footprints in the dust. Someone else is here.
+
+> /vow dangerous Find whoever is stalking this station
+
+Vow sworn: Find whoever is stalking this station
+  Rank: dangerous
+  Progress: ▢▢▢▢▢▢▢▢▢▢  0/10 boxes
+
+> /oracle action descriptor
+
+Action: Clash
+Descriptor: Mechanical
+
+> I hear the screech of metal on metal echoing through the corridors.
+
+> /end
+
+Session ended.
+Entries: 6 journal, 3 mechanical
+
+Export saved to:
+  adventures/maya_okonkwo_session_001.md
+
+Game autosaved.
+```
+
+---
+
 ## Development
 
 ```bash

@@ -62,9 +62,15 @@ class Vow:
 
     @classmethod
     def from_dict(cls, data: dict) -> Vow:
+        """Load vow from dict. Defaults to DANGEROUS rank if invalid rank in data."""
+        try:
+            rank = VowRank(data["rank"])
+        except (ValueError, KeyError):
+            rank = VowRank.DANGEROUS  # safe default if rank is invalid
+
         return cls(
-            description=data["description"],
-            rank=VowRank(data["rank"]),
+            description=data.get("description", "Unknown vow"),
+            rank=rank,
             ticks=data.get("ticks", 0),
             fulfilled=data.get("fulfilled", False),
         )

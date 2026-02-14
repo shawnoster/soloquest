@@ -42,6 +42,12 @@ def save_game(
 ) -> Path:
     _saves_dir().mkdir(parents=True, exist_ok=True)
     path = saves_path(character.name)
+
+    # Create backup if save file exists
+    if path.exists():
+        backup_path = path.with_suffix(".json.bak")
+        backup_path.write_text(path.read_text())
+
     data = {
         "character": character.to_dict(),
         "vows": [v.to_dict() for v in vows],
@@ -66,9 +72,26 @@ def autosave(
 
 
 def load_game(character_name: str) -> tuple[Character, list[Vow], int, DiceMode]:
-    """Load a save file. Returns (character, vows, session_count, dice_mode)."""
+    """Load a save file. Returns (character, vows, session_count, dice_mode).
+
+    Raises ValueError if save is corrupted and no backup exists.
+    """
     path = saves_path(character_name)
-    data = json.loads(path.read_text())
+    backup_path = path.with_suffix(".json.bak")
+
+    try:
+        data = json.loads(path.read_text())
+    except (json.JSONDecodeError, FileNotFoundError, KeyError) as e:
+        # Try to recover from backup
+        if backup_path.exists():
+            try:
+                data = json.loads(backup_path.read_text())
+            except (json.JSONDecodeError, KeyError):
+                raise ValueError(
+                    f"Save file corrupted and backup also invalid: {e}"
+                ) from e
+        else:
+            raise ValueError(f"Save file corrupted: {e}") from e
 
     character = Character.from_dict(data["character"])
     vows = [Vow.from_dict(v) for v in data.get("vows", [])]
@@ -79,16 +102,26 @@ def load_game(character_name: str) -> tuple[Character, list[Vow], int, DiceMode]
 
 
 def load_most_recent() -> tuple[Character, list[Vow], int, DiceMode] | None:
-    """Load the most recently modified save, or None if no saves exist."""
+    """Load the most recently modified save, or None if no saves exist.
+
+    Returns None if save is corrupted.
+    """
     saves_directory = _saves_dir()
     if not saves_directory.exists():
         return None
-    saves = sorted(saves_directory.glob("*.json"), key=lambda p: p.stat().st_mtime, reverse=True)
+    saves = sorted(
+        saves_directory.glob("*.json"), key=lambda p: p.stat().st_mtime, reverse=True
+    )
     if not saves:
         return None
-    data = json.loads(saves[0].read_text())
-    character = Character.from_dict(data["character"])
-    vows = [Vow.from_dict(v) for v in data.get("vows", [])]
-    session_count = data.get("session_count", 0)
-    dice_mode = DiceMode(data.get("settings", {}).get("dice_mode", "digital"))
-    return character, vows, session_count, dice_mode
+
+    try:
+        data = json.loads(saves[0].read_text())
+        character = Character.from_dict(data["character"])
+        vows = [Vow.from_dict(v) for v in data.get("vows", [])]
+        session_count = data.get("session_count", 0)
+        dice_mode = DiceMode(data.get("settings", {}).get("dice_mode", "digital"))
+        return character, vows, session_count, dice_mode
+    except (json.JSONDecodeError, KeyError, ValueError):
+        # Corrupted save, return None to trigger new character creation
+        return None

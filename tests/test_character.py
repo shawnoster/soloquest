@@ -138,8 +138,16 @@ class TestDebilities:
         assert restored.momentum_max == MOMENTUM_MAX_BASE - 2
         assert restored.momentum_reset == 0
 
-    def test_invalid_debility_raises(self):
+    def test_invalid_debility_returns_none(self):
+        """Invalid debility names return None instead of raising."""
+        result = self.char.toggle_debility("invincible")
+        assert result is None
+        assert "invincible" not in self.char.debilities
+
+    def test_invalid_stat_name_raises(self):
+        """Stats.get raises ValueError for invalid stat names."""
         import pytest
 
-        with pytest.raises(ValueError, match="Unknown debility"):
-            self.char.toggle_debility("invincible")
+        stats = Stats(edge=2, heart=1, iron=3, shadow=2, wits=3)
+        with pytest.raises(ValueError, match="Invalid stat name"):
+            stats.get("invalid_stat")

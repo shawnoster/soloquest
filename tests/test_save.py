@@ -128,3 +128,73 @@ class TestAutosave:
         with patch("starforged.state.save.save_game", side_effect=OSError("disk full")):
             # Should not raise
             autosave(sample_character, sample_vows, 1, DiceMode.DIGITAL)
+
+
+class TestErrorHandling:
+    def test_save_creates_backup(self, tmp_saves, sample_character, sample_vows):
+        """Saving should create a .bak backup of existing save file."""
+        # Create initial save
+        save_game(sample_character, sample_vows, 1, DiceMode.DIGITAL)
+        path = tmp_saves / "kael_morrow.json"
+        backup_path = path.with_suffix(".json.bak")
+
+        # Modify character and save again
+        sample_character.health = 2
+        save_game(sample_character, sample_vows, 2, DiceMode.DIGITAL)
+
+        # Backup should exist with old data
+        assert backup_path.exists()
+        backup_data = json.loads(backup_path.read_text())
+        assert backup_data["session_count"] == 1  # Old session count
+
+    def test_corrupted_save_raises_with_helpful_message(self, tmp_saves):
+        """Loading corrupted save without backup should raise ValueError."""
+        path = tmp_saves / "broken.json"
+        tmp_saves.mkdir(parents=True, exist_ok=True)
+        path.write_text("{ invalid json")
+
+        with pytest.raises(ValueError, match="Save file corrupted"):
+            load_game("broken")
+
+    def test_corrupted_save_recovers_from_backup(self, tmp_saves, sample_character, sample_vows):
+        """If main save is corrupted but backup exists, load from backup."""
+        # Create valid save (which creates backup)
+        save_game(sample_character, sample_vows, 1, DiceMode.DIGITAL)
+        sample_character.health = 1
+        save_game(sample_character, sample_vows, 2, DiceMode.DIGITAL)
+
+        path = tmp_saves / "kael_morrow.json"
+
+        # Corrupt main save
+        path.write_text("{ corrupted }")
+
+        # Should recover from backup
+        char, vows, count, mode = load_game("Kael Morrow")
+        assert char.name == "Kael Morrow"
+        # Should have session 1 data from backup
+        assert count == 1
+
+    def test_invalid_vow_rank_uses_default(self, tmp_saves, sample_character):
+        """Vow.from_dict should default to DANGEROUS rank if rank is invalid."""
+        # Create vow with invalid rank in saved data
+        path = tmp_saves / "test_char.json"
+        tmp_saves.mkdir(parents=True, exist_ok=True)
+        data = {
+            "character": sample_character.to_dict(),
+            "vows": [
+                {
+                    "description": "Test vow",
+                    "rank": "invalid_rank",  # Invalid!
+                    "ticks": 5,
+                    "fulfilled": False,
+                }
+            ],
+            "session_count": 1,
+            "settings": {"dice_mode": "digital"},
+        }
+        path.write_text(json.dumps(data))
+
+        # Should load without crashing, defaulting to DANGEROUS
+        char, vows, count, mode = load_game("Test Char")
+        assert len(vows) == 1
+        assert vows[0].rank.value == "dangerous"  # Default rank
