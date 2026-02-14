@@ -66,11 +66,20 @@ Anything typed without a `/` prefix is added to your journal.
 - **physical** — CLI prompts you to enter each die result
 - **mixed** — digital by default; add `--manual` to any command to prompt for that roll
 
-## Session Export
+## Adventures Directory
 
-Every session is saved to:
-- `sessions/session_NN_title.md` — this session only
-- `journal/character_name_journal.md` — full cumulative journal
+By default, all your adventure data is stored in `~/starforged-adventures/`:
+- `saves/` — character save files
+- `sessions/` — individual session markdown
+- `journal/` — cumulative journal markdown
+
+**Configure your own location** to integrate with Obsidian, Logseq, or any personal wiki:
+
+```bash
+export STARFORGED_ADVENTURES_DIR="$HOME/Documents/ObsidianVault/Starforged"
+```
+
+See [Adventures Directory Configuration](docs/adventures-directory.md) for details.
 
 ---
 

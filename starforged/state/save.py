@@ -6,16 +6,20 @@ import contextlib
 import json
 from pathlib import Path
 
+from starforged.config import saves_dir
 from starforged.engine.dice import DiceMode
 from starforged.models.character import Character
 from starforged.models.vow import Vow
 
-SAVES_DIR = Path("saves")
+
+def _saves_dir() -> Path:
+    """Get the saves directory path."""
+    return saves_dir()
 
 
 def saves_path(character_name: str) -> Path:
     slug = character_name.lower().replace(" ", "_")
-    return SAVES_DIR / f"{slug}.json"
+    return _saves_dir() / f"{slug}.json"
 
 
 def save_exists(character_name: str) -> bool:
@@ -24,9 +28,10 @@ def save_exists(character_name: str) -> bool:
 
 def list_saves() -> list[str]:
     """Return list of character names with existing saves."""
-    if not SAVES_DIR.exists():
+    saves_directory = _saves_dir()
+    if not saves_directory.exists():
         return []
-    return [p.stem.replace("_", " ").title() for p in SAVES_DIR.glob("*.json")]
+    return [p.stem.replace("_", " ").title() for p in saves_directory.glob("*.json")]
 
 
 def save_game(
@@ -35,7 +40,7 @@ def save_game(
     session_count: int,
     dice_mode: DiceMode,
 ) -> Path:
-    SAVES_DIR.mkdir(parents=True, exist_ok=True)
+    _saves_dir().mkdir(parents=True, exist_ok=True)
     path = saves_path(character.name)
     data = {
         "character": character.to_dict(),
@@ -75,9 +80,10 @@ def load_game(character_name: str) -> tuple[Character, list[Vow], int, DiceMode]
 
 def load_most_recent() -> tuple[Character, list[Vow], int, DiceMode] | None:
     """Load the most recently modified save, or None if no saves exist."""
-    if not SAVES_DIR.exists():
+    saves_directory = _saves_dir()
+    if not saves_directory.exists():
         return None
-    saves = sorted(SAVES_DIR.glob("*.json"), key=lambda p: p.stat().st_mtime, reverse=True)
+    saves = sorted(saves_directory.glob("*.json"), key=lambda p: p.stat().st_mtime, reverse=True)
     if not saves:
         return None
     data = json.loads(saves[0].read_text())

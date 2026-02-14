@@ -22,10 +22,12 @@ coverage.xml
 # ruff
 .ruff_cache/
 
-# Game saves (personal data, not committed)
-saves/
-sessions/
-journal/
+# Adventures directory (now configurable via STARFORGED_ADVENTURES_DIR)
+# Default location: ~/starforged-adventures/
+# These are only here if someone runs from repo root without config
+/saves/
+/sessions/
+/journal/
 
 # Copyrighted game assets — reference only, not for redistribution
 docs/Ironsworn-Starforged-Assets-Sheets.pdf

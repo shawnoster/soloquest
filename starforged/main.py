@@ -83,7 +83,16 @@ def new_character() -> tuple[Character, list[Vow], DiceMode]:
 
 
 def main() -> None:
+    from starforged.config import get_adventures_dir
+
     display.splash()
+
+    # Show adventures directory location
+    adventures_dir = get_adventures_dir()
+    display.console.print(
+        f"  [dim]Adventures directory:[/dim] {adventures_dir}", markup=True
+    )
+    display.console.print()
 
     saves = list_saves()
     most_recent = load_most_recent()

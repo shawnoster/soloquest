@@ -17,8 +17,10 @@ from starforged.state.save import autosave, load_game, save_game
 @pytest.fixture
 def tmp_saves(tmp_path, monkeypatch):
     """Redirect saves to a temp directory."""
-    monkeypatch.setattr(save_module, "SAVES_DIR", tmp_path / "saves")
-    return tmp_path / "saves"
+    tmp_saves_dir = tmp_path / "saves"
+    # Monkeypatch where the function is used, not where it's defined
+    monkeypatch.setattr(save_module, "_saves_dir", lambda: tmp_saves_dir)
+    return tmp_saves_dir
 
 
 @pytest.fixture
