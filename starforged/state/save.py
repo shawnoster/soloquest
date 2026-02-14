@@ -1,0 +1,88 @@
+"""JSON persistence for character saves."""
+
+from __future__ import annotations
+
+import contextlib
+import json
+from pathlib import Path
+
+from starforged.engine.dice import DiceMode
+from starforged.models.character import Character
+from starforged.models.vow import Vow
+
+SAVES_DIR = Path("saves")
+
+
+def saves_path(character_name: str) -> Path:
+    slug = character_name.lower().replace(" ", "_")
+    return SAVES_DIR / f"{slug}.json"
+
+
+def save_exists(character_name: str) -> bool:
+    return saves_path(character_name).exists()
+
+
+def list_saves() -> list[str]:
+    """Return list of character names with existing saves."""
+    if not SAVES_DIR.exists():
+        return []
+    return [p.stem.replace("_", " ").title() for p in SAVES_DIR.glob("*.json")]
+
+
+def save_game(
+    character: Character,
+    vows: list[Vow],
+    session_count: int,
+    dice_mode: DiceMode,
+) -> Path:
+    SAVES_DIR.mkdir(parents=True, exist_ok=True)
+    path = saves_path(character.name)
+    data = {
+        "character": character.to_dict(),
+        "vows": [v.to_dict() for v in vows],
+        "session_count": session_count,
+        "settings": {
+            "dice_mode": dice_mode.value,
+        },
+    }
+    path.write_text(json.dumps(data, indent=2))
+    return path
+
+
+def autosave(
+    character: Character,
+    vows: list[Vow],
+    session_count: int,
+    dice_mode: DiceMode,
+) -> None:
+    """Silent autosave — same as save_game but swallows errors gracefully."""
+    with contextlib.suppress(Exception):
+        save_game(character, vows, session_count, dice_mode)
+
+
+def load_game(character_name: str) -> tuple[Character, list[Vow], int, DiceMode]:
+    """Load a save file. Returns (character, vows, session_count, dice_mode)."""
+    path = saves_path(character_name)
+    data = json.loads(path.read_text())
+
+    character = Character.from_dict(data["character"])
+    vows = [Vow.from_dict(v) for v in data.get("vows", [])]
+    session_count = data.get("session_count", 0)
+    dice_mode = DiceMode(data.get("settings", {}).get("dice_mode", "digital"))
+
+    return character, vows, session_count, dice_mode
+
+
+def load_most_recent() -> tuple[Character, list[Vow], int, DiceMode] | None:
+    """Load the most recently modified save, or None if no saves exist."""
+    if not SAVES_DIR.exists():
+        return None
+    saves = sorted(SAVES_DIR.glob("*.json"), key=lambda p: p.stat().st_mtime, reverse=True)
+    if not saves:
+        return None
+    data = json.loads(saves[0].read_text())
+    character = Character.from_dict(data["character"])
+    vows = [Vow.from_dict(v) for v in data.get("vows", [])]
+    session_count = data.get("session_count", 0)
+    dice_mode = DiceMode(data.get("settings", {}).get("dice_mode", "digital"))
+    return character, vows, session_count, dice_mode

@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# uv / venv
+.venv/
+.python-version
+
+# pytest / coverage
+.pytest_cache/
+.coverage
+htmlcov/
+coverage.xml
+
+# ruff
+.ruff_cache/
+
+# Game saves (personal data, not committed)
+saves/
+sessions/
+journal/
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
