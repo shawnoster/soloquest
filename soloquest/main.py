@@ -4,11 +4,11 @@ from __future__ import annotations
 
 from rich.prompt import Prompt
 
-from starforged.engine.dice import DiceMode
-from starforged.models.character import Character, Stats
-from starforged.models.vow import Vow, VowRank
-from starforged.state.save import list_saves, load_game, load_most_recent
-from starforged.ui import display
+from soloquest.engine.dice import DiceMode
+from soloquest.models.character import Character, Stats
+from soloquest.models.vow import Vow, VowRank
+from soloquest.state.save import list_saves, load_game, load_most_recent
+from soloquest.ui import display
 
 
 def new_character() -> tuple[Character, list[Vow], DiceMode]:
@@ -83,7 +83,7 @@ def new_character() -> tuple[Character, list[Vow], DiceMode]:
 
 
 def main() -> None:
-    from starforged.config import get_adventures_dir
+    from soloquest.config import get_adventures_dir
 
     display.splash()
 
@@ -151,7 +151,7 @@ def main() -> None:
         session_count = 0
 
     # Start the session
-    from starforged.loop import run_session
+    from soloquest.loop import run_session
 
     run_session(character, vows, session_count, dice_mode)
 

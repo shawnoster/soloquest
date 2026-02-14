@@ -1,7 +1,7 @@
 [project]
-name = "starforged-cli"
+name = "soloquest"
 version = "0.1.0"
-description = "A solo journaling CLI companion for Ironsworn: Starforged"
+description = "A solo journaling CLI for tabletop RPGs (Ironsworn: Starforged, Mythic GME, and more)"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
@@ -10,7 +10,7 @@ dependencies = [
 ]
 
 [project.scripts]
-starforged = "starforged.main:main"
+soloquest = "soloquest.main:main"
 
 [build-system]
 requires = ["hatchling"]
@@ -32,7 +32,7 @@ select = ["E", "F", "I", "UP", "B", "SIM"]
 ignore = ["E501"]
 
 [tool.ruff.lint.isort]
-known-first-party = ["starforged"]
+known-first-party = ["soloquest"]
 
 [tool.ruff.format]
 quote-style = "double"
@@ -40,11 +40,11 @@ indent-style = "space"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "--cov=starforged --cov-report=term-missing -v"
+addopts = "--cov=soloquest --cov-report=term-missing -v"
 
 [tool.coverage.run]
-source = ["starforged"]
+source = ["soloquest"]
 omit = ["tests/*"]
 
 [tool.hatch.build.targets.wheel]
-packages = ["starforged"]
+packages = ["soloquest"]

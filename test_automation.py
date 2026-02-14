@@ -13,16 +13,16 @@ from pathlib import Path
 # Add project to path
 sys.path.insert(0, str(Path(__file__).parent))
 
-from starforged.engine.dice import DiceMode, DigitalDice
-from starforged.engine.moves import resolve_move
-from starforged.engine.oracles import load_oracles
-from starforged.journal.exporter import export_session, append_to_journal
-from starforged.models.character import Character, Stats
-from starforged.models.session import Session
-from starforged.models.vow import Vow, VowRank
-from starforged.state.save import save_game, load_game
+from soloquest.engine.dice import DiceMode, DigitalDice
+from soloquest.engine.moves import resolve_move
+from soloquest.engine.oracles import load_oracles
+from soloquest.journal.exporter import export_session, append_to_journal
+from soloquest.models.character import Character, Stats
+from soloquest.models.session import Session
+from soloquest.models.vow import Vow, VowRank
+from soloquest.state.save import save_game, load_game
 
-DATA_DIR = Path(__file__).parent / "starforged" / "data"
+DATA_DIR = Path(__file__).parent / "soloquest" / "data"
 
 
 def test_character_creation():

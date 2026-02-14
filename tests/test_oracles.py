@@ -2,9 +2,9 @@
 
 from pathlib import Path
 
-from starforged.engine.oracles import OracleTable, fuzzy_match_oracle, load_oracles
+from soloquest.engine.oracles import OracleTable, fuzzy_match_oracle, load_oracles
 
-DATA_DIR = Path(__file__).parent.parent / "starforged" / "data"
+DATA_DIR = Path(__file__).parent.parent / "soloquest" / "data"
 
 
 class TestOracleTable:

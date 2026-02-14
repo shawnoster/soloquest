@@ -5,11 +5,11 @@ from __future__ import annotations
 import re
 from typing import TYPE_CHECKING
 
-from starforged.engine.dice import Die
-from starforged.ui import display
+from soloquest.engine.dice import Die
+from soloquest.ui import display
 
 if TYPE_CHECKING:
-    from starforged.loop import GameState
+    from soloquest.loop import GameState
 
 # e.g. "2d10", "d6", "1d100", "3d6"
 DICE_PATTERN = re.compile(r"^(\d*)d(\d+)$", re.IGNORECASE)

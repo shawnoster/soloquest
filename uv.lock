@@ -218,7 +218,7 @@ wheels = [
 ]
 
 [[package]]
-name = "starforged-cli"
+name = "soloquest"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [

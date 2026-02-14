@@ -7,10 +7,10 @@ from rich.panel import Panel
 from rich.rule import Rule
 from rich.table import Table
 
-from starforged.engine.moves import MoveResult, OutcomeTier
-from starforged.models.character import DEBILITY_NAMES, Character
-from starforged.models.session import EntryKind, LogEntry
-from starforged.models.vow import Vow
+from soloquest.engine.moves import MoveResult, OutcomeTier
+from soloquest.models.character import DEBILITY_NAMES, Character
+from soloquest.models.session import EntryKind, LogEntry
+from soloquest.models.vow import Vow
 
 console = Console()
 

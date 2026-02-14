@@ -4,12 +4,12 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from starforged.engine.dice import roll_oracle
-from starforged.engine.oracles import OracleResult, fuzzy_match_oracle
-from starforged.ui import display
+from soloquest.engine.dice import roll_oracle
+from soloquest.engine.oracles import OracleResult, fuzzy_match_oracle
+from soloquest.ui import display
 
 if TYPE_CHECKING:
-    from starforged.loop import GameState
+    from soloquest.loop import GameState
 
 
 def handle_oracle(state: GameState, args: list[str], flags: set[str]) -> None:

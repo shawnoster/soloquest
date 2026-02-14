@@ -39,7 +39,7 @@ pip install -e .
 ### Verify Installation
 
 ```bash
-starforged --version
+soloquest --version
 ```
 
 You should see output showing the current version. If you see an error, check that Python 3.13+ is installed and in your PATH.
@@ -55,7 +55,7 @@ Let's create a character and play through a quick scenario to learn the basics.
 Launch the CLI:
 
 ```bash
-starforged
+soloquest
 ```
 
 or if you're developing:
@@ -532,7 +532,7 @@ When you end a session with `/end`, the CLI creates a markdown file in your adve
 
 **Configuring adventures directory:**
 
-Create a `config.toml` file in `~/.config/starforged/` (or platform equivalent):
+Create a `config.toml` file in `~/.config/soloquest/` (or platform equivalent):
 
 ```toml
 [adventures]
@@ -660,7 +660,7 @@ This CLI implements the Ironsworn: Starforged rules, but it's not a substitute f
 - When to make moves vs. when to just narrate
 - How to build engaging adventures
 
-Get the rulebook at: https://www.ironswornrpg.com/product-ironsworn-starforged
+Get the rulebook at: https://www.ironswornrpg.com/product-ironsworn-soloquest
 
 ### Journal Richly
 
@@ -715,7 +715,7 @@ Have questions? Want to share your adventures? Join the Ironsworn community:
 **Ready to begin?**
 
 ```bash
-starforged
+soloquest
 ```
 
 ---

@@ -15,9 +15,9 @@ Handles move resolution, oracle lookups, character tracking, and session journal
 uv sync
 
 # Run
-uv run starforged
+uv run soloquest
 # or
-uv run python -m starforged.main
+uv run python -m soloquest.main
 ```
 
 **New to Starforged CLI?** See the [Getting Started Guide](docs/getting-started.md) for a complete walkthrough.
@@ -125,7 +125,7 @@ Anything typed without a `/` prefix is added to your journal.
 
 ## Adventures Directory
 
-By default, all your adventure data is stored in `~/starforged-adventures/`:
+By default, all your adventure data is stored in `~/soloquest-adventures/`:
 - `saves/` — character save files
 - `sessions/` — individual session markdown
 - `journal/` — cumulative journal markdown
@@ -133,7 +133,7 @@ By default, all your adventure data is stored in `~/starforged-adventures/`:
 **Configure your own location** to integrate with Obsidian, Logseq, or any personal wiki:
 
 ```bash
-export STARFORGED_ADVENTURES_DIR="$HOME/Documents/ObsidianVault/Starforged"
+export SOLOQUEST_ADVENTURES_DIR="$HOME/Documents/ObsidianVault/Starforged"
 ```
 
 See [Adventures Directory Configuration](docs/adventures-directory.md) for details.
@@ -143,7 +143,7 @@ See [Adventures Directory Configuration](docs/adventures-directory.md) for detai
 ## Project Structure
 
 ```
-starforged/
+soloquest/
 ├── main.py          # Entry point
 ├── loop.py          # REPL game loop
 ├── commands/        # Command handlers

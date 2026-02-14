@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from starforged.models.vow import SPIRIT_COST, Vow, VowRank
+from soloquest.models.vow import SPIRIT_COST, Vow, VowRank
 
 
 class TestSpiritCost:
@@ -40,7 +40,7 @@ class TestVowFulfillment:
         assert restored.fulfilled is True
 
     def test_progress_score_at_max(self):
-        from starforged.models.vow import MAX_TICKS
+        from soloquest.models.vow import MAX_TICKS
 
         vow = Vow("Epic quest", VowRank.EPIC, ticks=MAX_TICKS)
         assert vow.progress_score == 10

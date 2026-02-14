@@ -1,6 +1,6 @@
 """Tests for the Vow model."""
 
-from starforged.models.vow import MAX_TICKS, Vow, VowRank, fuzzy_match_vow
+from soloquest.models.vow import MAX_TICKS, Vow, VowRank, fuzzy_match_vow
 
 
 class TestVow:

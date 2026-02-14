@@ -6,10 +6,10 @@ import contextlib
 import json
 from pathlib import Path
 
-from starforged.config import saves_dir
-from starforged.engine.dice import DiceMode
-from starforged.models.character import Character
-from starforged.models.vow import Vow
+from soloquest.config import saves_dir
+from soloquest.engine.dice import DiceMode
+from soloquest.models.character import Character
+from soloquest.models.vow import Vow
 
 
 def _saves_dir() -> Path:

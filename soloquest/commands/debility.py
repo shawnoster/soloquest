@@ -4,11 +4,11 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from starforged.models.character import DEBILITY_NAMES
-from starforged.ui import display
+from soloquest.models.character import DEBILITY_NAMES
+from soloquest.ui import display
 
 if TYPE_CHECKING:
-    from starforged.loop import GameState
+    from soloquest.loop import GameState
 
 
 def handle_debility(state: GameState, args: list[str], flags: set[str]) -> None:

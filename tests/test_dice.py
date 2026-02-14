@@ -1,6 +1,6 @@
 """Tests for the dice engine."""
 
-from starforged.engine.dice import (
+from soloquest.engine.dice import (
     DiceMode,
     Die,
     DigitalDice,
