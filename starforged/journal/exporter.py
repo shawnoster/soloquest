@@ -94,7 +94,7 @@ def export_session(session: Session, character: Character) -> Path:
     lines.append(f"\n*Session {session.number} — {moves_count} moves, {oracles_count} oracles, {journal_count} journal entries*\n")
 
     content = "".join(lines)
-    path.write_text(content)
+    path.write_text(content, encoding="utf-8")
 
     return path
 
@@ -135,10 +135,10 @@ def append_to_journal(session: Session, character: Character) -> Path:
         if character.homeworld:
             header += f"- **Homeworld:** {character.homeworld}\n\n"
         header += "---\n"
-        path.write_text(header + content)
+        path.write_text(header + content, encoding="utf-8")
     else:
         # Append to existing journal
-        existing = path.read_text()
-        path.write_text(existing + content)
+        existing = path.read_text(encoding="utf-8")
+        path.write_text(existing + content, encoding="utf-8")
 
     return path
