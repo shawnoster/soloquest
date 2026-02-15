@@ -1,6 +1,6 @@
 [project]
 name = "soloquest"
-version = "1.1.0"
+version = "1.1.1"
 description = "A solo journaling CLI for tabletop RPGs (Ironsworn: Starforged, Mythic GME, and more)"
 readme = "README.md"
 requires-python = ">=3.13"
