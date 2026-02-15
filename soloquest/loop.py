@@ -127,7 +127,7 @@ def run_session(
     display.console.print()
 
     history = InMemoryHistory()
-    completer = CommandCompleter()
+    completer = CommandCompleter(oracles=state.oracles, moves=state.moves)
     prompt_session: PromptSession = PromptSession(
         history=history,
         completer=completer,
