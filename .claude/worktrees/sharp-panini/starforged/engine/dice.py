@@ -46,14 +46,10 @@ class DigitalDice:
 class PhysicalDice:
     """Prompts the player for each die result."""
 
-    def roll(self, die: Die) -> int | None:
-        """Prompt for a die roll. Returns None if cancelled."""
+    def roll(self, die: Die) -> int:
         low, high = DIE_RANGES[die]
         while True:
-            raw = Prompt.ask(f"  Roll your [bold]{die}[/bold] ({low}–{high}) or 'cancel'")
-            raw_lower = raw.strip().lower()
-            if raw_lower in ["cancel", "back", "quit", "exit"]:
-                return None
+            raw = Prompt.ask(f"  Roll your [bold]{die}[/bold] ({low}–{high})")
             try:
                 value = int(raw.strip())
                 if low <= value <= high:
@@ -71,8 +67,7 @@ class MixedDice:
         self._physical = PhysicalDice()
         self._force_physical: bool = False
 
-    def roll(self, die: Die) -> int | None:
-        """Roll a die. Returns None if cancelled (physical mode only)."""
+    def roll(self, die: Die) -> int:
         if self._force_physical:
             return self._physical.roll(die)
         return self._digital.roll(die)
@@ -94,39 +89,29 @@ def make_dice_provider(mode: DiceMode) -> DigitalDice | PhysicalDice | MixedDice
 
 def roll_action_dice(
     provider: DigitalDice | PhysicalDice | MixedDice,
-) -> tuple[int, int, int] | None:
+) -> tuple[int, int, int]:
     """Roll action die (d6) and two challenge dice (d10).
 
     Returns:
-        (action_die, challenge_1, challenge_2) or None if cancelled
+        (action_die, challenge_1, challenge_2)
     """
     action = provider.roll(Die.D6)
-    if action is None:
-        return None
     c1 = provider.roll(Die.D10)
-    if c1 is None:
-        return None
     c2 = provider.roll(Die.D10)
-    if c2 is None:
-        return None
     return action, c1, c2
 
 
 def roll_challenge_dice(
     provider: DigitalDice | PhysicalDice | MixedDice,
-) -> tuple[int, int] | None:
-    """Roll two challenge dice (d10) — used for progress rolls. Returns None if cancelled."""
+) -> tuple[int, int]:
+    """Roll two challenge dice (d10) — used for progress rolls."""
     c1 = provider.roll(Die.D10)
-    if c1 is None:
-        return None
     c2 = provider.roll(Die.D10)
-    if c2 is None:
-        return None
     return c1, c2
 
 
 def roll_oracle(
     provider: DigitalDice | PhysicalDice | MixedDice,
-) -> int | None:
-    """Roll d100 for oracle lookup. Returns None if cancelled."""
+) -> int:
+    """Roll d100 for oracle lookup."""
     return provider.roll(Die.D100)

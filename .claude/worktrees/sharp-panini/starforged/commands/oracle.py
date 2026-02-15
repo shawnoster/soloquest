@@ -4,12 +4,12 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from soloquest.engine.dice import roll_oracle
-from soloquest.engine.oracles import OracleResult, fuzzy_match_oracle
-from soloquest.ui import display
+from starforged.engine.dice import roll_oracle
+from starforged.engine.oracles import OracleResult, fuzzy_match_oracle
+from starforged.ui import display
 
 if TYPE_CHECKING:
-    from soloquest.loop import GameState
+    from starforged.loop import GameState
 
 
 def handle_oracle(state: GameState, args: list[str], flags: set[str]) -> None:
@@ -35,9 +35,6 @@ def handle_oracle(state: GameState, args: list[str], flags: set[str]) -> None:
 
         table = matches[0]
         roll = roll_oracle(state.dice)
-        if roll is None:
-            display.info("  Oracle roll cancelled.")
-            return
         result_text = table.lookup(roll)
         results.append(OracleResult(table_name=table.name, roll=roll, result=result_text))
 
