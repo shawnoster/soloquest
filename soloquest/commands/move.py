@@ -98,12 +98,13 @@ def handle_move(state: GameState, args: list[str], flags: set[str]) -> None:
             dice.set_manual(False)
         return
 
-    # Standard action roll
+    # Check if this is a narrative/procedural move (no dice roll)
     stat_options: list[str] = move.get("stat_options", [])
     if not stat_options:
-        display.error(f"Move '{move_name}' has no stat options defined.")
+        _handle_narrative_move(move_name, move, state)
         return
 
+    # Standard action roll
     stat = _choose_stat(stat_options, state)
     if stat is None:
         return
@@ -418,3 +419,30 @@ def _handle_forsake_vow(state: GameState) -> None:
     state.session.add_mechanical(
         f"Vow forsaken [{vow.rank.value}]: {vow.description} | Spirit -{cost} (now {new_spirit})"
     )
+
+
+def _handle_narrative_move(move_name: str, move: dict, state: GameState) -> None:
+    """Handle narrative/procedural moves that don't require dice rolls."""
+    from rich.markdown import Markdown
+    from rich.panel import Panel
+
+    description = move.get("description", "")
+    category = move.get("category", "")
+
+    # Format category for display
+    category_display = category.replace("_", " ").title() if category else "Move"
+
+    # Display the move in a panel with its description
+    content = Markdown(description) if description else "[dim]No description available[/dim]"
+
+    display.console.print(
+        Panel(
+            content,
+            title=f"[bold]{move_name}[/bold]",
+            subtitle=f"[dim]{category_display}[/dim]",
+            border_style="cyan",
+        )
+    )
+
+    # Log to session
+    state.session.add_move(f"**{move_name}** (narrative move)")

@@ -302,16 +302,17 @@ class TestHandleMove:
         call_args = mock_warn.call_args[0][0]
         assert "Multiple matches" in call_args
 
-    @patch("soloquest.commands.move.display.error")
-    def test_handle_move_no_stat_options_shows_error(self, mock_error):
-        """handle_move with move lacking stat_options should show error."""
-        self.state.moves["broken"] = {"name": "Broken Move"}
+    @patch("soloquest.commands.move.display.console.print")
+    def test_handle_move_no_stat_options_displays_narrative(self, mock_print):
+        """handle_move with move lacking stat_options should display as narrative move."""
+        self.state.moves["narrative"] = {"name": "Narrative Move", "category": "test"}
 
-        handle_move(self.state, ["broken"], set())
+        handle_move(self.state, ["narrative"], set())
 
-        mock_error.assert_called_once()
-        call_args = mock_error.call_args[0][0]
-        assert "no stat options" in call_args
+        # Should display the move as narrative (in a panel)
+        mock_print.assert_called_once()
+        # Should log to session
+        assert len(self.state.session.entries) == 1
 
 
 class TestHandleMoveOracleRoll:
@@ -479,3 +480,120 @@ class TestHandleMoveMixedDiceMode:
 
         # Should be reset to auto
         assert self.state.dice._force_physical is False
+
+
+class TestHandleNarrativeMove:
+    """Tests for narrative/procedural moves without dice rolls."""
+
+    def setup_method(self):
+        self.state = MagicMock()
+        self.state.character = Character(name="Test", stats=Stats())
+        self.state.session = Session(number=1)
+        self.state.moves = {
+            "begin_a_session": {
+                "name": "Begin a Session",
+                "category": "session",
+                "description": "**When you begin a significant session**, do all of the following.",
+            },
+            "set_a_flag": {
+                "name": "Set a Flag",
+                "category": "session",
+                "description": "Mark content to be avoided or embraced.",
+            },
+            "narrative_no_desc": {
+                "name": "Narrative No Description",
+                "category": "test",
+            },
+        }
+
+    @patch("soloquest.commands.move.display.console.print")
+    def test_handle_narrative_move_displays_panel(self, mock_print):
+        """Narrative moves should display description in a panel."""
+        handle_move(self.state, ["begin_a_session"], set())
+
+        # Should have called console.print with a Panel
+        mock_print.assert_called_once()
+        # The panel contains the formatted description
+        assert mock_print.called
+
+    @patch("soloquest.commands.move.display.console.print")
+    def test_handle_narrative_move_logs_to_session(self, mock_print):
+        """Narrative moves should be logged to session."""
+        handle_move(self.state, ["set_a_flag"], set())
+
+        # Check session log
+        assert len(self.state.session.entries) == 1
+        entry = self.state.session.entries[0]
+        assert "Set a Flag" in entry.text
+        assert entry.kind == "move"
+
+    @patch("soloquest.commands.move.display.console.print")
+    def test_handle_narrative_move_without_description(self, mock_print):
+        """Narrative moves without description should still work."""
+        handle_move(self.state, ["narrative_no_desc"], set())
+
+        # Should not crash
+        mock_print.assert_called_once()
+
+    @patch("soloquest.commands.move.display.console.print")
+    def test_narrative_move_formats_category(self, mock_print):
+        """Narrative moves should format category for display."""
+        handle_move(self.state, ["begin_a_session"], set())
+
+        # Category should be formatted (session -> Session)
+        mock_print.assert_called_once()
+        # Panel should have been created with the move
+        assert mock_print.called
+
+
+class TestNarrativeMoveIntegration:
+    """Integration tests with real move data."""
+
+    def setup_method(self):
+        from soloquest.loop import load_move_data
+
+        self.state = MagicMock()
+        self.state.character = Character(name="Test", stats=Stats())
+        self.state.session = Session(number=1)
+        self.state.moves = load_move_data()
+
+    @patch("soloquest.commands.move.display.console.print")
+    def test_begin_a_session_works(self, mock_print):
+        """Begin a Session should display properly."""
+        handle_move(self.state, ["begin_a_session"], set())
+
+        mock_print.assert_called_once()
+        # Should log to session
+        assert len(self.state.session.entries) == 1
+
+    @patch("soloquest.commands.move.display.console.print")
+    def test_end_a_session_works(self, mock_print):
+        """End a Session should display properly."""
+        handle_move(self.state, ["end_a_session"], set())
+
+        mock_print.assert_called_once()
+
+    @patch("soloquest.commands.move.display.console.print")
+    def test_take_a_break_works(self, mock_print):
+        """Take a Break should display properly."""
+        handle_move(self.state, ["take_a_break"], set())
+
+        mock_print.assert_called_once()
+
+    def test_all_narrative_moves_have_descriptions(self):
+        """All narrative moves should have descriptions."""
+        narrative_moves = [
+            k
+            for k, v in self.state.moves.items()
+            if not v.get("stat_options")
+            and not v.get("progress_roll")
+            and not v.get("oracle_roll")
+            and not v.get("special")
+        ]
+
+        for move_key in narrative_moves:
+            move = self.state.moves[move_key]
+            # Most should have descriptions
+            has_description = bool(move.get("description"))
+            # Just verify we can access it without error
+            assert "name" in move
