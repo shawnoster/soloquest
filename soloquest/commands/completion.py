@@ -35,7 +35,6 @@ class CommandCompleter(Completer):
     ) -> list[Completion]:
         """Return completions for the current input."""
         text = document.text_before_cursor
-        word = document.get_word_before_cursor()
 
         # Only complete if we're typing a command (starts with /)
         if not text.startswith("/"):
@@ -50,7 +49,8 @@ class CommandCompleter(Completer):
         for cmd in self.commands:
             if cmd.startswith(text.lower()):
                 # Calculate how many characters to complete
-                start_position = -len(word) if word else 0
+                # Use text (not word) to include the leading /
+                start_position = -len(text)
                 completions.append(
                     Completion(
                         text=cmd,

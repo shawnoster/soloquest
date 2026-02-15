@@ -78,3 +78,18 @@ class TestCommandCompleter:
 
         assert len(completions) == 1
         assert completions[0].text == "/move"
+
+    def test_completion_replaces_entire_slash_command(self):
+        """Regression test: ensure completion replaces the full /cmd, not just cmd."""
+        completer = CommandCompleter()
+        # Simulate typing "/or" and tab-completing to "/oracle"
+        doc = Document("/or", cursor_position=3)
+        completions = list(completer.get_completions(doc, None))
+
+        # Find the /oracle completion (if it exists)
+        oracle_completions = [c for c in completions if c.text == "/oracle"]
+        if oracle_completions:
+            completion = oracle_completions[0]
+            # start_position should be -3 to replace all of "/or"
+            # This prevents the double-slash bug (//oracle)
+            assert completion.start_position == -3
