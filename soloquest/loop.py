@@ -14,6 +14,7 @@ from soloquest.commands.character import (
     handle_settings,
     handle_track,
 )
+from soloquest.commands.completion import CommandCompleter
 from soloquest.commands.debility import handle_debility
 from soloquest.commands.move import handle_move
 from soloquest.commands.oracle import handle_oracle
@@ -126,7 +127,12 @@ def run_session(
     display.console.print()
 
     history = InMemoryHistory()
-    prompt_session: PromptSession = PromptSession(history=history)
+    completer = CommandCompleter()
+    prompt_session: PromptSession = PromptSession(
+        history=history,
+        completer=completer,
+        complete_while_typing=False,  # Only complete on Tab
+    )
 
     while state.running:
         try:
