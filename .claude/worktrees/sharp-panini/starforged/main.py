@@ -2,30 +2,21 @@
 
 from __future__ import annotations
 
-import argparse
-from pathlib import Path
-
 from rich.prompt import Prompt
 
-from soloquest.engine.dice import DiceMode
-from soloquest.models.character import Character, Stats
-from soloquest.models.vow import Vow, VowRank
-from soloquest.state.save import list_saves, load_game, load_most_recent
-from soloquest.ui import display
+from starforged.engine.dice import DiceMode
+from starforged.models.character import Character, Stats
+from starforged.models.vow import Vow, VowRank
+from starforged.state.save import list_saves, load_game, load_most_recent
+from starforged.ui import display
 
 
-def new_character() -> tuple[Character, list[Vow], DiceMode] | None:
-    """Walk through simple character creation. Returns None if cancelled (Ctrl+C or typing 'back')."""
+def new_character() -> tuple[Character, list[Vow], DiceMode]:
+    """Walk through simple character creation."""
     display.rule("New Character")
     display.console.print()
 
-    try:
-        name = Prompt.ask("  Character name (or 'back' to cancel)")
-        if name.lower() in ["back", "cancel", "quit", "exit"]:
-            return None
-    except (KeyboardInterrupt, EOFError):
-        display.console.print()
-        return None
+    name = Prompt.ask("  Character name")
     homeworld = Prompt.ask("  Homeworld or origin")
 
     display.console.print()
@@ -41,20 +32,16 @@ def new_character() -> tuple[Character, list[Vow], DiceMode] | None:
     for stat in stat_names:
         display.info(f"  Remaining values: {sorted(remaining, reverse=True)}")
         while True:
+            raw = Prompt.ask(f"  {stat.capitalize()}")
             try:
-                raw = Prompt.ask(f"  {stat.capitalize()}")
-                try:
-                    val = int(raw)
-                    if val in remaining:
-                        assigned[stat] = val
-                        remaining.remove(val)
-                        break
-                    display.error(f"  Value {val} not in remaining pool.")
-                except ValueError:
-                    display.error("  Enter a number.")
-            except (KeyboardInterrupt, EOFError):
-                display.console.print()
-                return None
+                val = int(raw)
+                if val in remaining:
+                    assigned[stat] = val
+                    remaining.remove(val)
+                    break
+                display.error(f"  Value {val} not in remaining pool.")
+            except ValueError:
+                display.error("  Enter a number.")
 
     stats = Stats(**assigned)
 
@@ -95,51 +82,16 @@ def new_character() -> tuple[Character, list[Vow], DiceMode] | None:
     return character, vows, dice_mode
 
 
-def parse_args() -> argparse.Namespace:
-    """Parse command-line arguments."""
-    parser = argparse.ArgumentParser(
-        prog="soloquest",
-        description="A solo journaling CLI for tabletop RPGs",
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog="""
-Examples:
-  soloquest                                    # Use default directory
-  soloquest -d ~/my-campaigns                  # Use custom directory
-  soloquest --adventures-dir ./test-campaign   # Use relative path
-
-For more information: https://github.com/shawnoster/solo-cli
-        """,
-    )
-    parser.add_argument(
-        "-d",
-        "--adventures-dir",
-        type=Path,
-        metavar="PATH",
-        help="path to adventures directory (saves, sessions, journal)",
-    )
-    parser.add_argument(
-        "--version",
-        action="version",
-        version="%(prog)s 0.1.0",
-    )
-    return parser.parse_args()
-
-
 def main() -> None:
-    from soloquest.config import get_adventures_dir, set_adventures_dir
-
-    # Parse command-line arguments
-    args = parse_args()
-
-    # Set adventures directory from CLI argument if provided
-    if args.adventures_dir:
-        set_adventures_dir(args.adventures_dir)
+    from starforged.config import get_adventures_dir
 
     display.splash()
 
     # Show adventures directory location
     adventures_dir = get_adventures_dir()
-    display.console.print(f"  [dim]Adventures directory:[/dim] {adventures_dir}", markup=True)
+    display.console.print(
+        f"  [dim]Adventures directory:[/dim] {adventures_dir}", markup=True
+    )
     display.console.print()
 
     saves = list_saves()
@@ -156,46 +108,26 @@ def main() -> None:
         display.console.print("  |  [r] Resume last session                       |", markup=False)
         display.console.print("  |  [n] New character                             |", markup=False)
         if len(saves) > 1:
-            display.console.print(
-                "  |  [l] Load different character                  |", markup=False
-            )
+            display.console.print("  |  [l] Load different character                  |", markup=False)
         display.console.print("  |                                                |", markup=False)
         display.console.print("  +------------------------------------------------+", markup=False)
         display.console.print()
 
-        choice = (
-            Prompt.ask("  Choice (r/n" + ("/l" if len(saves) > 1 else "") + ")", default="r")
-            .strip()
-            .lower()
-        )
+        choice = Prompt.ask("  Choice (r/n" + ("/l" if len(saves) > 1 else "") + ")", default="r").strip().lower()
 
         if choice == "r":
             pass  # use loaded character
         elif choice == "n":
-            result = new_character()
-            if result is None:
-                # User cancelled, resume last session instead
-                display.console.print()
-                display.info("  Resuming last session...")
-            else:
-                character, vows, dice_mode = result
-                session_count = 0
+            character, vows, dice_mode = new_character()
+            session_count = 0
         elif choice == "l" and len(saves) > 1:
             display.console.print()
-            display.console.print(
-                "  +-- Saved Characters ----------------------------+", markup=False
-            )
-            display.console.print(
-                "  |                                                |", markup=False
-            )
+            display.console.print("  +-- Saved Characters ----------------------------+", markup=False)
+            display.console.print("  |                                                |", markup=False)
             for i, name in enumerate(saves, 1):
                 display.console.print(f"  |  [{i}] {name:<43} |", markup=False)
-            display.console.print(
-                "  |                                                |", markup=False
-            )
-            display.console.print(
-                "  +------------------------------------------------+", markup=False
-            )
+            display.console.print("  |                                                |", markup=False)
+            display.console.print("  +------------------------------------------------+", markup=False)
             display.console.print()
             raw = Prompt.ask("  Choose character (1-" + str(len(saves)) + ")")
             try:
@@ -215,17 +147,11 @@ def main() -> None:
         display.console.print("  |                                                |", markup=False)
         display.console.print("  +------------------------------------------------+", markup=False)
         display.console.print()
-        result = new_character()
-        if result is None:
-            # User cancelled but there are no saves to resume
-            display.console.print()
-            display.error("  Character creation cancelled. No saves to resume. Exiting.")
-            return
-        character, vows, dice_mode = result
+        character, vows, dice_mode = new_character()
         session_count = 0
 
     # Start the session
-    from soloquest.loop import run_session
+    from starforged.loop import run_session
 
     run_session(character, vows, session_count, dice_mode)
 

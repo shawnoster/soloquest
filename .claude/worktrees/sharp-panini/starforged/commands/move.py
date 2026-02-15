@@ -6,8 +6,8 @@ from typing import TYPE_CHECKING
 
 from rich.prompt import Confirm, Prompt
 
-from soloquest.engine.dice import MixedDice, roll_action_dice, roll_challenge_dice
-from soloquest.engine.moves import (
+from starforged.engine.dice import MixedDice, roll_action_dice, roll_challenge_dice
+from starforged.engine.moves import (
     MoveResult,
     OutcomeTier,
     check_match,
@@ -15,42 +15,15 @@ from soloquest.engine.moves import (
     resolve_outcome,
     would_momentum_improve,
 )
-from soloquest.ui import display
+from starforged.ui import display
 
 if TYPE_CHECKING:
-    from soloquest.loop import GameState
+    from starforged.loop import GameState
 
 
 def fuzzy_match_move(query: str, move_data: dict) -> list[str]:
-    """Find moves matching a partial query string.
-
-    Prioritizes exact matches, then prefix matches, then substring matches.
-    """
     q = query.lower().replace(" ", "_").replace("-", "_")
-
-    # Empty query returns no matches
-    if not q:
-        return []
-
-    exact_matches = []
-    prefix_matches = []
-    substring_matches = []
-
-    for key in move_data:
-        name_norm = move_data[key]["name"].lower().replace(" ", "_")
-
-        # Check for exact match first
-        if q in (key, name_norm):
-            exact_matches.append(key)
-        # Then check for prefix match
-        elif key.startswith(q) or name_norm.startswith(q):
-            prefix_matches.append(key)
-        # Finally check for substring match
-        elif q in key or q in name_norm:
-            substring_matches.append(key)
-
-    # Return in priority order: exact > prefix > substring
-    return exact_matches or prefix_matches or substring_matches
+    return [k for k in move_data if q in k or q in move_data[k]["name"].lower().replace(" ", "_")]
 
 
 def handle_move(state: GameState, args: list[str], flags: set[str]) -> None:
@@ -98,13 +71,12 @@ def handle_move(state: GameState, args: list[str], flags: set[str]) -> None:
             dice.set_manual(False)
         return
 
-    # Check if this is a narrative/procedural move (no dice roll)
+    # Standard action roll
     stat_options: list[str] = move.get("stat_options", [])
     if not stat_options:
-        _handle_narrative_move(move_name, move, state)
+        display.error(f"Move '{move_name}' has no stat options defined.")
         return
 
-    # Standard action roll
     stat = _choose_stat(stat_options, state)
     if stat is None:
         return
@@ -118,11 +90,7 @@ def handle_move(state: GameState, args: list[str], flags: set[str]) -> None:
         adds = 0
 
     # Roll dice
-    dice_result = roll_action_dice(state.dice)
-    if dice_result is None:
-        display.info("  Move cancelled.")
-        return
-    action_die, c1, c2 = dice_result
+    action_die, c1, c2 = roll_action_dice(state.dice)
     result = resolve_move(
         action_die=action_die,
         stat=stat_val,
@@ -134,7 +102,7 @@ def handle_move(state: GameState, args: list[str], flags: set[str]) -> None:
 
     # Offer momentum burn if it would improve outcome
     if would_momentum_improve(result.outcome, state.character.momentum, c1, c2):
-        from soloquest.engine.moves import momentum_burn_outcome
+        from starforged.engine.moves import momentum_burn_outcome
 
         burn_tier = momentum_burn_outcome(state.character.momentum, c1, c2)
         tier_label = {
@@ -191,31 +159,24 @@ def handle_move(state: GameState, args: list[str], flags: set[str]) -> None:
 
 
 def _choose_stat(stat_options: list[str], state: GameState) -> str | None:
-    """Choose a stat. Returns None if cancelled (Ctrl+C or typing 'cancel')."""
     display.info("  Which stat?")
     for i, s in enumerate(stat_options, 1):
         val = state.character.stats.get(s)
         display.info(f"    [{i}] {s.capitalize():<8} {val}")
 
     while True:
-        try:
-            raw = Prompt.ask("  Stat (or 'cancel')").strip().lower()
-            if raw in ["cancel", "back", "quit", "exit"]:
-                return None
-            if raw.isdigit():
-                idx = int(raw) - 1
-                if 0 <= idx < len(stat_options):
-                    return stat_options[idx]
-            elif raw in stat_options:
-                return raw
-            # prefix match
-            prefix = [s for s in stat_options if s.startswith(raw)]
-            if len(prefix) == 1:
-                return prefix[0]
-            display.error(f"Choose 1–{len(stat_options)} or type a stat name (or 'cancel').")
-        except (KeyboardInterrupt, EOFError):
-            display.console.print()
-            return None
+        raw = Prompt.ask("  Stat").strip().lower()
+        if raw.isdigit():
+            idx = int(raw) - 1
+            if 0 <= idx < len(stat_options):
+                return stat_options[idx]
+        elif raw in stat_options:
+            return raw
+        # prefix match
+        prefix = [s for s in stat_options if s.startswith(raw)]
+        if len(prefix) == 1:
+            return prefix[0]
+        display.error(f"Choose 1–{len(stat_options)} or type a stat name.")
 
 
 # ── Outcome helpers ────────────────────────────────────────────────────────────
@@ -284,16 +245,13 @@ def _offer_pay_the_price(state: GameState, flags: set[str]) -> None:
     """On a miss, offer to roll Pay the Price oracle."""
     display.console.print()
     if Confirm.ask("  Roll Pay the Price oracle?", default=True):
-        from soloquest.engine.oracles import roll_oracle
+        from starforged.engine.oracles import roll_oracle
 
         table = state.oracles.get("pay_the_price")
         if not table:
             display.warn("Pay the Price oracle not found in data.")
             return
         roll = roll_oracle(state.dice)
-        if roll is None:
-            display.info("  Oracle roll cancelled.")
-            return
         result = table.lookup(roll)
         display.oracle_result_panel(table.name, roll, result)
         state.session.add_oracle(f"Oracle [Pay the Price] roll {roll} → {result}")
@@ -304,7 +262,7 @@ def _offer_pay_the_price(state: GameState, flags: set[str]) -> None:
 
 def _handle_progress_roll(state: GameState, move_key: str, move: dict, flags: set[str]) -> None:
     """Handle a progress roll (Fulfill Vow, Take Decisive Action, etc.)."""
-    from soloquest.models.vow import fuzzy_match_vow
+    from starforged.models.vow import fuzzy_match_vow
 
     move_name = move["name"]
     vow = None
@@ -340,11 +298,7 @@ def _handle_progress_roll(state: GameState, move_key: str, move: dict, flags: se
             display.error("Enter a number 0–10.")
             return
 
-    dice_result = roll_challenge_dice(state.dice)
-    if dice_result is None:
-        display.info("  Progress roll cancelled.")
-        return
-    c1, c2 = dice_result
+    c1, c2 = roll_challenge_dice(state.dice)
     outcome = resolve_outcome(progress_score, c1, c2)
     match_flag = check_match(c1, c2)
 
@@ -392,11 +346,7 @@ def _handle_ask_the_oracle(state: GameState, flags: set[str]) -> None:
     """Ask the Oracle — route to oracle lookup."""
     display.info("  Ask the Oracle: roll on any oracle table.")
     display.info("  Use /oracle [table] directly, or roll the challenge dice:")
-    dice_result = roll_challenge_dice(state.dice)
-    if dice_result is None:
-        display.info("  Ask the Oracle cancelled.")
-        return
-    c1, c2 = dice_result
+    c1, c2 = roll_challenge_dice(state.dice)
     total = c1 + c2
     display.info(f"  Challenge dice: {c1} + {c2} = {total}")
     display.info("  Interpret yes/no: 11+ likely yes, 6–10 maybe, 1–5 likely no")
@@ -405,7 +355,7 @@ def _handle_ask_the_oracle(state: GameState, flags: set[str]) -> None:
 
 def _handle_forsake_vow(state: GameState) -> None:
     """Forsake Your Vow — remove a vow and suffer spirit loss."""
-    from soloquest.models.vow import SPIRIT_COST, fuzzy_match_vow
+    from starforged.models.vow import SPIRIT_COST, fuzzy_match_vow
 
     active = [v for v in state.vows if not v.fulfilled]
     if not active:
@@ -441,30 +391,3 @@ def _handle_forsake_vow(state: GameState) -> None:
     state.session.add_mechanical(
         f"Vow forsaken [{vow.rank.value}]: {vow.description} | Spirit -{cost} (now {new_spirit})"
     )
-
-
-def _handle_narrative_move(move_name: str, move: dict, state: GameState) -> None:
-    """Handle narrative/procedural moves that don't require dice rolls."""
-    from rich.markdown import Markdown
-    from rich.panel import Panel
-
-    description = move.get("description", "")
-    category = move.get("category", "")
-
-    # Format category for display
-    category_display = category.replace("_", " ").title() if category else "Move"
-
-    # Display the move in a panel with its description
-    content = Markdown(description) if description else "[dim]No description available[/dim]"
-
-    display.console.print(
-        Panel(
-            content,
-            title=f"[bold]{move_name}[/bold]",
-            subtitle=f"[dim]{category_display}[/dim]",
-            border_style="cyan",
-        )
-    )
-
-    # Log to session
-    state.session.add_move(f"**{move_name}** (narrative move)")
