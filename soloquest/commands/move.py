@@ -22,8 +22,35 @@ if TYPE_CHECKING:
 
 
 def fuzzy_match_move(query: str, move_data: dict) -> list[str]:
+    """Find moves matching a partial query string.
+
+    Prioritizes exact matches, then prefix matches, then substring matches.
+    """
     q = query.lower().replace(" ", "_").replace("-", "_")
-    return [k for k in move_data if q in k or q in move_data[k]["name"].lower().replace(" ", "_")]
+
+    # Empty query returns no matches
+    if not q:
+        return []
+
+    exact_matches = []
+    prefix_matches = []
+    substring_matches = []
+
+    for key in move_data:
+        name_norm = move_data[key]["name"].lower().replace(" ", "_")
+
+        # Check for exact match first
+        if q in (key, name_norm):
+            exact_matches.append(key)
+        # Then check for prefix match
+        elif key.startswith(q) or name_norm.startswith(q):
+            prefix_matches.append(key)
+        # Finally check for substring match
+        elif q in key or q in name_norm:
+            substring_matches.append(key)
+
+    # Return in priority order: exact > prefix > substring
+    return exact_matches or prefix_matches or substring_matches
 
 
 def handle_move(state: GameState, args: list[str], flags: set[str]) -> None:

@@ -79,6 +79,7 @@ def fuzzy_match_command(name: str, known: list[str]) -> str | None:
 COMMAND_HELP: dict[str, str] = {
     "move": "/move [name] (alias: /m) — resolve a move (e.g. /move strike)",
     "oracle": "/oracle [table] (alias: /o) — consult an oracle (e.g. /oracle action theme)",
+    "asset": "/asset [name] — view asset details (e.g. /asset starship)",
     "vow": "/vow [rank] [text] (alias: /v) — create a vow",
     "progress": "/progress [vow] (alias: /p) — mark progress on a vow",
     "fulfill": "/fulfill [vow] (alias: /f) — attempt to fulfill a vow",

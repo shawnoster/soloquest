@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
+from soloquest.models.asset import CharacterAsset
+
 # ── Debilities ─────────────────────────────────────────────────────────────────
 # Conditions that reduce momentum_max and/or momentum_reset
 # Each active debility reduces momentum_max by 1.
@@ -64,8 +66,8 @@ class Character:
     # Debilities — stored as set of active debility names
     debilities: set[str] = field(default_factory=set)
 
-    # Assets (keys into asset registry)
-    assets: list[str] = field(default_factory=list)
+    # Assets — instances with progression tracking
+    assets: list[CharacterAsset] = field(default_factory=list)
 
     # ── Computed momentum bounds ────────────────────────────────────────────
     @property
@@ -122,12 +124,39 @@ class Character:
             "supply": self.supply,
             "momentum": self.momentum,
             "debilities": sorted(self.debilities),
-            "assets": self.assets,
+            "assets": [
+                {
+                    "asset_key": a.asset_key,
+                    "abilities_unlocked": a.abilities_unlocked,
+                    "track_values": a.track_values,
+                    "input_values": a.input_values,
+                }
+                for a in self.assets
+            ],
         }
 
     @classmethod
     def from_dict(cls, data: dict) -> Character:
         stats = Stats(**data.get("stats", {}))
+
+        # Handle both old format (list[str]) and new format (list[dict])
+        assets_data = data.get("assets", [])
+        assets = []
+        for item in assets_data:
+            if isinstance(item, str):
+                # Old format: just asset keys
+                assets.append(CharacterAsset(asset_key=item))
+            elif isinstance(item, dict):
+                # New format: full CharacterAsset data
+                assets.append(
+                    CharacterAsset(
+                        asset_key=item.get("asset_key", ""),
+                        abilities_unlocked=item.get("abilities_unlocked", []),
+                        track_values=item.get("track_values", {}),
+                        input_values=item.get("input_values", {}),
+                    )
+                )
+
         return cls(
             name=data["name"],
             homeworld=data.get("homeworld", ""),
@@ -137,5 +166,5 @@ class Character:
             supply=data.get("supply", 3),
             momentum=data.get("momentum", 2),
             debilities=set(data.get("debilities", [])),
-            assets=data.get("assets", []),
+            assets=assets,
         )

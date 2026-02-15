@@ -1,0 +1,13 @@
+{
+  "source": "dataforged",
+  "repository": "https://github.com/rsek/dataforged",
+  "version": "1.5.3",
+  "downloaded": "2026-02-15",
+  "license": "CC BY 4.0 / CC BY-NC 4.0 / MIT",
+  "files": {
+    "oracles.json": "200+ oracle tables from Ironsworn: Starforged",
+    "moves.json": "56 moves from Ironsworn: Starforged",
+    "assets.json": "90 asset cards from Ironsworn: Starforged"
+  },
+  "attribution": "Official content and rules data for the Ironsworn: Starforged tabletop role-playing game by Shawn Tomkin"
+}

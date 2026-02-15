@@ -184,7 +184,9 @@ def character_sheet(char: Character, vows: list[Vow], session_count: int, dice_m
     # Assets
     rule("Assets")
     if char.assets:
-        console.print("  " + "  /  ".join(a.replace("_", " ").title() for a in char.assets))
+        console.print(
+            "  " + "  /  ".join(a.asset_key.replace("_", " ").title() for a in char.assets)
+        )
     else:
         console.print("  [dim]No assets.[/dim]")
     console.print()

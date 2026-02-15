@@ -6,6 +6,15 @@ Handles move resolution, oracle lookups, character tracking, and session journal
 
 > **Note:** This is a personal, non-commercial companion tool. Ironsworn: Starforged is created by Shawn Tomkin and released under Creative Commons Attribution 4.0.
 
+### Data Attribution
+
+This tool integrates the [dataforged](https://github.com/rsek/dataforged) package, which provides comprehensive game data for Ironsworn: Starforged:
+- **200+ oracle tables** for world-building and narrative prompts
+- **90 asset cards** including paths, companions, and modules
+- **56 moves** covering adventure, combat, and fate mechanics
+
+dataforged is maintained by rsek and released under Creative Commons licenses (CC BY 4.0 / CC BY-NC 4.0) and MIT License. All game content is © Shawn Tomkin.
+
 ---
 
 ## Quickstart
@@ -120,6 +129,7 @@ This project uses GitHub Actions for continuous integration and automated releas
 |---|---|
 | `/move [name]` | Resolve a move (e.g. `/move strike`) |
 | `/oracle [table]` | Consult an oracle (e.g. `/oracle action theme`) |
+| `/asset [name]` | View asset details (e.g. `/asset starship`) |
 | `/vow [rank] [text]` | Create a vow |
 | `/progress [vow]` | Mark progress on a vow |
 | `/fulfill [vow]` | Attempt to fulfill a vow |

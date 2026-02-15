@@ -30,6 +30,14 @@
 - rich, prompt-toolkit
 - ruff, pytest, pytest-cov
 
+## Dataforged Integration
+
+- Game data (oracles, moves, assets) sourced from [dataforged](https://github.com/rsek/dataforged)
+- JSON files vendored in `soloquest/data/dataforged/`
+- Custom TOML files in `soloquest/data/` take priority (allow overrides)
+- License: CC BY 4.0 / CC BY-NC 4.0 / MIT (see `soloquest/data/dataforged/LICENSE.md`)
+- Attribution: Game content © Shawn Tomkin
+
 ## Quick Reference
 
 - `make` — show all available commands

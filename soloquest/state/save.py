@@ -87,9 +87,7 @@ def load_game(character_name: str) -> tuple[Character, list[Vow], int, DiceMode]
             try:
                 data = json.loads(backup_path.read_text(encoding="utf-8"))
             except (json.JSONDecodeError, KeyError):
-                raise ValueError(
-                    f"Save file corrupted and backup also invalid: {e}"
-                ) from e
+                raise ValueError(f"Save file corrupted and backup also invalid: {e}") from e
         else:
             raise ValueError(f"Save file corrupted: {e}") from e
 
@@ -109,9 +107,7 @@ def load_most_recent() -> tuple[Character, list[Vow], int, DiceMode] | None:
     saves_directory = _saves_dir()
     if not saves_directory.exists():
         return None
-    saves = sorted(
-        saves_directory.glob("*.json"), key=lambda p: p.stat().st_mtime, reverse=True
-    )
+    saves = sorted(saves_directory.glob("*.json"), key=lambda p: p.stat().st_mtime, reverse=True)
     if not saves:
         return None
 

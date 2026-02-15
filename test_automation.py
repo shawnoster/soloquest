@@ -13,14 +13,14 @@ from pathlib import Path
 # Add project to path
 sys.path.insert(0, str(Path(__file__).parent))
 
-from soloquest.engine.dice import DiceMode, DigitalDice
+from soloquest.engine.dice import DiceMode
 from soloquest.engine.moves import resolve_move
 from soloquest.engine.oracles import load_oracles
-from soloquest.journal.exporter import export_session, append_to_journal
+from soloquest.journal.exporter import append_to_journal, export_session
 from soloquest.models.character import Character, Stats
 from soloquest.models.session import Session
 from soloquest.models.vow import Vow, VowRank
-from soloquest.state.save import save_game, load_game
+from soloquest.state.save import load_game, save_game
 
 DATA_DIR = Path(__file__).parent / "soloquest" / "data"
 
@@ -47,7 +47,7 @@ def test_character_creation():
 
     print(f"[PASS] Character created: {char.name}")
     print(f"[PASS] Stats validated: Iron={char.stats.iron}, Wits={char.stats.wits}")
-    print(f"[PASS] Tracks initialized correctly")
+    print("[PASS] Tracks initialized correctly")
 
     return char
 
@@ -73,10 +73,10 @@ def test_session_logging(char: Character):
 
     assert len(session.entries) == 5
     print(f"[PASS] Session created with {len(session.entries)} entries")
-    print(f"[PASS] Journal entries: 2")
-    print(f"[PASS] Move results: 1")
-    print(f"[PASS] Oracle results: 1")
-    print(f"[PASS] Notes: 1")
+    print("[PASS] Journal entries: 2")
+    print("[PASS] Move results: 1")
+    print("[PASS] Oracle results: 1")
+    print("[PASS] Notes: 1")
 
     return session
 
@@ -182,7 +182,7 @@ def test_vow_lifecycle():
     # Fulfill
     vow.fulfilled = True
     assert vow.fulfilled is True
-    print(f"[PASS] Vow fulfilled")
+    print("[PASS] Vow fulfilled")
 
     return vow
 
@@ -233,7 +233,7 @@ def test_oracle_system():
     assert "action" in oracles
     assert "theme" in oracles
     assert "pay_the_price" in oracles
-    print(f"[PASS] Key oracles present: action, theme, pay_the_price")
+    print("[PASS] Key oracles present: action, theme, pay_the_price")
 
     # Test lookup
     result = oracles["action"].lookup(50)
@@ -245,7 +245,7 @@ def test_oracle_system():
     for roll in [1, 50, 100]:
         result = oracles["action"].lookup(roll)
         assert result != "Unknown"
-    print(f"[PASS] Full range coverage (1, 50, 100)")
+    print("[PASS] Full range coverage (1, 50, 100)")
 
     # Test Pay the Price
     result = oracles["pay_the_price"].lookup(42)
@@ -274,7 +274,7 @@ def test_save_load_cycle(char: Character, vows: list[Vow]):
     assert data["character"]["name"] == "Kael Vex"
     assert data["session_count"] == 1
     assert data["settings"]["dice_mode"] == "digital"
-    print(f"[PASS] Save file valid JSON")
+    print("[PASS] Save file valid JSON")
     print(f"[PASS] Character name: {data['character']['name']}")
     print(f"[PASS] Session count: {data['session_count']}")
 
@@ -285,8 +285,8 @@ def test_save_load_cycle(char: Character, vows: list[Vow]):
     assert loaded_char.stats.iron == char.stats.iron
     assert loaded_count == 1
     assert loaded_mode == DiceMode.DIGITAL
-    print(f"[PASS] Game loaded successfully")
-    print(f"[PASS] Character data intact")
+    print("[PASS] Game loaded successfully")
+    print("[PASS] Character data intact")
     print(f"[PASS] Vows count: {len(loaded_vows)}")
 
 
@@ -304,14 +304,14 @@ def test_export_markdown(char: Character, session: Session):
     assert "# Test Session" in content
     assert char.name in content
     assert "The airlock hisses open" in content
-    print(f"[PASS] Session Markdown contains title and character")
-    print(f"[PASS] Journal entries present")
+    print("[PASS] Session Markdown contains title and character")
+    print("[PASS] Journal entries present")
 
     # Check structure
     assert "---" in content
     assert "*" in content  # Oracle italics
     assert ">" in content  # Mechanical quotes
-    print(f"[PASS] Markdown formatting correct")
+    print("[PASS] Markdown formatting correct")
 
     # Append to journal
     journal_path = append_to_journal(session, char)
@@ -359,9 +359,9 @@ def test_edge_cases():
     char.toggle_debility("wounded")
     char.toggle_debility("wounded")
     assert "wounded" not in char.debilities
-    print(f"[PASS] Debility toggle works")
+    print("[PASS] Debility toggle works")
 
-    print(f"[PASS] All edge cases handled gracefully")
+    print("[PASS] All edge cases handled gracefully")
 
 
 def generate_sample_session():
@@ -459,7 +459,7 @@ def generate_sample_session():
     session_path = export_session(session, char)
     journal_path = append_to_journal(session, char)
 
-    print(f"[PASS] Sample session generated")
+    print("[PASS] Sample session generated")
     print(f"[PASS] Session file: {session_path}")
     print(f"[PASS] Journal file: {journal_path}")
 
@@ -507,7 +507,7 @@ def main():
         print("\n[Files] Generated Files:")
         print(f"  Session: {sample_session}")
         print(f"  Journal: {sample_journal}")
-        print(f"  Save: saves/kael_vex.json")
+        print("  Save: saves/kael_vex.json")
 
         print("\n[Next] Next Steps:")
         print("  1. Review generated Markdown files for quality")
