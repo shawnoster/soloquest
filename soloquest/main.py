@@ -15,12 +15,16 @@ from soloquest.ui import display
 
 
 def new_character() -> tuple[Character, list[Vow], DiceMode] | None:
-    """Walk through simple character creation. Returns None if cancelled."""
+    """Walk through simple character creation. Returns None if cancelled (Ctrl+C or typing 'back')."""
     display.rule("New Character")
     display.console.print()
 
-    name = Prompt.ask("  Character name (or 'back' to cancel)")
-    if name.lower() in ["back", "cancel", "quit", "exit"]:
+    try:
+        name = Prompt.ask("  Character name (or 'back' to cancel)")
+        if name.lower() in ["back", "cancel", "quit", "exit"]:
+            return None
+    except (KeyboardInterrupt, EOFError):
+        display.console.print()
         return None
     homeworld = Prompt.ask("  Homeworld or origin")
 
@@ -37,16 +41,20 @@ def new_character() -> tuple[Character, list[Vow], DiceMode] | None:
     for stat in stat_names:
         display.info(f"  Remaining values: {sorted(remaining, reverse=True)}")
         while True:
-            raw = Prompt.ask(f"  {stat.capitalize()}")
             try:
-                val = int(raw)
-                if val in remaining:
-                    assigned[stat] = val
-                    remaining.remove(val)
-                    break
-                display.error(f"  Value {val} not in remaining pool.")
-            except ValueError:
-                display.error("  Enter a number.")
+                raw = Prompt.ask(f"  {stat.capitalize()}")
+                try:
+                    val = int(raw)
+                    if val in remaining:
+                        assigned[stat] = val
+                        remaining.remove(val)
+                        break
+                    display.error(f"  Value {val} not in remaining pool.")
+                except ValueError:
+                    display.error("  Enter a number.")
+            except (KeyboardInterrupt, EOFError):
+                display.console.print()
+                return None
 
     stats = Stats(**assigned)
 

@@ -47,20 +47,24 @@ class PhysicalDice:
     """Prompts the player for each die result."""
 
     def roll(self, die: Die) -> int | None:
-        """Prompt for a die roll. Returns None if cancelled."""
+        """Prompt for a die roll. Returns None if cancelled (Ctrl+C or typing 'cancel')."""
         low, high = DIE_RANGES[die]
         while True:
-            raw = Prompt.ask(f"  Roll your [bold]{die}[/bold] ({low}–{high}) or 'cancel'")
-            raw_lower = raw.strip().lower()
-            if raw_lower in ["cancel", "back", "quit", "exit"]:
-                return None
             try:
-                value = int(raw.strip())
-                if low <= value <= high:
-                    return value
-                console.print(f"  [yellow]⚠ Enter a number between {low} and {high}.[/yellow]")
-            except ValueError:
-                console.print("  [yellow]⚠ Please enter a number.[/yellow]")
+                raw = Prompt.ask(f"  Roll your [bold]{die}[/bold] ({low}–{high}) or 'cancel'")
+                raw_lower = raw.strip().lower()
+                if raw_lower in ["cancel", "back", "quit", "exit"]:
+                    return None
+                try:
+                    value = int(raw.strip())
+                    if low <= value <= high:
+                        return value
+                    console.print(f"  [yellow]⚠ Enter a number between {low} and {high}.[/yellow]")
+                except ValueError:
+                    console.print("  [yellow]⚠ Please enter a number.[/yellow]")
+            except (KeyboardInterrupt, EOFError):
+                console.print()
+                return None
 
 
 class MixedDice:

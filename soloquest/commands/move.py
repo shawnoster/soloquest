@@ -163,27 +163,31 @@ def handle_move(state: GameState, args: list[str], flags: set[str]) -> None:
 
 
 def _choose_stat(stat_options: list[str], state: GameState) -> str | None:
-    """Choose a stat. Returns None if cancelled."""
+    """Choose a stat. Returns None if cancelled (Ctrl+C or typing 'cancel')."""
     display.info("  Which stat?")
     for i, s in enumerate(stat_options, 1):
         val = state.character.stats.get(s)
         display.info(f"    [{i}] {s.capitalize():<8} {val}")
 
     while True:
-        raw = Prompt.ask("  Stat (or 'cancel')").strip().lower()
-        if raw in ["cancel", "back", "quit", "exit"]:
+        try:
+            raw = Prompt.ask("  Stat (or 'cancel')").strip().lower()
+            if raw in ["cancel", "back", "quit", "exit"]:
+                return None
+            if raw.isdigit():
+                idx = int(raw) - 1
+                if 0 <= idx < len(stat_options):
+                    return stat_options[idx]
+            elif raw in stat_options:
+                return raw
+            # prefix match
+            prefix = [s for s in stat_options if s.startswith(raw)]
+            if len(prefix) == 1:
+                return prefix[0]
+            display.error(f"Choose 1–{len(stat_options)} or type a stat name (or 'cancel').")
+        except (KeyboardInterrupt, EOFError):
+            display.console.print()
             return None
-        if raw.isdigit():
-            idx = int(raw) - 1
-            if 0 <= idx < len(stat_options):
-                return stat_options[idx]
-        elif raw in stat_options:
-            return raw
-        # prefix match
-        prefix = [s for s in stat_options if s.startswith(raw)]
-        if len(prefix) == 1:
-            return prefix[0]
-        display.error(f"Choose 1–{len(stat_options)} or type a stat name (or 'cancel').")
 
 
 # ── Outcome helpers ────────────────────────────────────────────────────────────
