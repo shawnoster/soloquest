@@ -593,7 +593,7 @@ class TestNarrativeMoveIntegration:
 
         for move_key in narrative_moves:
             move = self.state.moves[move_key]
-            # Most should have descriptions
-            has_description = bool(move.get("description"))
-            # Just verify we can access it without error
+            # Just verify we can access move data without error
             assert "name" in move
+            # Most narrative moves should have descriptions
+            assert isinstance(move.get("description", ""), str)
