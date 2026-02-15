@@ -14,12 +14,14 @@ from soloquest.state.save import list_saves, load_game, load_most_recent
 from soloquest.ui import display
 
 
-def new_character() -> tuple[Character, list[Vow], DiceMode]:
-    """Walk through simple character creation."""
+def new_character() -> tuple[Character, list[Vow], DiceMode] | None:
+    """Walk through simple character creation. Returns None if cancelled."""
     display.rule("New Character")
     display.console.print()
 
-    name = Prompt.ask("  Character name")
+    name = Prompt.ask("  Character name (or 'back' to cancel)")
+    if name.lower() in ["back", "cancel", "quit", "exit"]:
+        return None
     homeworld = Prompt.ask("  Homeworld or origin")
 
     display.console.print()
@@ -158,8 +160,14 @@ def main() -> None:
         if choice == "r":
             pass  # use loaded character
         elif choice == "n":
-            character, vows, dice_mode = new_character()
-            session_count = 0
+            result = new_character()
+            if result is None:
+                # User cancelled, resume last session instead
+                display.console.print()
+                display.info("  Resuming last session...")
+            else:
+                character, vows, dice_mode = result
+                session_count = 0
         elif choice == "l" and len(saves) > 1:
             display.console.print()
             display.console.print("  +-- Saved Characters ----------------------------+", markup=False)
@@ -187,7 +195,13 @@ def main() -> None:
         display.console.print("  |                                                |", markup=False)
         display.console.print("  +------------------------------------------------+", markup=False)
         display.console.print()
-        character, vows, dice_mode = new_character()
+        result = new_character()
+        if result is None:
+            # User cancelled but there are no saves to resume
+            display.console.print()
+            display.error("  Character creation cancelled. No saves to resume. Exiting.")
+            return
+        character, vows, dice_mode = result
         session_count = 0
 
     # Start the session
