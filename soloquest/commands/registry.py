@@ -10,7 +10,7 @@ if TYPE_CHECKING:
     pass
 
 # Commands that don't need argument parsing
-BARE_COMMANDS = {"char", "log", "burn", "end", "forsake", "help", "quit", "q"}
+BARE_COMMANDS = {"char", "log", "burn", "end", "newsession", "forsake", "help", "quit", "q"}
 
 # Command aliases — short forms for common commands
 COMMAND_ALIASES = {
@@ -95,7 +95,8 @@ COMMAND_HELP: dict[str, str] = {
     "roll": "/roll [dice] — raw dice roll (e.g. /roll d6, /roll 2d10)",
     "forsake": "/forsake — forsake a vow (costs spirit)",
     "settings": "/settings dice [digital|physical|mixed] — change dice mode",
-    "end": "/end — end session and export journal",
+    "newsession": "/newsession — export current session and start a new one",
+    "end": "/end — export session journal and exit",
     "help": "/help (alias: /h) — show help",
-    "quit": "/quit — quit without saving",
+    "quit": "/quit (alias: /q) — save session and exit",
 }

@@ -9,6 +9,7 @@ from pathlib import Path
 from soloquest.config import saves_dir
 from soloquest.engine.dice import DiceMode
 from soloquest.models.character import Character
+from soloquest.models.session import Session
 from soloquest.models.vow import Vow
 
 
@@ -39,6 +40,7 @@ def save_game(
     vows: list[Vow],
     session_count: int,
     dice_mode: DiceMode,
+    session: Session | None = None,
 ) -> Path:
     _saves_dir().mkdir(parents=True, exist_ok=True)
     path = saves_path(character.name)
@@ -56,6 +58,11 @@ def save_game(
             "dice_mode": dice_mode.value,
         },
     }
+
+    # Save the active session if provided
+    if session is not None:
+        data["session"] = session.to_dict()
+
     path.write_text(json.dumps(data, indent=2), encoding="utf-8")
     return path
 
@@ -65,14 +72,17 @@ def autosave(
     vows: list[Vow],
     session_count: int,
     dice_mode: DiceMode,
+    session: Session | None = None,
 ) -> None:
     """Silent autosave — same as save_game but swallows errors gracefully."""
     with contextlib.suppress(Exception):
-        save_game(character, vows, session_count, dice_mode)
+        save_game(character, vows, session_count, dice_mode, session)
 
 
-def load_game(character_name: str) -> tuple[Character, list[Vow], int, DiceMode]:
-    """Load a save file. Returns (character, vows, session_count, dice_mode).
+def load_game(
+    character_name: str,
+) -> tuple[Character, list[Vow], int, DiceMode, Session | None]:
+    """Load a save file. Returns (character, vows, session_count, dice_mode, session).
 
     Raises ValueError if save is corrupted and no backup exists.
     """
@@ -96,10 +106,15 @@ def load_game(character_name: str) -> tuple[Character, list[Vow], int, DiceMode]
     session_count = data.get("session_count", 0)
     dice_mode = DiceMode(data.get("settings", {}).get("dice_mode", "digital"))
 
-    return character, vows, session_count, dice_mode
+    # Load active session if present
+    session = None
+    if "session" in data:
+        session = Session.from_dict(data["session"])
+
+    return character, vows, session_count, dice_mode, session
 
 
-def load_most_recent() -> tuple[Character, list[Vow], int, DiceMode] | None:
+def load_most_recent() -> tuple[Character, list[Vow], int, DiceMode, Session | None] | None:
     """Load the most recently modified save, or None if no saves exist.
 
     Returns None if save is corrupted.
@@ -117,7 +132,13 @@ def load_most_recent() -> tuple[Character, list[Vow], int, DiceMode] | None:
         vows = [Vow.from_dict(v) for v in data.get("vows", [])]
         session_count = data.get("session_count", 0)
         dice_mode = DiceMode(data.get("settings", {}).get("dice_mode", "digital"))
-        return character, vows, session_count, dice_mode
+
+        # Load active session if present
+        session = None
+        if "session" in data:
+            session = Session.from_dict(data["session"])
+
+        return character, vows, session_count, dice_mode, session
     except (json.JSONDecodeError, KeyError, ValueError):
         # Corrupted save, return None to trigger new character creation
         return None
