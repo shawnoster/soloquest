@@ -20,7 +20,7 @@
 
 ## Code Quality
 
-- Run `make check` (lint + tests) before pushing.
+- Run `just check` (lint + tests) before pushing.
 - All new features should include tests.
 - Formatter: `ruff format`. Linter: `ruff check`.
 
@@ -38,9 +38,23 @@
 - License: CC BY 4.0 / CC BY-NC 4.0 / MIT (see `soloquest/data/dataforged/LICENSE.md`)
 - Attribution: Game content © Shawn Tomkin
 
+## Documentation Structure
+
+**When you need to find information:**
+
+- **Current project state:** [docs/development/project-status.md](docs/development/project-status.md)
+- **New feature ideas:** Check GitHub Issues with `enhancement` label
+- **Project specifications:** [docs/specifications/poc-spec.md](docs/specifications/poc-spec.md)
+- **Architecture decisions:** [docs/adr/](docs/adr/)
+- **Development setup:** [docs/development/setup.md](docs/development/setup.md)
+- **User documentation:** [docs/user-guide/](docs/user-guide/)
+- **Historical snapshots:** [docs/archive/](docs/archive/) (dated snapshots from past milestones)
+
+**All documentation is indexed at:** [docs/README.md](docs/README.md)
+
 ## Quick Reference
 
-- `make` — show all available commands
-- `make run` — launch the CLI
-- `make check` — lint + test
-- ADRs live in `docs/adr/`
+- `just` — show all available commands
+- `just run` — launch the CLI
+- `just check` — lint + test
+- `just branch feat/name` — create feature branch

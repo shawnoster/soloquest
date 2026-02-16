@@ -29,7 +29,7 @@ uv run soloquest
 uv run python -m soloquest.main
 ```
 
-**New to Starforged CLI?** See the [Getting Started Guide](docs/getting-started.md) for a complete walkthrough.
+**New to Starforged CLI?** See the [Getting Started Guide](docs/user-guide/getting-started.md) for a complete walkthrough.
 
 ---
 
@@ -174,7 +174,28 @@ export SOLOQUEST_ADVENTURES_DIR="$HOME/Documents/ObsidianVault/Starforged"
 soloquest
 ```
 
-See [Adventures Directory Configuration](docs/adventures-directory.md) for details.
+See [Adventures Directory Configuration](docs/user-guide/adventures-directory.md) for details.
+
+---
+
+## Documentation
+
+### For Users
+- **[Getting Started Guide](docs/user-guide/getting-started.md)** - Complete walkthrough from installation to your first session
+- **[Adventures Directory Config](docs/user-guide/adventures-directory.md)** - Configure where your game data is stored
+- **Commands** - See the [Commands](#commands) section above
+
+### For Contributors
+- **[Contributing Guide](CONTRIBUTING.md)** - How to contribute to the project
+- **[Development Setup](docs/development/setup.md)** - Set up your development environment
+- **[Testing Guide](docs/development/testing.md)** - Manual testing procedures
+- **[Project Status](docs/development/project-status.md)** - Current development status
+
+### Project Info
+- **[Changelog](CHANGELOG.md)** - Version history and release notes
+- **[Specifications](docs/specifications/poc-spec.md)** - Original POC specification
+- **[Architecture Decisions](docs/adr/)** - Design decisions and rationale
+- **[Documentation Hub](docs/)** - Complete documentation index
 
 ---
 

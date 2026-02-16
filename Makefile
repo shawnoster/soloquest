@@ -28,7 +28,7 @@ run: ## Run the CLI
 	uv run soloquest
 
 test: ## Run tests with coverage
-	uv run pytest
+	uv run python -m pytest
 
 lint: ## Lint with ruff
 	uv run ruff check soloquest tests
@@ -40,13 +40,13 @@ format: ## Auto-format code with ruff
 check: lint test ## Run lint + tests
 
 clean: ## Remove build artifacts and caches
-	if exist __pycache__ rd /s /q __pycache__
-	if exist .pytest_cache rd /s /q .pytest_cache
-	if exist .coverage del .coverage
-	if exist htmlcov rd /s /q htmlcov
-	if exist dist rd /s /q dist
-	if exist build rd /s /q build
-	for /d /r . %%d in (__pycache__) do @if exist "%%d" rd /s /q "%%d"
+	rm -rf __pycache__
+	rm -rf .pytest_cache
+	rm -f .coverage
+	rm -rf htmlcov
+	rm -rf dist
+	rm -rf build
+	find . -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true
 
 branch: ## Create and switch to new feature branch (e.g., make branch NAME=fix/something)
 	@if [ -z "$(NAME)" ]; then \
