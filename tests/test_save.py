@@ -9,6 +9,7 @@ import pytest
 
 from soloquest.engine.dice import DiceMode
 from soloquest.models.character import Character, Stats
+from soloquest.models.session import Session
 from soloquest.models.vow import Vow, VowRank
 from soloquest.state import save as save_module
 from soloquest.state.save import autosave, load_game, save_game
@@ -87,23 +88,24 @@ class TestSaveGame:
 class TestLoadGame:
     def test_roundtrip(self, tmp_saves, sample_character, sample_vows):
         save_game(sample_character, sample_vows, 5, DiceMode.MIXED)
-        char, vows, count, mode = load_game("Kael Morrow")
+        char, vows, count, mode, session = load_game("Kael Morrow")
         assert char.name == "Kael Morrow"
         assert char.health == 4
         assert char.momentum == 5
         assert count == 5
         assert mode == DiceMode.MIXED
+        assert session is None  # No session saved
 
     def test_vow_progress_survives_roundtrip(self, tmp_saves, sample_character, sample_vows):
         save_game(sample_character, sample_vows, 1, DiceMode.DIGITAL)
-        _, vows, _, _ = load_game("Kael Morrow")
+        _, vows, _, _, _ = load_game("Kael Morrow")
         assert vows[0].ticks == 8
 
     def test_debilities_survive_roundtrip(self, tmp_saves, sample_vows):
         char = Character(name="Test Char", stats=Stats())
         char.toggle_debility("corrupted")
         save_game(char, sample_vows, 1, DiceMode.DIGITAL)
-        restored, _, _, _ = load_game("Test Char")
+        restored, _, _, _, _ = load_game("Test Char")
         assert "corrupted" in restored.debilities
         assert restored.momentum_max == 9  # 10 - 1
 
@@ -169,7 +171,7 @@ class TestErrorHandling:
         path.write_text("{ corrupted }")
 
         # Should recover from backup
-        char, vows, count, mode = load_game("Kael Morrow")
+        char, vows, count, mode, session = load_game("Kael Morrow")
         assert char.name == "Kael Morrow"
         # Should have session 1 data from backup
         assert count == 1
@@ -195,6 +197,77 @@ class TestErrorHandling:
         path.write_text(json.dumps(data))
 
         # Should load without crashing, defaulting to DANGEROUS
-        char, vows, count, mode = load_game("Test Char")
+        char, vows, count, mode, session = load_game("Test Char")
         assert len(vows) == 1
         assert vows[0].rank.value == "dangerous"  # Default rank
+
+
+class TestSessionPersistence:
+    def test_save_with_session(self, tmp_saves, sample_character, sample_vows):
+        """Saving with a session should persist the session data."""
+        session = Session(number=3, title="The Derelict")
+        session.add_journal("I enter the airlock.")
+        session.add_move("Strike result")
+
+        save_game(sample_character, sample_vows, 3, DiceMode.DIGITAL, session)
+
+        # Load and verify session was saved
+        char, vows, count, mode, loaded_session = load_game("Kael Morrow")
+        assert loaded_session is not None
+        assert loaded_session.number == 3
+        assert loaded_session.title == "The Derelict"
+        assert len(loaded_session.entries) == 2
+        assert loaded_session.entries[0].text == "I enter the airlock."
+
+    def test_save_without_session(self, tmp_saves, sample_character, sample_vows):
+        """Saving without a session should not persist session data."""
+        save_game(sample_character, sample_vows, 1, DiceMode.DIGITAL, session=None)
+
+        # Load and verify no session was saved
+        char, vows, count, mode, loaded_session = load_game("Kael Morrow")
+        assert loaded_session is None
+
+    def test_session_roundtrip(self, tmp_saves, sample_character, sample_vows):
+        """Session data should survive a roundtrip."""
+        session = Session(number=5)
+        session.add_journal("Journal entry 1")
+        session.add_oracle("Oracle result")
+        session.add_mechanical("Health -1")
+        session.add_note("NPC: Commander Vex")
+
+        save_game(sample_character, sample_vows, 5, DiceMode.DIGITAL, session)
+
+        # Load and verify
+        _, _, _, _, loaded_session = load_game("Kael Morrow")
+        assert loaded_session is not None
+        assert loaded_session.number == 5
+        assert len(loaded_session.entries) == 4
+
+    def test_autosave_with_session(self, tmp_saves, sample_character, sample_vows):
+        """Autosave should persist session data."""
+        session = Session(number=2)
+        session.add_journal("Auto-saved entry")
+
+        autosave(sample_character, sample_vows, 2, DiceMode.DIGITAL, session)
+
+        # Verify session was saved
+        path = tmp_saves / "kael_morrow.json"
+        assert path.exists()
+        data = json.loads(path.read_text())
+        assert "session" in data
+        assert data["session"]["number"] == 2
+        assert len(data["session"]["entries"]) == 1
+
+    def test_save_with_empty_session(self, tmp_saves, sample_character, sample_vows):
+        """Saving with an empty session should still save character."""
+        session = Session(number=1)  # No entries added
+
+        save_game(sample_character, sample_vows, 1, DiceMode.DIGITAL, session)
+
+        # Verify character was saved even though session is empty
+        path = tmp_saves / "kael_morrow.json"
+        assert path.exists()
+        data = json.loads(path.read_text())
+        assert data["character"]["name"] == "Kael Morrow"
+        assert data["session"]["number"] == 1
+        assert len(data["session"]["entries"]) == 0

@@ -202,14 +202,37 @@ def main() -> None:
     most_recent = load_most_recent()
 
     if most_recent:
-        character, vows, session_count, dice_mode = most_recent
-        display.console.print(
-            f"  [dim]Last played:[/dim] [bold]{character.name}[/bold]  Session {session_count}"
-        )
+        character, vows, session_count, dice_mode, session = most_recent
+
+        # Check if there's an active session to resume
+        has_active_session = session is not None and len(session.entries) > 0
+
+        if has_active_session:
+            display.console.print(
+                f"  [dim]Last played:[/dim] [bold]{character.name}[/bold]  "
+                f"Session {session.number} ({len(session.entries)} entries)"
+            )
+        else:
+            display.console.print(
+                f"  [dim]Last played:[/dim] [bold]{character.name}[/bold]  Session {session_count}"
+            )
+
         display.console.print()
         display.console.print("  +-- Choose an action ----------------------------+", markup=False)
         display.console.print("  |                                                |", markup=False)
-        display.console.print("  |  [r] Resume last session                       |", markup=False)
+
+        if has_active_session:
+            display.console.print(
+                "  |  [r] Resume session (continue)                 |", markup=False
+            )
+            display.console.print(
+                "  |  [s] Start new session                         |", markup=False
+            )
+        else:
+            display.console.print(
+                "  |  [r] Continue (new session)                    |", markup=False
+            )
+
         display.console.print("  |  [n] New character                             |", markup=False)
         if len(saves) > 1:
             display.console.print(
@@ -219,14 +242,16 @@ def main() -> None:
         display.console.print("  +------------------------------------------------+", markup=False)
         display.console.print()
 
-        choice = (
-            Prompt.ask("  Choice (r/n" + ("/l" if len(saves) > 1 else "") + ")", default="r")
-            .strip()
-            .lower()
+        choice_options = (
+            "r/n" + ("/s" if has_active_session else "") + ("/l" if len(saves) > 1 else "")
         )
+        choice = Prompt.ask(f"  Choice ({choice_options})", default="r").strip().lower()
 
         if choice == "r":
-            pass  # use loaded character
+            pass  # use loaded character and session (if any)
+        elif choice == "s" and has_active_session:
+            # User wants to start a new session, clear the current one
+            session = None
         elif choice == "n":
             result = new_character()
             if result is None:
@@ -236,6 +261,7 @@ def main() -> None:
             else:
                 character, vows, dice_mode = result
                 session_count = 0
+                session = None
         elif choice == "l" and len(saves) > 1:
             display.console.print()
             display.console.print(
@@ -257,7 +283,7 @@ def main() -> None:
             try:
                 idx = int(raw) - 1
                 char_name = saves[idx]
-                character, vows, session_count, dice_mode = load_game(char_name)
+                character, vows, session_count, dice_mode, session = load_game(char_name)
             except (ValueError, IndexError):
                 display.error("Invalid choice, resuming last session.")
         else:
@@ -279,11 +305,12 @@ def main() -> None:
             return
         character, vows, dice_mode = result
         session_count = 0
+        session = None
 
     # Start the session
     from soloquest.loop import run_session
 
-    run_session(character, vows, session_count, dice_mode)
+    run_session(character, vows, session_count, dice_mode, session)
 
 
 if __name__ == "__main__":
