@@ -1,0 +1,42 @@
+# Auto detect text files and normalize line endings to LF in the repository
+* text=auto
+
+# Explicitly declare text files you want to always be normalized and converted
+# to native line endings on checkout (CRLF on Windows, LF on macOS/Linux)
+*.py text eol=lf
+*.pyi text eol=lf
+*.toml text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+*.json text eol=lf
+*.md text eol=lf
+*.txt text eol=lf
+*.rst text eol=lf
+*.cfg text eol=lf
+*.ini text eol=lf
+
+# Shell scripts should always use LF (even on Windows via Git Bash)
+*.sh text eol=lf
+*.bash text eol=lf
+
+# Justfile should use LF
+justfile text eol=lf
+
+# Denote all files that are truly binary and should not be modified
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.eot binary
+*.gz binary
+*.zip binary
+*.pyc binary
+*.pyd binary
+*.so binary
+*.dll binary
+*.exe binary
