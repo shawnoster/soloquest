@@ -73,7 +73,7 @@ class CommandCompleter(Completer):
                         display_meta=self.command_meta.get(cmd, ""),
                     )
                 )
-        return completions
+        return sorted(completions, key=lambda c: c.text)
 
     def _complete_arguments(self, text: str) -> list[Completion]:
         """Complete arguments for specific commands."""
@@ -120,7 +120,7 @@ class CommandCompleter(Completer):
                         display_meta=table.name,
                     )
                 )
-        return completions
+        return sorted(completions, key=lambda c: c.text)
 
     def _complete_moves(self, current_arg: str) -> list[Completion]:
         """Complete move names."""
@@ -147,7 +147,7 @@ class CommandCompleter(Completer):
                         display_meta=move_name,
                     )
                 )
-        return completions
+        return sorted(completions, key=lambda c: c.text)
 
     def _complete_assets(self, current_arg: str) -> list[Completion]:
         """Complete asset names."""
@@ -174,4 +174,4 @@ class CommandCompleter(Completer):
                         display_meta=asset_name,
                     )
                 )
-        return completions
+        return sorted(completions, key=lambda c: c.text)

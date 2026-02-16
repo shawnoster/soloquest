@@ -95,6 +95,18 @@ class TestCommandCompleter:
             # This prevents the double-slash bug (//oracle)
             assert completion.start_position == -3
 
+    def test_completions_are_alphabetically_sorted(self):
+        """Test that command completions are returned in alphabetical order."""
+        completer = CommandCompleter()
+        doc = Document("/", cursor_position=1)
+        completions = list(completer.get_completions(doc, None))
+
+        # Extract completion texts
+        completion_texts = [c.text for c in completions]
+
+        # Verify they are sorted
+        assert completion_texts == sorted(completion_texts)
+
 
 class TestOracleTableCompletion:
     def test_completes_oracle_table_names(self):
@@ -196,6 +208,40 @@ class TestOracleTableCompletion:
         assert len(completions) >= 1
         pay_completions = [c for c in completions if c.text == "pay_the_price"]
         assert len(pay_completions) == 1
+
+    def test_oracle_completions_are_sorted(self):
+        """Test that oracle table completions are returned in alphabetical order."""
+        oracles = {
+            "theme": OracleTable(
+                key="theme",
+                name="Theme",
+                die="d100",
+                results=[(1, 100, "Test")],
+            ),
+            "action": OracleTable(
+                key="action",
+                name="Action",
+                die="d100",
+                results=[(1, 100, "Test")],
+            ),
+            "descriptor": OracleTable(
+                key="descriptor",
+                name="Descriptor",
+                die="d100",
+                results=[(1, 100, "Test")],
+            ),
+        }
+        completer = CommandCompleter(oracles=oracles)
+        doc = Document("/oracle ", cursor_position=8)
+        completions = list(completer.get_completions(doc, None))
+
+        # Extract completion texts
+        completion_texts = [c.text for c in completions]
+
+        # Verify they are sorted
+        assert completion_texts == sorted(completion_texts)
+        # Verify order: action, descriptor, theme
+        assert completion_texts == ["action", "descriptor", "theme"]
 
 
 class TestMoveCompletion:
@@ -302,3 +348,31 @@ class TestMoveCompletion:
 
         # Should not get move completions for /oracle
         assert len(completions) == 0
+
+    def test_move_completions_are_sorted(self):
+        """Test that move completions are returned in alphabetical order."""
+        moves = {
+            "strike": {
+                "name": "Strike",
+                "category": "combat",
+            },
+            "face_danger": {
+                "name": "Face Danger",
+                "category": "adventure",
+            },
+            "aid_your_ally": {
+                "name": "Aid Your Ally",
+                "category": "adventure",
+            },
+        }
+        completer = CommandCompleter(moves=moves)
+        doc = Document("/move ", cursor_position=6)
+        completions = list(completer.get_completions(doc, None))
+
+        # Extract completion texts
+        completion_texts = [c.text for c in completions]
+
+        # Verify they are sorted
+        assert completion_texts == sorted(completion_texts)
+        # Verify order: aid_your_ally, face_danger, strike
+        assert completion_texts == ["aid_your_ally", "face_danger", "strike"]
