@@ -5,13 +5,55 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
+from prompt_toolkit import PromptSession
+from prompt_toolkit.completion import Completer, Completion
 from rich.prompt import Prompt
 
+from soloquest.engine.assets import load_assets
 from soloquest.engine.dice import DiceMode
+from soloquest.models.asset import CharacterAsset
 from soloquest.models.character import Character, Stats
 from soloquest.models.vow import Vow, VowRank
 from soloquest.state.save import list_saves, load_game, load_most_recent
 from soloquest.ui import display
+
+
+class AssetCompleter(Completer):
+    """Completer for asset names during character creation."""
+
+    def __init__(self, assets: dict):
+        self.assets = assets
+
+    def get_completions(self, document, complete_event):
+        """Generate completions for asset names."""
+        current_text = document.text_before_cursor
+        current_arg = current_text.strip()
+
+        completions = []
+        for key, asset in self.assets.items():
+            asset_name = asset.name if hasattr(asset, "name") else key
+            # Match against both key and name (show all if current_arg is empty)
+            # Normalize for matching (spaces/underscores/hyphens)
+            key_normalized = key.replace("_", " ").replace("-", " ")
+            name_normalized = asset_name.lower().replace("_", " ").replace("-", " ")
+            arg_normalized = current_arg.lower().replace("_", " ").replace("-", " ")
+
+            if (
+                not current_arg
+                or arg_normalized in key_normalized
+                or arg_normalized in name_normalized
+            ):
+                # Use the key as the completion text
+                completions.append(
+                    Completion(
+                        text=key,
+                        start_position=-len(current_arg) if current_arg else 0,
+                        display_meta=asset_name,
+                    )
+                )
+
+        # Sort alphabetically by completion text
+        yield from sorted(completions, key=lambda c: c.text)
 
 
 def new_character() -> tuple[Character, list[Vow], DiceMode] | None:
@@ -58,13 +100,27 @@ def new_character() -> tuple[Character, list[Vow], DiceMode] | None:
 
     stats = Stats(**assigned)
 
+    # Load assets for tab-completion
+    data_dir = Path(__file__).parent / "data"
+    available_assets = load_assets(data_dir)
+    asset_completer = AssetCompleter(available_assets)
+    asset_session = PromptSession(completer=asset_completer)
+
     display.console.print()
     display.info("  Choose 3 assets (type names, e.g. 'ace', 'empath', 'command_ship'):")
-    assets: list[str] = []
-    while len(assets) < 3:
-        raw = Prompt.ask(f"  Asset {len(assets) + 1}")
-        if raw.strip():
-            assets.append(raw.strip().lower().replace(" ", "_"))
+    display.info("  [dim]Press TAB for completion[/dim]")
+    asset_keys: list[str] = []
+    while len(asset_keys) < 3:
+        try:
+            raw = asset_session.prompt(f"  Asset {len(asset_keys) + 1}: ")
+            if raw.strip():
+                asset_keys.append(raw.strip().lower().replace(" ", "_"))
+        except (KeyboardInterrupt, EOFError):
+            display.console.print()
+            return None
+
+    # Convert asset keys to CharacterAsset objects
+    assets = [CharacterAsset(asset_key=key) for key in asset_keys]
 
     character = Character(
         name=name,
@@ -146,14 +202,37 @@ def main() -> None:
     most_recent = load_most_recent()
 
     if most_recent:
-        character, vows, session_count, dice_mode = most_recent
-        display.console.print(
-            f"  [dim]Last played:[/dim] [bold]{character.name}[/bold]  Session {session_count}"
-        )
+        character, vows, session_count, dice_mode, session = most_recent
+
+        # Check if there's an active session to resume
+        has_active_session = session is not None and len(session.entries) > 0
+
+        if has_active_session:
+            display.console.print(
+                f"  [dim]Last played:[/dim] [bold]{character.name}[/bold]  "
+                f"Session {session.number} ({len(session.entries)} entries)"
+            )
+        else:
+            display.console.print(
+                f"  [dim]Last played:[/dim] [bold]{character.name}[/bold]  Session {session_count}"
+            )
+
         display.console.print()
         display.console.print("  +-- Choose an action ----------------------------+", markup=False)
         display.console.print("  |                                                |", markup=False)
-        display.console.print("  |  [r] Resume last session                       |", markup=False)
+
+        if has_active_session:
+            display.console.print(
+                "  |  [r] Resume session (continue)                 |", markup=False
+            )
+            display.console.print(
+                "  |  [s] Start new session                         |", markup=False
+            )
+        else:
+            display.console.print(
+                "  |  [r] Continue (new session)                    |", markup=False
+            )
+
         display.console.print("  |  [n] New character                             |", markup=False)
         if len(saves) > 1:
             display.console.print(
@@ -163,14 +242,16 @@ def main() -> None:
         display.console.print("  +------------------------------------------------+", markup=False)
         display.console.print()
 
-        choice = (
-            Prompt.ask("  Choice (r/n" + ("/l" if len(saves) > 1 else "") + ")", default="r")
-            .strip()
-            .lower()
+        choice_options = (
+            "r/n" + ("/s" if has_active_session else "") + ("/l" if len(saves) > 1 else "")
         )
+        choice = Prompt.ask(f"  Choice ({choice_options})", default="r").strip().lower()
 
         if choice == "r":
-            pass  # use loaded character
+            pass  # use loaded character and session (if any)
+        elif choice == "s" and has_active_session:
+            # User wants to start a new session, clear the current one
+            session = None
         elif choice == "n":
             result = new_character()
             if result is None:
@@ -180,6 +261,7 @@ def main() -> None:
             else:
                 character, vows, dice_mode = result
                 session_count = 0
+                session = None
         elif choice == "l" and len(saves) > 1:
             display.console.print()
             display.console.print(
@@ -201,7 +283,7 @@ def main() -> None:
             try:
                 idx = int(raw) - 1
                 char_name = saves[idx]
-                character, vows, session_count, dice_mode = load_game(char_name)
+                character, vows, session_count, dice_mode, session = load_game(char_name)
             except (ValueError, IndexError):
                 display.error("Invalid choice, resuming last session.")
         else:
@@ -223,11 +305,12 @@ def main() -> None:
             return
         character, vows, dice_mode = result
         session_count = 0
+        session = None
 
     # Start the session
     from soloquest.loop import run_session
 
-    run_session(character, vows, session_count, dice_mode)
+    run_session(character, vows, session_count, dice_mode, session)
 
 
 if __name__ == "__main__":

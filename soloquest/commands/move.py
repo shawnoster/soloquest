@@ -21,15 +21,16 @@ if TYPE_CHECKING:
     from soloquest.loop import GameState
 
 
-def fuzzy_match_move(query: str, move_data: dict) -> list[str]:
+def fuzzy_match_move(query: str, move_data: dict, category_filter: str | None = None) -> list[str]:
     """Find moves matching a partial query string.
 
     Prioritizes exact matches, then prefix matches, then substring matches.
+    If category_filter is provided, only matches moves in that category.
     """
     q = query.lower().replace(" ", "_").replace("-", "_")
 
-    # Empty query returns no matches
-    if not q:
+    # Empty query returns no matches (unless filtering by category)
+    if not q and not category_filter:
         return []
 
     exact_matches = []
@@ -37,7 +38,21 @@ def fuzzy_match_move(query: str, move_data: dict) -> list[str]:
     substring_matches = []
 
     for key in move_data:
-        name_norm = move_data[key]["name"].lower().replace(" ", "_")
+        move = move_data[key]
+
+        # Apply category filter if specified
+        if category_filter:
+            move_category = move.get("category", "").lower()
+            category_filter_lower = category_filter.lower()
+            if move_category != category_filter_lower:
+                continue
+
+        # If only filtering by category (no query), include all moves in category
+        if not q:
+            exact_matches.append(key)
+            continue
+
+        name_norm = move["name"].lower().replace(" ", "_")
 
         # Check for exact match first
         if q in (key, name_norm):
@@ -56,19 +71,40 @@ def fuzzy_match_move(query: str, move_data: dict) -> list[str]:
 def handle_move(state: GameState, args: list[str], flags: set[str]) -> None:
     if not args:
         display.error("Usage: /move [name]  (e.g. /move strike)")
+        display.info("  Filter by category: /move category:adventure")
         return
 
-    query = "_".join(args).lower()
-    matches = fuzzy_match_move(query, state.moves)
+    # Parse category filter (supports category:, type:, cat:)
+    category_filter = None
+    query_parts = []
+
+    for arg in args:
+        if ":" in arg:
+            prefix, value = arg.split(":", 1)
+            if prefix.lower() in ("category", "type", "cat"):
+                category_filter = value.lower()
+            else:
+                query_parts.append(arg)
+        else:
+            query_parts.append(arg)
+
+    query = "_".join(query_parts).lower() if query_parts else ""
+    matches = fuzzy_match_move(query, state.moves, category_filter)
 
     if not matches:
-        display.error(f"Move not found: '{' '.join(args)}'")
+        if category_filter:
+            display.error(
+                f"No moves found in category '{category_filter}'"
+                + (f" matching '{' '.join(query_parts)}'" if query_parts else "")
+            )
+        else:
+            display.error(f"Move not found: '{' '.join(args)}'")
         display.info("Try /help moves to see available moves.")
         return
 
     if len(matches) > 1:
         names = ", ".join(state.moves[k]["name"] for k in matches)
-        display.warn(f"Multiple matches: {names}. Be more specific.")
+        display.warn(f"Multiple matches ({len(matches)}): {names}. Be more specific.")
         return
 
     move_key = matches[0]
@@ -284,7 +320,7 @@ def _offer_pay_the_price(state: GameState, flags: set[str]) -> None:
     """On a miss, offer to roll Pay the Price oracle."""
     display.console.print()
     if Confirm.ask("  Roll Pay the Price oracle?", default=True):
-        from soloquest.engine.oracles import roll_oracle
+        from soloquest.engine.dice import roll_oracle
 
         table = state.oracles.get("pay_the_price")
         if not table:

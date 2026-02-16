@@ -44,54 +44,106 @@ def handle_note(state: GameState, args: list[str], flags: set[str]) -> None:
     display.success(f"Note added: {text}")
 
 
-def handle_end(state: GameState, args: list[str], flags: set[str]) -> None:
-    """End the session — save character, export journal."""
-    display.rule("End Session")
+def handle_newsession(state: GameState, args: list[str], flags: set[str]) -> None:
+    """Start a new session — export current session journal, then start fresh."""
+    from rich.prompt import Confirm
 
-    # Optional session title
-    title = Prompt.ask("  Session title (leave blank to skip)", default="")
-    if title:
-        state.session.title = title
+    if len(state.session.entries) > 0:
+        display.rule("Start New Session")
+        display.warn("This will export the current session and start fresh.")
+        display.info(f"  Current session has {len(state.session.entries)} entries.")
+        display.console.print()
 
-    # Summary stats
-    entries = state.session.entries
-    moves_count = sum(1 for e in entries if e.kind == EntryKind.MOVE)
-    oracles_count = sum(1 for e in entries if e.kind == EntryKind.ORACLE)
-    journal_count = sum(1 for e in entries if e.kind == EntryKind.JOURNAL)
-    notes_count = sum(1 for e in entries if e.kind == EntryKind.NOTE)
+        if not Confirm.ask("  Start new session?", default=False):
+            return
 
-    active_vows = sum(1 for v in state.vows if not v.fulfilled)
-    fulfilled_vows = sum(1 for v in state.vows if v.fulfilled)
+        # Export current session first
+        _export_session(state)
 
-    display.info(f"  Moves rolled:        {moves_count}")
-    display.info(f"  Oracles consulted:   {oracles_count}")
-    display.info(f"  Journal entries:     {journal_count}")
-    if notes_count:
-        display.info(f"  Notes:               {notes_count}")
-    if fulfilled_vows:
-        display.info(f"  Vows fulfilled:      {fulfilled_vows}")
-    display.info(f"  Active vows:         {active_vows}")
-    display.info(
-        f"  Momentum:            {state.character.momentum:+d}/{state.character.momentum_max}"
-    )
-    display.console.print()
+    # Create new session
+    state.session_count += 1
+    from soloquest.models.session import Session
 
-    # Save character state
+    state.session = Session(number=state.session_count)
+
+    # Save character state with new session
+    from soloquest.state.save import save_game
+
     save_path = save_game(
         character=state.character,
         vows=state.vows,
         session_count=state.session_count,
         dice_mode=state.dice_mode,
+        session=state.session,
     )
     display.success(f"Character saved → {save_path}")
+    display.console.print()
+    display.session_header(state.session.number, "")
+    display.info(f"  Character: {state.character.name}  |  Dice: {state.dice_mode.value}")
+    display.console.print()
 
-    # Export session markdown
+
+def _export_session(state: GameState) -> None:
+    """Export current session to markdown files."""
+    # Session markdown
     session_path = export_session(state.session, state.character)
     display.success(f"Session exported → {session_path}")
 
     # Append to full journal
     journal_path = append_to_journal(state.session, state.character)
     display.success(f"Journal updated → {journal_path}")
+
+
+def handle_end(state: GameState, args: list[str], flags: set[str]) -> None:
+    """Export current session journal and exit."""
+    display.rule("End Session")
+
+    has_entries = len(state.session.entries) > 0
+
+    if has_entries:
+        # Optional session title
+        title = Prompt.ask("  Session title (leave blank to skip)", default="")
+        if title:
+            state.session.title = title
+
+        # Summary stats
+        entries = state.session.entries
+        moves_count = sum(1 for e in entries if e.kind == EntryKind.MOVE)
+        oracles_count = sum(1 for e in entries if e.kind == EntryKind.ORACLE)
+        journal_count = sum(1 for e in entries if e.kind == EntryKind.JOURNAL)
+        notes_count = sum(1 for e in entries if e.kind == EntryKind.NOTE)
+
+        active_vows = sum(1 for v in state.vows if not v.fulfilled)
+        fulfilled_vows = sum(1 for v in state.vows if v.fulfilled)
+
+        display.info(f"  Moves rolled:        {moves_count}")
+        display.info(f"  Oracles consulted:   {oracles_count}")
+        display.info(f"  Journal entries:     {journal_count}")
+        if notes_count:
+            display.info(f"  Notes:               {notes_count}")
+        if fulfilled_vows:
+            display.info(f"  Vows fulfilled:      {fulfilled_vows}")
+        display.info(f"  Active vows:         {active_vows}")
+        display.info(
+            f"  Momentum:            {state.character.momentum:+d}/{state.character.momentum_max}"
+        )
+        display.console.print()
+
+        # Export session journal
+        _export_session(state)
+    else:
+        display.info("  Session has no entries to export.")
+        display.console.print()
+
+    # Always save character state (even if no entries)
+    save_path = save_game(
+        character=state.character,
+        vows=state.vows,
+        session_count=state.session_count,
+        dice_mode=state.dice_mode,
+        session=None,  # Clear session after export
+    )
+    display.success(f"Character saved → {save_path}")
 
     display.console.print()
     display.info(f"  Until next time, {state.character.name}.")

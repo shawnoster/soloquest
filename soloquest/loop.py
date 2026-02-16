@@ -21,7 +21,13 @@ from soloquest.commands.move import handle_move
 from soloquest.commands.oracle import handle_oracle
 from soloquest.commands.registry import COMMAND_HELP, parse_command
 from soloquest.commands.roll import handle_roll
-from soloquest.commands.session import handle_end, handle_help, handle_log, handle_note
+from soloquest.commands.session import (
+    handle_end,
+    handle_help,
+    handle_log,
+    handle_newsession,
+    handle_note,
+)
 from soloquest.commands.vow import handle_fulfill, handle_progress, handle_vow
 from soloquest.engine.assets import load_assets
 from soloquest.engine.dice import (
@@ -140,9 +146,15 @@ def run_session(
     vows: list[Vow],
     session_count: int,
     dice_mode: DiceMode,
+    session: Session | None = None,
 ) -> None:
-    session_count += 1
-    session = Session(number=session_count)
+    # If no session provided, create a new one
+    if session is None:
+        session_count += 1
+        session = Session(number=session_count)
+    else:
+        # Resume existing session (session_count remains the same)
+        pass
 
     moves = load_move_data()
     oracles = load_oracles(DATA_DIR)
@@ -161,12 +173,14 @@ def run_session(
         assets=assets,
     )
 
-    display.session_header(session_count, "")
+    is_new_session = session.number == session_count and len(session.entries) == 0
+    resume_label = "" if is_new_session else " (Resumed)"
+    display.session_header(session.number, resume_label)
     display.info(f"  Character: {character.name}  |  Dice: {dice_mode.value}")
     display.info("  Type to journal. /help for commands.")
 
     # Show context when resuming (not first session)
-    if session_count > 1:
+    if session.number > 1 and is_new_session:
         display.console.print()
         display.rule("Continuing Your Journey")
 
@@ -247,6 +261,8 @@ def run_session(
                     _handle_forsake_vow(state)
                 case "settings":
                     handle_settings(state, cmd.args, cmd.flags)
+                case "newsession":
+                    handle_newsession(state, cmd.args, cmd.flags)
                 case "end":
                     handle_end(state, cmd.args, cmd.flags)
                 case "help":
@@ -268,7 +284,9 @@ def run_session(
 
             # Autosave after mechanical commands
             if cmd.name in AUTOSAVE_AFTER:
-                autosave(state.character, state.vows, state.session_count, state.dice_mode)
+                autosave(
+                    state.character, state.vows, state.session_count, state.dice_mode, state.session
+                )
                 state._unsaved_entries = 0
 
         except ValueError as e:
@@ -286,27 +304,19 @@ def run_session(
 
 
 def _handle_interrupt(state: GameState) -> None:
-    """Ctrl+C handler — offer to save if there are unsaved entries."""
-    if state._unsaved_entries > 0:
-        display.warn(
-            f"Session interrupted with {state._unsaved_entries} unsaved journal "
-            f"entr{'y' if state._unsaved_entries == 1 else 'ies'}. Use /end to save."
-        )
-    else:
-        display.info("Session interrupted. Use /end to save.")
+    """Ctrl+C handler — autosave session and character state."""
+    # Always autosave the current session
+    autosave(state.character, state.vows, state.session_count, state.dice_mode, state.session)
+    display.info(
+        "Session saved. Resume with 'soloquest' or start a new session with '/newsession'."
+    )
 
 
 def _confirm_quit(state: GameState) -> None:
-    """Quit with confirmation if there are unsaved journal entries."""
-    if state._unsaved_entries > 0:
-        display.warn(
-            f"You have {state._unsaved_entries} unsaved journal "
-            f"entr{'y' if state._unsaved_entries == 1 else 'ies'}."
-        )
-        from rich.prompt import Confirm
-
-        if not Confirm.ask("  Quit without saving?", default=False):
-            return
-    else:
-        display.info("Quitting without saving.")
+    """Quit and autosave session."""
+    # Always autosave the current session
+    autosave(state.character, state.vows, state.session_count, state.dice_mode, state.session)
+    display.info(
+        "Session saved. Resume with 'soloquest' or start a new session with '/newsession'."
+    )
     state.running = False
