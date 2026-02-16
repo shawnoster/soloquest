@@ -41,7 +41,14 @@ def handle_oracle(state: GameState, args: list[str], flags: set[str]) -> None:
         result_text = table.lookup(roll)
         results.append(OracleResult(table_name=table.name, roll=roll, result=result_text))
 
-    for r in results:
+    # Display all results in a single panel if multiple tables
+    if len(results) == 1:
+        r = results[0]
         display.oracle_result_panel(r.table_name, r.roll, r.result)
+    elif len(results) > 1:
+        display.oracle_result_panel_combined(results)
+
+    # Log each result separately
+    for r in results:
         log_text = f"Oracle [{r.table_name}] roll {r.roll} → {r.result}"
         state.session.add_oracle(log_text)
