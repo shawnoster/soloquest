@@ -123,8 +123,36 @@ class CommandCompleter(Completer):
         return sorted(completions, key=lambda c: c.text)
 
     def _complete_moves(self, current_arg: str) -> list[Completion]:
-        """Complete move names."""
+        """Complete move names and category filters."""
         completions = []
+
+        # Check if completing a category filter (category:, type:, cat:)
+        if ":" in current_arg:
+            prefix, partial_value = current_arg.split(":", 1)
+            prefix_lower = prefix.lower()
+
+            if prefix_lower in ("category", "type", "cat"):
+                # Complete category names
+                categories = set()
+                for move_data in self.moves.values():
+                    category = move_data.get("category", "")
+                    if category:
+                        categories.add(category)
+
+                for category in sorted(categories):
+                    if not partial_value or partial_value.lower() in category.lower():
+                        # Calculate start position from the value part only
+                        start_position = -len(partial_value) if partial_value else 0
+                        completions.append(
+                            Completion(
+                                text=category,
+                                start_position=start_position,
+                                display_meta=f"{prefix}:{category}",
+                            )
+                        )
+                return completions
+
+        # Regular move name completion
         for key, move_data in self.moves.items():
             move_name = move_data.get("name", "")
             # Match against both key and name (show all if current_arg is empty)
