@@ -5,13 +5,54 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
+from prompt_toolkit import PromptSession
+from prompt_toolkit.completion import Completer, Completion
 from rich.prompt import Prompt
 
+from soloquest.engine.assets import load_assets
 from soloquest.engine.dice import DiceMode
 from soloquest.models.character import Character, Stats
 from soloquest.models.vow import Vow, VowRank
 from soloquest.state.save import list_saves, load_game, load_most_recent
 from soloquest.ui import display
+
+
+class AssetCompleter(Completer):
+    """Completer for asset names during character creation."""
+
+    def __init__(self, assets: dict):
+        self.assets = assets
+
+    def get_completions(self, document, complete_event):
+        """Generate completions for asset names."""
+        current_text = document.text_before_cursor
+        current_arg = current_text.strip()
+
+        completions = []
+        for key, asset in self.assets.items():
+            asset_name = asset.name if hasattr(asset, "name") else key
+            # Match against both key and name (show all if current_arg is empty)
+            # Normalize for matching (spaces/underscores/hyphens)
+            key_normalized = key.replace("_", " ").replace("-", " ")
+            name_normalized = asset_name.lower().replace("_", " ").replace("-", " ")
+            arg_normalized = current_arg.lower().replace("_", " ").replace("-", " ")
+
+            if (
+                not current_arg
+                or arg_normalized in key_normalized
+                or arg_normalized in name_normalized
+            ):
+                # Use the key as the completion text
+                completions.append(
+                    Completion(
+                        text=key,
+                        start_position=-len(current_arg) if current_arg else 0,
+                        display_meta=asset_name,
+                    )
+                )
+
+        # Sort alphabetically by completion text
+        yield from sorted(completions, key=lambda c: c.text)
 
 
 def new_character() -> tuple[Character, list[Vow], DiceMode] | None:
@@ -58,13 +99,24 @@ def new_character() -> tuple[Character, list[Vow], DiceMode] | None:
 
     stats = Stats(**assigned)
 
+    # Load assets for tab-completion
+    data_dir = Path(__file__).parent / "data"
+    available_assets = load_assets(data_dir)
+    asset_completer = AssetCompleter(available_assets)
+    asset_session = PromptSession(completer=asset_completer)
+
     display.console.print()
     display.info("  Choose 3 assets (type names, e.g. 'ace', 'empath', 'command_ship'):")
+    display.info("  [dim]Press TAB for completion[/dim]")
     assets: list[str] = []
     while len(assets) < 3:
-        raw = Prompt.ask(f"  Asset {len(assets) + 1}")
-        if raw.strip():
-            assets.append(raw.strip().lower().replace(" ", "_"))
+        try:
+            raw = asset_session.prompt(f"  Asset {len(assets) + 1}: ")
+            if raw.strip():
+                assets.append(raw.strip().lower().replace(" ", "_"))
+        except (KeyboardInterrupt, EOFError):
+            display.console.print()
+            return None
 
     character = Character(
         name=name,
