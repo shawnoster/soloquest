@@ -284,7 +284,7 @@ def _offer_pay_the_price(state: GameState, flags: set[str]) -> None:
     """On a miss, offer to roll Pay the Price oracle."""
     display.console.print()
     if Confirm.ask("  Roll Pay the Price oracle?", default=True):
-        from soloquest.engine.oracles import roll_oracle
+        from soloquest.engine.dice import roll_oracle
 
         table = state.oracles.get("pay_the_price")
         if not table:
