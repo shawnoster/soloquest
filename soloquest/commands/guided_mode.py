@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from prompt_toolkit.formatted_text import HTML
 from rich.prompt import Confirm
 
 from soloquest.ui import display
@@ -56,25 +57,36 @@ def stop_guided_mode(state: GameState) -> None:
 
 
 def get_guided_prompt(state: GameState) -> str:
-    """Get the prompt string with phase indicator.
-
-    Uses ANSI color codes since prompt_toolkit doesn't render Rich markup.
-    """
+    """Get the prompt string with phase indicator (plain text for testing)."""
     if not state.guided_mode:
         return "> "
 
-    # ANSI color codes for terminal colors
-    color_codes = {
-        "envision": "\033[36m",  # cyan
-        "oracle": "\033[35m",  # magenta
-        "move": "\033[33m",  # yellow
-        "outcome": "\033[32m",  # green
-    }
-    reset = "\033[0m"  # reset color
-
-    color = color_codes.get(state.guided_phase, "")
     phase_display = state.guided_phase.upper()
-    return f"{color}[{phase_display}]{reset} > "
+    return f"[{phase_display}] > "
+
+
+def get_guided_prompt_html(state: GameState) -> HTML:
+    """Get the prompt with HTML-style formatting for prompt_toolkit.
+
+    prompt_toolkit supports HTML-like tags for styling:
+    https://python-prompt-toolkit.readthedocs.io/en/master/pages/printing_text.html
+    """
+    if not state.guided_mode:
+        return HTML("> ")
+
+    # Map phases to colors using prompt_toolkit's HTML-style tags
+    color_map = {
+        "envision": "cyan",
+        "oracle": "magenta",
+        "move": "yellow",
+        "outcome": "green",
+    }
+
+    color = color_map.get(state.guided_phase, "white")
+    phase_display = state.guided_phase.upper()
+
+    # Use HTML() which prompt_toolkit will render with proper styling
+    return HTML(f'<{color}>[{phase_display}]</{color}> > ')
 
 
 def advance_phase(state: GameState) -> None:

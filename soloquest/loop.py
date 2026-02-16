@@ -18,7 +18,7 @@ from soloquest.commands.character import (
 from soloquest.commands.completion import CommandCompleter
 from soloquest.commands.debility import handle_debility
 from soloquest.commands.guide import handle_guide
-from soloquest.commands.guided_mode import advance_phase, get_guided_prompt, stop_guided_mode
+from soloquest.commands.guided_mode import advance_phase, stop_guided_mode
 from soloquest.commands.move import handle_move
 from soloquest.commands.oracle import handle_oracle
 from soloquest.commands.registry import COMMAND_HELP, parse_command
@@ -213,8 +213,13 @@ def run_session(
     while state.running:
         try:
             # Use guided prompt if in guided mode
-            prompt_text = get_guided_prompt(state) if state.guided_mode else "> "
-            line = prompt_session.prompt(prompt_text)
+            if state.guided_mode:
+                from soloquest.commands.guided_mode import get_guided_prompt_html
+
+                prompt_text = get_guided_prompt_html(state)
+                line = prompt_session.prompt(prompt_text)
+            else:
+                line = prompt_session.prompt("> ")
         except (KeyboardInterrupt, EOFError):
             display.console.print()
             _handle_interrupt(state)
