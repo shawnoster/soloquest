@@ -80,7 +80,11 @@ class TestOracleDisplay:
             # Verify it's a Panel with correct styling
             assert hasattr(panel_arg, "border_style")
             assert panel_arg.border_style == "bright_cyan"
-            assert "ORACLE RESULTS" in str(panel_arg.title)
+            # Title should show all table names: "ORACLE: ACTION THEME"
+            title_str = str(panel_arg.title)
+            assert "ORACLE:" in title_str
+            assert "ACTION" in title_str
+            assert "THEME" in title_str
 
             # Content should include both results
             content = str(panel_arg.renderable)
@@ -155,7 +159,9 @@ class TestOracleCommand:
 
         with (
             patch("soloquest.commands.oracle.roll_oracle", return_value=42),
-            patch("soloquest.commands.oracle.display.oracle_result_panel_combined") as mock_combined,
+            patch(
+                "soloquest.commands.oracle.display.oracle_result_panel_combined"
+            ) as mock_combined,
         ):
             handle_oracle(mock_state, args=["action", "theme"], flags=set())
 
