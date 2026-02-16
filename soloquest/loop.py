@@ -8,6 +8,7 @@ from pathlib import Path
 from prompt_toolkit import PromptSession
 from prompt_toolkit.history import InMemoryHistory
 
+from soloquest.commands.asset import handle_asset
 from soloquest.commands.character import (
     handle_char,
     handle_momentum,
@@ -22,6 +23,7 @@ from soloquest.commands.registry import COMMAND_HELP, parse_command
 from soloquest.commands.roll import handle_roll
 from soloquest.commands.session import handle_end, handle_help, handle_log, handle_note
 from soloquest.commands.vow import handle_fulfill, handle_progress, handle_vow
+from soloquest.engine.assets import load_assets
 from soloquest.engine.dice import (
     DiceMode,
     DigitalDice,
@@ -64,17 +66,73 @@ class GameState:
     dice: DigitalDice | PhysicalDice | MixedDice
     moves: dict  # raw TOML move data
     oracles: dict[str, OracleTable]
+    assets: dict  # asset definitions from dataforged
     running: bool = True
     last_result: object = field(default=None, repr=False)
     _unsaved_entries: int = field(default=0, repr=False)
 
 
+def load_dataforged_moves() -> dict:
+    """Load moves from dataforged JSON files."""
+    import json
+
+    path = DATA_DIR / "dataforged" / "moves.json"
+    if not path.exists():
+        return {}
+
+    with path.open("r", encoding="utf-8") as f:
+        data = json.load(f)
+
+    moves: dict[str, dict] = {}
+
+    # Recursively extract moves from nested structure
+    def extract_moves(item: dict | list) -> None:
+        if isinstance(item, list):
+            for sub_item in item:
+                extract_moves(sub_item)
+        elif isinstance(item, dict) and "Moves" in item:
+            # If this has "Moves" key, iterate them
+            for move in item["Moves"]:
+                if "$id" in move and "Name" in move:
+                    # Create simplified key
+                    move_id = move["$id"]
+                    key_parts = move_id.split("/")
+                    key = key_parts[-1].lower().replace(" ", "_").replace("-", "_")
+
+                    # Convert dataforged format to our dict format
+                    move_dict = {
+                        "name": move.get("Name", key),
+                        "category": key_parts[-2].lower() if len(key_parts) > 1 else "general",
+                        "description": move.get("Text", ""),
+                    }
+
+                    # Note: Dataforged doesn't include stat_options or outcome text
+                    # We'll rely on TOML for detailed move mechanics
+                    # This just provides the basic move definitions
+                    moves[key] = move_dict
+
+    extract_moves(data)
+    return moves
+
+
 def load_move_data() -> dict:
+    """Load all move data from both TOML and dataforged JSON.
+
+    TOML takes priority to allow custom overrides with full mechanics.
+    """
     import tomllib
 
-    path = DATA_DIR / "moves.toml"
-    with path.open("rb") as f:
-        return tomllib.load(f)
+    # Start with dataforged (basic definitions)
+    moves = load_dataforged_moves()
+
+    # Load and overlay TOML (full mechanics and custom)
+    toml_path = DATA_DIR / "moves.toml"
+    if toml_path.exists():
+        with toml_path.open("rb") as f:
+            toml_moves = tomllib.load(f)
+        moves.update(toml_moves)
+
+    return moves
 
 
 def run_session(
@@ -88,6 +146,7 @@ def run_session(
 
     moves = load_move_data()
     oracles = load_oracles(DATA_DIR)
+    assets = load_assets(DATA_DIR)
     dice = make_dice_provider(dice_mode)
 
     state = GameState(
@@ -99,6 +158,7 @@ def run_session(
         dice=dice,
         moves=moves,
         oracles=oracles,
+        assets=assets,
     )
 
     display.session_header(session_count, "")
@@ -116,9 +176,7 @@ def run_session(
             display.console.print("  [bold]Active Vows:[/bold]")
             for vow in active_vows[:3]:  # Show up to 3 vows
                 boxes = "█" * vow.boxes_filled + "░" * (10 - vow.boxes_filled)
-                display.console.print(
-                    f"    [dim]• {vow.description} [{vow.rank}] {boxes}[/dim]"
-                )
+                display.console.print(f"    [dim]• {vow.description} [{vow.rank}] {boxes}[/dim]")
         else:
             display.console.print("  [dim]No active vows[/dim]")
 
@@ -127,7 +185,7 @@ def run_session(
     display.console.print()
 
     history = InMemoryHistory()
-    completer = CommandCompleter(oracles=state.oracles, moves=state.moves)
+    completer = CommandCompleter(oracles=state.oracles, moves=state.moves, assets=state.assets)
     prompt_session: PromptSession = PromptSession(
         history=history,
         completer=completer,
@@ -161,6 +219,8 @@ def run_session(
                     handle_move(state, cmd.args, cmd.flags)
                 case "oracle":
                     handle_oracle(state, cmd.args, cmd.flags)
+                case "asset":
+                    handle_asset(state, cmd.args, cmd.flags)
                 case "vow":
                     handle_vow(state, cmd.args, cmd.flags)
                 case "progress":

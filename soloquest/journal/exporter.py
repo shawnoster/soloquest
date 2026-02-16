@@ -91,7 +91,9 @@ def export_session(session: Session, character: Character) -> Path:
     journal_count = sum(1 for e in session.entries if e.kind == EntryKind.JOURNAL)
 
     lines.append("\n---\n")
-    lines.append(f"\n*Session {session.number} — {moves_count} moves, {oracles_count} oracles, {journal_count} journal entries*\n")
+    lines.append(
+        f"\n*Session {session.number} — {moves_count} moves, {oracles_count} oracles, {journal_count} journal entries*\n"
+    )
 
     content = "".join(lines)
     path.write_text(content, encoding="utf-8")

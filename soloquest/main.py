@@ -139,9 +139,7 @@ def main() -> None:
 
     # Show adventures directory location
     adventures_dir = get_adventures_dir()
-    display.console.print(
-        f"  [dim]Adventures directory:[/dim] {adventures_dir}", markup=True
-    )
+    display.console.print(f"  [dim]Adventures directory:[/dim] {adventures_dir}", markup=True)
     display.console.print()
 
     saves = list_saves()
@@ -158,12 +156,18 @@ def main() -> None:
         display.console.print("  |  [r] Resume last session                       |", markup=False)
         display.console.print("  |  [n] New character                             |", markup=False)
         if len(saves) > 1:
-            display.console.print("  |  [l] Load different character                  |", markup=False)
+            display.console.print(
+                "  |  [l] Load different character                  |", markup=False
+            )
         display.console.print("  |                                                |", markup=False)
         display.console.print("  +------------------------------------------------+", markup=False)
         display.console.print()
 
-        choice = Prompt.ask("  Choice (r/n" + ("/l" if len(saves) > 1 else "") + ")", default="r").strip().lower()
+        choice = (
+            Prompt.ask("  Choice (r/n" + ("/l" if len(saves) > 1 else "") + ")", default="r")
+            .strip()
+            .lower()
+        )
 
         if choice == "r":
             pass  # use loaded character
@@ -178,12 +182,20 @@ def main() -> None:
                 session_count = 0
         elif choice == "l" and len(saves) > 1:
             display.console.print()
-            display.console.print("  +-- Saved Characters ----------------------------+", markup=False)
-            display.console.print("  |                                                |", markup=False)
+            display.console.print(
+                "  +-- Saved Characters ----------------------------+", markup=False
+            )
+            display.console.print(
+                "  |                                                |", markup=False
+            )
             for i, name in enumerate(saves, 1):
                 display.console.print(f"  |  [{i}] {name:<43} |", markup=False)
-            display.console.print("  |                                                |", markup=False)
-            display.console.print("  +------------------------------------------------+", markup=False)
+            display.console.print(
+                "  |                                                |", markup=False
+            )
+            display.console.print(
+                "  +------------------------------------------------+", markup=False
+            )
             display.console.print()
             raw = Prompt.ask("  Choose character (1-" + str(len(saves)) + ")")
             try:

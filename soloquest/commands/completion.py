@@ -14,18 +14,20 @@ if TYPE_CHECKING:
 
 
 class CommandCompleter(Completer):
-    """Completer for /commands with support for aliases, oracle tables, and moves."""
+    """Completer for /commands with support for aliases, oracle tables, moves, and assets."""
 
     def __init__(
         self,
         oracles: dict[str, OracleTable] | None = None,
         moves: dict | None = None,
+        assets: dict | None = None,
     ) -> None:
         # Build list of all commands (full names + aliases)
         self.commands: list[str] = []
         self.command_meta: dict[str, str] = {}
         self.oracles = oracles or {}
         self.moves = moves or {}
+        self.assets = assets or {}
 
         # Add full command names with descriptions
         for cmd, help_text in COMMAND_HELP.items():
@@ -41,9 +43,7 @@ class CommandCompleter(Completer):
             self.commands.append(f"/{alias}")
             self.command_meta[f"/{alias}"] = f"alias for /{target}"
 
-    def get_completions(
-        self, document: Document, complete_event: object
-    ) -> list[Completion]:
+    def get_completions(self, document: Document, complete_event: object) -> list[Completion]:
         """Return completions for the current input."""
         text = document.text_before_cursor
 
@@ -95,6 +95,10 @@ class CommandCompleter(Completer):
         if command in ["/move", "/m"]:
             return self._complete_moves(current_arg)
 
+        # Complete asset names
+        if command == "/asset":
+            return self._complete_assets(current_arg)
+
         return []
 
     def _complete_oracle_tables(self, current_arg: str) -> list[Completion]:
@@ -102,7 +106,11 @@ class CommandCompleter(Completer):
         completions = []
         for key, table in self.oracles.items():
             # Match against both key and name (show all if current_arg is empty)
-            if not current_arg or current_arg.lower() in key.lower() or current_arg.lower() in table.name.lower():
+            if (
+                not current_arg
+                or current_arg.lower() in key.lower()
+                or current_arg.lower() in table.name.lower()
+            ):
                 start_position = -len(current_arg) if current_arg else 0
                 # Prefer the key for completion, show the full name as meta
                 completions.append(
@@ -125,7 +133,11 @@ class CommandCompleter(Completer):
             name_normalized = move_name.lower().replace("_", " ").replace("-", " ")
             arg_normalized = current_arg.lower().replace("_", " ").replace("-", " ")
 
-            if not current_arg or arg_normalized in key_normalized or arg_normalized in name_normalized:
+            if (
+                not current_arg
+                or arg_normalized in key_normalized
+                or arg_normalized in name_normalized
+            ):
                 start_position = -len(current_arg) if current_arg else 0
                 # Prefer the key for completion, show the full name as meta
                 completions.append(
@@ -133,6 +145,33 @@ class CommandCompleter(Completer):
                         text=key,
                         start_position=start_position,
                         display_meta=move_name,
+                    )
+                )
+        return completions
+
+    def _complete_assets(self, current_arg: str) -> list[Completion]:
+        """Complete asset names."""
+        completions = []
+        for key, asset in self.assets.items():
+            asset_name = asset.name if hasattr(asset, "name") else key
+            # Match against both key and name (show all if current_arg is empty)
+            # Normalize for matching (spaces/underscores/hyphens)
+            key_normalized = key.replace("_", " ").replace("-", " ")
+            name_normalized = asset_name.lower().replace("_", " ").replace("-", " ")
+            arg_normalized = current_arg.lower().replace("_", " ").replace("-", " ")
+
+            if (
+                not current_arg
+                or arg_normalized in key_normalized
+                or arg_normalized in name_normalized
+            ):
+                start_position = -len(current_arg) if current_arg else 0
+                # Prefer the key for completion, show the full name as meta
+                completions.append(
+                    Completion(
+                        text=key,
+                        start_position=start_position,
+                        display_meta=asset_name,
                     )
                 )
         return completions

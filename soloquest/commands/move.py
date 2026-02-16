@@ -22,8 +22,35 @@ if TYPE_CHECKING:
 
 
 def fuzzy_match_move(query: str, move_data: dict) -> list[str]:
+    """Find moves matching a partial query string.
+
+    Prioritizes exact matches, then prefix matches, then substring matches.
+    """
     q = query.lower().replace(" ", "_").replace("-", "_")
-    return [k for k in move_data if q in k or q in move_data[k]["name"].lower().replace(" ", "_")]
+
+    # Empty query returns no matches
+    if not q:
+        return []
+
+    exact_matches = []
+    prefix_matches = []
+    substring_matches = []
+
+    for key in move_data:
+        name_norm = move_data[key]["name"].lower().replace(" ", "_")
+
+        # Check for exact match first
+        if q in (key, name_norm):
+            exact_matches.append(key)
+        # Then check for prefix match
+        elif key.startswith(q) or name_norm.startswith(q):
+            prefix_matches.append(key)
+        # Finally check for substring match
+        elif q in key or q in name_norm:
+            substring_matches.append(key)
+
+    # Return in priority order: exact > prefix > substring
+    return exact_matches or prefix_matches or substring_matches
 
 
 def handle_move(state: GameState, args: list[str], flags: set[str]) -> None:
@@ -71,12 +98,13 @@ def handle_move(state: GameState, args: list[str], flags: set[str]) -> None:
             dice.set_manual(False)
         return
 
-    # Standard action roll
+    # Check if this is a narrative/procedural move (no dice roll)
     stat_options: list[str] = move.get("stat_options", [])
     if not stat_options:
-        display.error(f"Move '{move_name}' has no stat options defined.")
+        _handle_narrative_move(move_name, move, state)
         return
 
+    # Standard action roll
     stat = _choose_stat(stat_options, state)
     if stat is None:
         return
@@ -413,3 +441,30 @@ def _handle_forsake_vow(state: GameState) -> None:
     state.session.add_mechanical(
         f"Vow forsaken [{vow.rank.value}]: {vow.description} | Spirit -{cost} (now {new_spirit})"
     )
+
+
+def _handle_narrative_move(move_name: str, move: dict, state: GameState) -> None:
+    """Handle narrative/procedural moves that don't require dice rolls."""
+    from rich.markdown import Markdown
+    from rich.panel import Panel
+
+    description = move.get("description", "")
+    category = move.get("category", "")
+
+    # Format category for display
+    category_display = category.replace("_", " ").title() if category else "Move"
+
+    # Display the move in a panel with its description
+    content = Markdown(description) if description else "[dim]No description available[/dim]"
+
+    display.console.print(
+        Panel(
+            content,
+            title=f"[bold]{move_name}[/bold]",
+            subtitle=f"[dim]{category_display}[/dim]",
+            border_style="cyan",
+        )
+    )
+
+    # Log to session
+    state.session.add_move(f"**{move_name}** (narrative move)")

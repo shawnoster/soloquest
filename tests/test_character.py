@@ -73,6 +73,63 @@ class TestCharacter:
         assert restored.stats.iron == self.char.stats.iron
         assert restored.health == self.char.health
 
+    def test_character_sheet_display_with_assets(self):
+        """Regression: Character sheet should display correctly with CharacterAsset objects.
+
+        Bug: Previously tried to call .replace() on CharacterAsset object instead of asset_key.
+        """
+        from soloquest.models.asset import CharacterAsset
+        from soloquest.ui.display import character_sheet
+
+        # Add assets to character
+        self.char.assets = [
+            CharacterAsset(asset_key="starship", abilities_unlocked=[True, False, False]),
+            CharacterAsset(asset_key="navigator", abilities_unlocked=[True]),
+        ]
+
+        # This should not raise an AttributeError
+        try:
+            character_sheet(self.char, vows=[], session_count=1, dice_mode="digital")
+            # If we get here without exception, the test passes
+        except AttributeError as e:
+            # If we get AttributeError about 'replace', the bug is present
+            if "'CharacterAsset' object has no attribute 'replace'" in str(e):
+                raise AssertionError(
+                    "Character sheet display bug: trying to call .replace() on CharacterAsset object"
+                ) from e
+            raise
+
+    def test_character_sheet_display_empty_assets(self):
+        """Character sheet should handle empty asset list correctly."""
+        from soloquest.ui.display import character_sheet
+
+        # Empty assets list
+        self.char.assets = []
+
+        # Should not crash
+        try:
+            character_sheet(self.char, vows=[], session_count=1, dice_mode="digital")
+        except Exception as e:
+            raise AssertionError(f"Character sheet crashed with empty assets: {e}") from e
+
+    def test_character_sheet_display_asset_with_underscores(self):
+        """Asset keys with underscores should be formatted correctly for display."""
+        from soloquest.models.asset import CharacterAsset
+        from soloquest.ui.display import character_sheet
+
+        # Asset with underscores in key
+        self.char.assets = [
+            CharacterAsset(asset_key="engine_upgrade", abilities_unlocked=[True]),
+        ]
+
+        # Should not crash and should format the name correctly
+        try:
+            character_sheet(self.char, vows=[], session_count=1, dice_mode="digital")
+        except Exception as e:
+            raise AssertionError(
+                f"Character sheet crashed with underscore in asset key: {e}"
+            ) from e
+
 
 class TestDebilities:
     def setup_method(self):
