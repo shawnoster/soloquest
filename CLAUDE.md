@@ -20,7 +20,7 @@
 
 ## Code Quality
 
-- Run `make check` (lint + tests) before pushing.
+- Run `just check` (lint + tests) before pushing.
 - All new features should include tests.
 - Formatter: `ruff format`. Linter: `ruff check`.
 
@@ -40,7 +40,7 @@
 
 ## Quick Reference
 
-- `make` — show all available commands
-- `make run` — launch the CLI
-- `make check` — lint + test
+- `just` — show all available commands
+- `just run` — launch the CLI
+- `just check` — lint + test
 - ADRs live in `docs/adr/`
