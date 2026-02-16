@@ -73,6 +73,49 @@ class TestCharacter:
         assert restored.stats.iron == self.char.stats.iron
         assert restored.health == self.char.health
 
+    def test_serialization_with_assets(self):
+        """Regression: Character.to_dict() should work with CharacterAsset objects.
+
+        Bug: Character creation added assets as strings, but to_dict() expected
+        CharacterAsset objects with .asset_key attribute. This caused AttributeError
+        when calling /end command to save the character.
+
+        Fixed in: main.py - convert asset key strings to CharacterAsset objects
+        during character creation.
+        """
+        from soloquest.models.asset import CharacterAsset
+
+        # Simulate character creation with assets (as CharacterAsset objects)
+        self.char.assets = [
+            CharacterAsset(asset_key="starship"),
+            CharacterAsset(asset_key="navigator"),
+            CharacterAsset(asset_key="ace"),
+        ]
+
+        # This should not raise AttributeError: 'str' object has no attribute 'asset_key'
+        try:
+            data = self.char.to_dict()
+        except AttributeError as e:
+            if "has no attribute 'asset_key'" in str(e):
+                raise AssertionError(
+                    "Regression: to_dict() failed because assets are strings instead of CharacterAsset objects"
+                ) from e
+            raise
+
+        # Verify serialization is correct
+        assert "assets" in data
+        assert len(data["assets"]) == 3
+        assert all(isinstance(a, dict) for a in data["assets"])
+        assert data["assets"][0]["asset_key"] == "starship"
+        assert data["assets"][1]["asset_key"] == "navigator"
+        assert data["assets"][2]["asset_key"] == "ace"
+
+        # Verify deserialization works
+        restored = Character.from_dict(data)
+        assert len(restored.assets) == 3
+        assert all(hasattr(a, "asset_key") for a in restored.assets)
+        assert restored.assets[0].asset_key == "starship"
+
     def test_character_sheet_display_with_assets(self):
         """Regression: Character sheet should display correctly with CharacterAsset objects.
 

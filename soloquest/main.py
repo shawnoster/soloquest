@@ -11,6 +11,7 @@ from rich.prompt import Prompt
 
 from soloquest.engine.assets import load_assets
 from soloquest.engine.dice import DiceMode
+from soloquest.models.asset import CharacterAsset
 from soloquest.models.character import Character, Stats
 from soloquest.models.vow import Vow, VowRank
 from soloquest.state.save import list_saves, load_game, load_most_recent
@@ -108,15 +109,18 @@ def new_character() -> tuple[Character, list[Vow], DiceMode] | None:
     display.console.print()
     display.info("  Choose 3 assets (type names, e.g. 'ace', 'empath', 'command_ship'):")
     display.info("  [dim]Press TAB for completion[/dim]")
-    assets: list[str] = []
-    while len(assets) < 3:
+    asset_keys: list[str] = []
+    while len(asset_keys) < 3:
         try:
-            raw = asset_session.prompt(f"  Asset {len(assets) + 1}: ")
+            raw = asset_session.prompt(f"  Asset {len(asset_keys) + 1}: ")
             if raw.strip():
-                assets.append(raw.strip().lower().replace(" ", "_"))
+                asset_keys.append(raw.strip().lower().replace(" ", "_"))
         except (KeyboardInterrupt, EOFError):
             display.console.print()
             return None
+
+    # Convert asset keys to CharacterAsset objects
+    assets = [CharacterAsset(asset_key=key) for key in asset_keys]
 
     character = Character(
         name=name,
