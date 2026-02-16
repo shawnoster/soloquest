@@ -8,8 +8,8 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 from soloquest.commands.oracle import handle_oracle
-from soloquest.engine.oracles import OracleTable, load_oracles
-from soloquest.ui.display import oracle_result_panel
+from soloquest.engine.oracles import OracleResult, OracleTable, load_oracles
+from soloquest.ui.display import oracle_result_panel, oracle_result_panel_combined
 
 DATA_DIR = Path(__file__).parent.parent / "soloquest" / "data"
 
@@ -59,6 +59,46 @@ class TestOracleDisplay:
 
         with patch("soloquest.ui.display.console") as mock_console:
             oracle_result_panel("Test", 50, result_with_chars)
+
+            # Should not crash
+            mock_console.print.assert_called_once()
+
+    def test_oracle_result_panel_combined_displays_multiple_results(self):
+        """Combined oracle panel should display all results in one panel."""
+        results = [
+            OracleResult(table_name="Action", roll=42, result="Advance"),
+            OracleResult(table_name="Theme", roll=67, result="Mystery"),
+        ]
+
+        with patch("soloquest.ui.display.console") as mock_console:
+            oracle_result_panel_combined(results)
+
+            # Should have called print once with a Panel
+            mock_console.print.assert_called_once()
+            panel_arg = mock_console.print.call_args[0][0]
+
+            # Verify it's a Panel with correct styling
+            assert hasattr(panel_arg, "border_style")
+            assert panel_arg.border_style == "bright_cyan"
+            assert "ORACLE RESULTS" in str(panel_arg.title)
+
+            # Content should include both results
+            content = str(panel_arg.renderable)
+            assert "Action" in content
+            assert "42" in content
+            assert "Advance" in content
+            assert "Theme" in content
+            assert "67" in content
+            assert "Mystery" in content
+
+    def test_oracle_result_panel_combined_with_single_result(self):
+        """Combined panel with single result should still work."""
+        results = [
+            OracleResult(table_name="Action", roll=42, result="Advance"),
+        ]
+
+        with patch("soloquest.ui.display.console") as mock_console:
+            oracle_result_panel_combined(results)
 
             # Should not crash
             mock_console.print.assert_called_once()
@@ -115,10 +155,12 @@ class TestOracleCommand:
 
         with (
             patch("soloquest.commands.oracle.roll_oracle", return_value=42),
-            patch("soloquest.commands.oracle.display.oracle_result_panel"),
+            patch("soloquest.commands.oracle.display.oracle_result_panel_combined") as mock_combined,
         ):
             handle_oracle(mock_state, args=["action", "theme"], flags=set())
 
+            # Should have displayed combined results
+            mock_combined.assert_called_once()
             # Should have rolled both tables
             assert mock_state.session.add_oracle.call_count >= 2
 
