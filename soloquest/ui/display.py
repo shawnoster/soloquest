@@ -107,20 +107,24 @@ def oracle_result_panel(table_name: str, roll: int, result: str) -> None:
 
 def oracle_result_panel_combined(results: list) -> None:
     """Display multiple oracle results in a single panel."""
+    # Build title with all table names on one line
+    table_names = " ".join(r.table_name.upper() for r in results)
+    title = f"[bold]ORACLE: {table_names}[/bold]"
+
+    # Calculate max table name width for alignment
+    max_name_width = max(len(r.table_name) for r in results)
+
+    # Build body with aligned columns
     lines = []
     for r in results:
-        lines.append(f"[bold]{r.table_name}[/bold]")
-        lines.append(f"[dim]{r.roll}[/dim]  →  [bold]{r.result}[/bold]")
-        lines.append("")  # blank line between results
-
-    # Remove trailing blank line
-    if lines and lines[-1] == "":
-        lines.pop()
+        # Pad table name to align columns
+        padded_name = r.table_name.ljust(max_name_width)
+        lines.append(
+            f"[bold]{padded_name}[/bold]   [dim]{r.roll:3d}[/dim]  →  [bold]{r.result}[/bold]"
+        )
 
     body = "\n".join(lines)
-    console.print(
-        Panel(body, title="[bold]ORACLE RESULTS[/bold]", border_style="bright_cyan")
-    )
+    console.print(Panel(body, title=title, border_style="bright_cyan"))
 
 
 def character_sheet(char: Character, vows: list[Vow], session_count: int, dice_mode: str) -> None:
