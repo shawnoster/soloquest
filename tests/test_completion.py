@@ -376,3 +376,83 @@ class TestMoveCompletion:
         assert completion_texts == sorted(completion_texts)
         # Verify order: aid_your_ally, face_danger, strike
         assert completion_texts == ["aid_your_ally", "face_danger", "strike"]
+
+
+class TestAssetCompletion:
+    class MockAsset:
+        """Simple mock asset for testing."""
+
+        def __init__(self, name: str):
+            self.name = name
+
+    def test_completes_asset_names(self):
+        assets = {
+            "sword": self.MockAsset("Sword"),
+            "shield": self.MockAsset("Shield"),
+        }
+        completer = CommandCompleter(assets=assets)
+        doc = Document("/asset sw", cursor_position=9)
+        completions = list(completer.get_completions(doc, None))
+
+        assert len(completions) >= 1
+        sword_completions = [c for c in completions if c.text == "sword"]
+        assert len(sword_completions) == 1
+
+    def test_asset_completion_matches_by_display_name(self):
+        assets = {
+            "battle_scarred": self.MockAsset("Battle-Scarred"),
+        }
+        completer = CommandCompleter(assets=assets)
+        # Search by display name
+        doc = Document("/asset battle", cursor_position=13)
+        completions = list(completer.get_completions(doc, None))
+
+        assert len(completions) >= 1
+        battle_completions = [c for c in completions if c.text == "battle_scarred"]
+        assert len(battle_completions) == 1
+
+    def test_asset_completion_with_space_after_command(self):
+        assets = {
+            "sword": self.MockAsset("Sword"),
+        }
+        completer = CommandCompleter(assets=assets)
+        # Space after /asset, cursor ready for asset name
+        doc = Document("/asset ", cursor_position=7)
+        completions = list(completer.get_completions(doc, None))
+
+        # Should show all assets
+        assert len(completions) >= 1
+        sword_completions = [c for c in completions if c.text == "sword"]
+        assert len(sword_completions) == 1
+
+    def test_no_asset_completion_for_other_commands(self):
+        assets = {
+            "sword": self.MockAsset("Sword"),
+        }
+        completer = CommandCompleter(assets=assets)
+        # /oracle should not complete asset names
+        doc = Document("/oracle sword", cursor_position=13)
+        completions = list(completer.get_completions(doc, None))
+
+        # Should not get asset completions for /oracle
+        assert len(completions) == 0
+
+    def test_asset_completions_are_sorted(self):
+        """Test that asset completions are returned in alphabetical order."""
+        assets = {
+            "sword": self.MockAsset("Sword"),
+            "bow": self.MockAsset("Bow"),
+            "shield": self.MockAsset("Shield"),
+            "armor": self.MockAsset("Armor"),
+        }
+        completer = CommandCompleter(assets=assets)
+        doc = Document("/asset ", cursor_position=7)
+        completions = list(completer.get_completions(doc, None))
+
+        # Extract completion texts
+        completion_texts = [c.text for c in completions]
+
+        # Verify they are sorted
+        assert completion_texts == sorted(completion_texts)
+        # Verify order: armor, bow, shield, sword
+        assert completion_texts == ["armor", "bow", "shield", "sword"]
