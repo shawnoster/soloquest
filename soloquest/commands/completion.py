@@ -99,6 +99,10 @@ class CommandCompleter(Completer):
         if command == "/asset":
             return self._complete_assets(current_arg)
 
+        # Complete guide steps
+        if command == "/guide":
+            return self._complete_guide_steps(current_arg)
+
         return []
 
     def _complete_oracle_tables(self, current_arg: str) -> list[Completion]:
@@ -200,6 +204,28 @@ class CommandCompleter(Completer):
                         text=key,
                         start_position=start_position,
                         display_meta=asset_name,
+                    )
+                )
+        return sorted(completions, key=lambda c: c.text)
+
+    def _complete_guide_steps(self, current_arg: str) -> list[Completion]:
+        """Complete guide step names."""
+        steps = {
+            "envision": "Learn about envisioning and describing your story",
+            "oracle": "Learn about asking the oracle",
+            "move": "Learn about making moves",
+            "outcome": "Learn about interpreting outcomes",
+        }
+
+        completions = []
+        for step, description in steps.items():
+            if not current_arg or current_arg.lower() in step.lower():
+                start_position = -len(current_arg) if current_arg else 0
+                completions.append(
+                    Completion(
+                        text=step,
+                        start_position=start_position,
+                        display_meta=description,
                     )
                 )
         return sorted(completions, key=lambda c: c.text)
