@@ -195,9 +195,7 @@ class TestAssetAbilityProgression:
 
     def test_all_abilities_unlocked(self):
         """Should support having all abilities unlocked."""
-        asset = CharacterAsset(
-            asset_key="test", abilities_unlocked=[True, True, True, True]
-        )
+        asset = CharacterAsset(asset_key="test", abilities_unlocked=[True, True, True, True])
         assert all(asset.abilities_unlocked)
 
 
