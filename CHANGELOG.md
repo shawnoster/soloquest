@@ -45,7 +45,7 @@ export SOLOQUEST_ADVENTURES_DIR="/path/to/adventures"
 - **Configurable Adventures Directory** — All adventure data (saves, sessions, journal) now defaults to `~/soloquest-adventures/` instead of the CLI repo directory
 - Environment variable `SOLOQUEST_ADVENTURES_DIR` to customize where adventures are stored
 - Adventures directory location displayed on startup
-- Documentation: `docs/adventures-directory.md` with configuration guide and Obsidian integration examples
+- Documentation: `docs/user-guide/adventures-directory.md` with configuration guide and Obsidian integration examples
 
 ### Changed
 - **Breaking**: Adventure files moved from local `saves/`, `sessions/`, `journal/` to `~/soloquest-adventures/` by default
