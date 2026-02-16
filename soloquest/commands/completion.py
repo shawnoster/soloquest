@@ -99,9 +99,9 @@ class CommandCompleter(Completer):
         if command == "/asset":
             return self._complete_assets(current_arg)
 
-        # Complete guide steps
+        # Complete guide steps and commands
         if command == "/guide":
-            return self._complete_guide_steps(current_arg)
+            return self._complete_guide_args(current_arg)
 
         return []
 
@@ -208,9 +208,11 @@ class CommandCompleter(Completer):
                 )
         return sorted(completions, key=lambda c: c.text)
 
-    def _complete_guide_steps(self, current_arg: str) -> list[Completion]:
-        """Complete guide step names."""
-        steps = {
+    def _complete_guide_args(self, current_arg: str) -> list[Completion]:
+        """Complete guide arguments (commands and steps)."""
+        options = {
+            "start": "Enter guided mode (step-by-step wizard)",
+            "stop": "Exit guided mode",
             "envision": "Learn about envisioning and describing your story",
             "oracle": "Learn about asking the oracle",
             "move": "Learn about making moves",
@@ -218,12 +220,12 @@ class CommandCompleter(Completer):
         }
 
         completions = []
-        for step, description in steps.items():
-            if not current_arg or current_arg.lower() in step.lower():
+        for option, description in options.items():
+            if not current_arg or current_arg.lower() in option.lower():
                 start_position = -len(current_arg) if current_arg else 0
                 completions.append(
                     Completion(
-                        text=step,
+                        text=option,
                         start_position=start_position,
                         display_meta=description,
                     )

@@ -18,6 +18,7 @@ from soloquest.commands.character import (
 from soloquest.commands.completion import CommandCompleter
 from soloquest.commands.debility import handle_debility
 from soloquest.commands.guide import handle_guide
+from soloquest.commands.guided_mode import advance_phase, stop_guided_mode
 from soloquest.commands.move import handle_move
 from soloquest.commands.oracle import handle_oracle
 from soloquest.commands.registry import COMMAND_HELP, parse_command
@@ -77,6 +78,8 @@ class GameState:
     running: bool = True
     last_result: object = field(default=None, repr=False)
     _unsaved_entries: int = field(default=0, repr=False)
+    guided_mode: bool = field(default=False, repr=False)
+    guided_phase: str = field(default="envision", repr=False)  # envision, oracle, move, outcome
 
 
 def load_dataforged_moves() -> dict:
@@ -209,7 +212,14 @@ def run_session(
 
     while state.running:
         try:
-            line = prompt_session.prompt("> ")
+            # Use guided prompt if in guided mode
+            if state.guided_mode:
+                from soloquest.commands.guided_mode import get_guided_prompt_html
+
+                prompt_text = get_guided_prompt_html(state)
+                line = prompt_session.prompt(prompt_text)
+            else:
+                line = prompt_session.prompt("> ")
         except (KeyboardInterrupt, EOFError):
             display.console.print()
             _handle_interrupt(state)
@@ -230,6 +240,8 @@ def run_session(
         # Dispatch with error handling
         try:
             match cmd.name:
+                case "next":
+                    advance_phase(state)
                 case "guide":
                     handle_guide(state, cmd.args, cmd.flags)
                 case "move":
@@ -270,8 +282,11 @@ def run_session(
                     handle_end(state, cmd.args, cmd.flags)
                 case "help":
                     handle_help(state, cmd.args, cmd.flags)
-                case "quit" | "q":
-                    _confirm_quit(state)
+                case "quit" | "q" | "exit":
+                    if state.guided_mode:
+                        stop_guided_mode(state)
+                    else:
+                        _confirm_quit(state)
                 case _:
                     known = list(COMMAND_HELP.keys())
                     close = [k for k in known if k.startswith(cmd.name)]
