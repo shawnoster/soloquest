@@ -56,19 +56,25 @@ def stop_guided_mode(state: GameState) -> None:
 
 
 def get_guided_prompt(state: GameState) -> str:
-    """Get the prompt string with phase indicator."""
+    """Get the prompt string with phase indicator.
+
+    Uses ANSI color codes since prompt_toolkit doesn't render Rich markup.
+    """
     if not state.guided_mode:
         return "> "
 
-    phase_colors = {
-        "envision": "cyan",
-        "oracle": "magenta",
-        "move": "yellow",
-        "outcome": "green",
+    # ANSI color codes for terminal colors
+    color_codes = {
+        "envision": "\033[36m",  # cyan
+        "oracle": "\033[35m",  # magenta
+        "move": "\033[33m",  # yellow
+        "outcome": "\033[32m",  # green
     }
-    color = phase_colors.get(state.guided_phase, "white")
+    reset = "\033[0m"  # reset color
+
+    color = color_codes.get(state.guided_phase, "")
     phase_display = state.guided_phase.upper()
-    return f"[{color}][{phase_display}][/{color}] > "
+    return f"{color}[{phase_display}]{reset} > "
 
 
 def advance_phase(state: GameState) -> None:
