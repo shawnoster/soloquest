@@ -17,6 +17,7 @@ from soloquest.commands.character import (
 )
 from soloquest.commands.completion import CommandCompleter
 from soloquest.commands.debility import handle_debility
+from soloquest.commands.guide import handle_guide
 from soloquest.commands.move import handle_move
 from soloquest.commands.oracle import handle_oracle
 from soloquest.commands.registry import COMMAND_HELP, parse_command
@@ -177,7 +178,7 @@ def run_session(
     resume_label = "" if is_new_session else " (Resumed)"
     display.session_header(session.number, resume_label)
     display.info(f"  Character: {character.name}  |  Dice: {dice_mode.value}")
-    display.info("  Type to journal. /help for commands.")
+    display.info("  Type to journal. /guide for gameplay loop, /help for commands.")
 
     # Show context when resuming (not first session)
     if session.number > 1 and is_new_session:
@@ -229,6 +230,8 @@ def run_session(
         # Dispatch with error handling
         try:
             match cmd.name:
+                case "guide":
+                    handle_guide(state, cmd.args, cmd.flags)
                 case "move":
                     handle_move(state, cmd.args, cmd.flags)
                 case "oracle":

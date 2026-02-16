@@ -10,7 +10,18 @@ if TYPE_CHECKING:
     pass
 
 # Commands that don't need argument parsing
-BARE_COMMANDS = {"char", "log", "burn", "end", "newsession", "forsake", "help", "quit", "q"}
+BARE_COMMANDS = {
+    "char",
+    "log",
+    "burn",
+    "end",
+    "newsession",
+    "forsake",
+    "help",
+    "quit",
+    "q",
+    "guide",
+}
 
 # Command aliases — short forms for common commands
 COMMAND_ALIASES = {
@@ -77,6 +88,7 @@ def fuzzy_match_command(name: str, known: list[str]) -> str | None:
 
 
 COMMAND_HELP: dict[str, str] = {
+    "guide": "/guide [step] — show gameplay loop and how to play (try: /guide envision, /guide oracle, /guide move)",
     "move": "/move [name] (alias: /m) — resolve a move (e.g. /move strike)",
     "oracle": "/oracle [table] (alias: /o) — consult an oracle (e.g. /oracle action theme)",
     "asset": "/asset [name] — view asset details (e.g. /asset starship)",

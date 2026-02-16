@@ -127,6 +127,7 @@ This project uses GitHub Actions for continuous integration and automated releas
 
 | Command | Description |
 |---|---|
+| `/guide [step]` | Show gameplay loop and how to play (try: `/guide envision`, `/guide oracle`, `/guide move`) |
 | `/move [name]` | Resolve a move (e.g. `/move strike`) |
 | `/oracle [table]` | Consult an oracle (e.g. `/oracle action theme`) |
 | `/asset [name]` | View asset details (e.g. `/asset starship`) |
