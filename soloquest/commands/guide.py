@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING
 
 from rich.panel import Panel
 
+from soloquest.commands.guided_mode import start_guided_mode, stop_guided_mode
 from soloquest.ui import display
 
 if TYPE_CHECKING:
@@ -16,8 +17,20 @@ def handle_guide(state: GameState, args: list[str], flags: set[str]) -> None:
     """Interactive guide for the Ironsworn: Starforged game loop.
 
     Shows the core gameplay loop and provides contextual suggestions.
-    Usage: /guide [step] where step is: envision, oracle, move, outcome
+    Usage:
+        /guide - Show game loop overview
+        /guide [step] - Show help for specific step (envision, oracle, move, outcome)
+        /guide start - Enter guided mode (step-by-step wizard)
+        /guide stop - Exit guided mode
     """
+    if args and args[0].lower() == "start":
+        start_guided_mode(state)
+        return
+
+    if args and args[0].lower() == "stop":
+        stop_guided_mode(state)
+        return
+
     if args and args[0].lower() in ["envision", "oracle", "move", "outcome"]:
         _show_step_detail(args[0].lower(), state)
         return
