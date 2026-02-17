@@ -7,7 +7,7 @@ including the new Panel-based display with colored borders.
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-from soloquest.commands.asset import _display_asset_details, handle_asset
+from soloquest.commands.asset import _display_asset_details, _render_ability_text, handle_asset
 from soloquest.engine.assets import load_assets
 from soloquest.models.asset import Asset, AssetAbility
 
@@ -315,3 +315,28 @@ class TestAssetEdgeCases:
 
             # Should have converted underscores to spaces and title cased
             assert "Command Vehicle Module" in content
+
+
+class TestRenderAbilityText:
+    """Tests for markdown link rendering in ability text."""
+
+    def test_single_link_becomes_underline(self):
+        text = "When you [Advance](Starforged/Moves/Legacy/Advance), take +1."
+        result = _render_ability_text(text)
+        assert result == "When you [underline]Advance[/underline], take +1."
+
+    def test_multiple_links_in_one_ability(self):
+        text = "When you [Withstand Damage](path/to/move), roll +heart. [Endure Stress](path/to/other) (-1)."
+        result = _render_ability_text(text)
+        assert "[underline]Withstand Damage[/underline]" in result
+        assert "[underline]Endure Stress[/underline]" in result
+        assert "](" not in result
+
+    def test_no_links_unchanged(self):
+        text = "Your starship is armed and suited for interstellar flight."
+        assert _render_ability_text(text) == text
+
+    def test_move_name_with_spaces_preserved(self):
+        text = "Use [Finish an Expedition](Starforged/Moves/Exploration/Finish_an_Expedition) here."
+        result = _render_ability_text(text)
+        assert "[underline]Finish an Expedition[/underline]" in result
