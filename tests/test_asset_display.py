@@ -153,7 +153,7 @@ class TestAssetCommandIntegration:
         mock_state.assets = self.assets
 
         with patch("soloquest.commands.asset.display.console"):
-            handle_asset(mock_state, args=[], flags=set())
+            handle_asset(mock_state, args=[], _flags=set())
             # Should not raise exception
 
     def test_handle_asset_with_exact_match(self):
@@ -167,7 +167,7 @@ class TestAssetCommandIntegration:
         mock_state.assets = self.assets
 
         with patch("soloquest.commands.asset._display_asset_details") as mock_display:
-            handle_asset(mock_state, args=["starship"], flags=set())
+            handle_asset(mock_state, args=["starship"], _flags=set())
 
             # Should have called display with the starship asset
             mock_display.assert_called_once()
@@ -182,7 +182,7 @@ class TestAssetCommandIntegration:
         mock_state.assets = self.assets
 
         with patch("soloquest.commands.asset.display.error") as mock_error:
-            handle_asset(mock_state, args=["nonexistent_asset_xyz"], flags=set())
+            handle_asset(mock_state, args=["nonexistent_asset_xyz"], _flags=set())
 
             # Should have shown error
             mock_error.assert_called_once()
@@ -199,7 +199,7 @@ class TestAssetCommandIntegration:
         # Find a query that matches multiple assets
         # "engine" might match "engine_upgrade" and other engine-related assets
         with patch("soloquest.commands.asset.display.warn"):
-            handle_asset(mock_state, args=["module"], flags=set())
+            handle_asset(mock_state, args=["module"], _flags=set())
 
             # Might show warning if multiple matches
             # (This is implementation-dependent)

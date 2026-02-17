@@ -37,15 +37,14 @@ def fuzzy_match_move(query: str, move_data: dict, category_filter: str | None = 
     prefix_matches = []
     substring_matches = []
 
+    category_filter_lower = category_filter.lower() if category_filter else ""
+
     for key in move_data:
         move = move_data[key]
 
         # Apply category filter if specified
-        if category_filter:
-            move_category = move.get("category", "").lower()
-            category_filter_lower = category_filter.lower()
-            if move_category != category_filter_lower:
-                continue
+        if category_filter and move.get("category", "").lower() != category_filter_lower:
+            continue
 
         # If only filtering by category (no query), include all moves in category
         if not q:
@@ -68,16 +67,13 @@ def fuzzy_match_move(query: str, move_data: dict, category_filter: str | None = 
     return exact_matches or prefix_matches or substring_matches
 
 
-def handle_move(state: GameState, args: list[str], flags: set[str]) -> None:
-    if not args:
-        display.error("Usage: /move [name]  (e.g. /move strike)")
-        display.info("  Filter by category: /move category:adventure")
-        return
+# ── Arg parsing ─────────────────────────────────────────────────────────────────
 
-    # Parse category filter (supports category:, type:, cat:)
+
+def _parse_move_args(args: list[str]) -> tuple[str, str | None, list[str]]:
+    """Parse move args into (query, category_filter, query_parts)."""
     category_filter = None
     query_parts = []
-
     for arg in args:
         if ":" in arg:
             prefix, value = arg.split(":", 1)
@@ -87,19 +83,55 @@ def handle_move(state: GameState, args: list[str], flags: set[str]) -> None:
                 query_parts.append(arg)
         else:
             query_parts.append(arg)
-
     query = "_".join(query_parts).lower() if query_parts else ""
+    return query, category_filter, query_parts
+
+
+def _display_no_match_error(
+    category_filter: str | None, query_parts: list[str], args: list[str]
+) -> None:
+    if category_filter:
+        display.error(
+            f"No moves found in category '{category_filter}'"
+            + (f" matching '{' '.join(query_parts)}'" if query_parts else "")
+        )
+    else:
+        display.error(f"Move not found: '{' '.join(args)}'")
+    display.info("Try /help moves to see available moves.")
+
+
+# ── Dice mode ────────────────────────────────────────────────────────────────────
+
+
+def _apply_dice_mode(dice, flags: set[str]) -> None:
+    """Apply manual/auto dice mode flags if dice supports it."""
+    if isinstance(dice, MixedDice):
+        if "manual" in flags:
+            dice.set_manual(True)
+        elif "auto" in flags:
+            dice.set_manual(False)
+
+
+def _reset_dice_mode(dice) -> None:
+    """Reset dice to auto mode."""
+    if isinstance(dice, MixedDice):
+        dice.set_manual(False)
+
+
+# ── Move dispatch ────────────────────────────────────────────────────────────────
+
+
+def handle_move(state: GameState, args: list[str], flags: set[str]) -> None:
+    if not args:
+        display.error("Usage: /move [name]  (e.g. /move strike)")
+        display.info("  Filter by category: /move category:adventure")
+        return
+
+    query, category_filter, query_parts = _parse_move_args(args)
     matches = fuzzy_match_move(query, state.moves, category_filter)
 
     if not matches:
-        if category_filter:
-            display.error(
-                f"No moves found in category '{category_filter}'"
-                + (f" matching '{' '.join(query_parts)}'" if query_parts else "")
-            )
-        else:
-            display.error(f"Move not found: '{' '.join(args)}'")
-        display.info("Try /help moves to see available moves.")
+        _display_no_match_error(category_filter, query_parts, args)
         return
 
     if len(matches) > 1:
@@ -112,38 +144,33 @@ def handle_move(state: GameState, args: list[str], flags: set[str]) -> None:
 
     move_key = matches[0]
     move = state.moves[move_key]
+
+    _apply_dice_mode(state.dice, flags)
+    _dispatch_move(state, move_key, move, flags)
+    _reset_dice_mode(state.dice)
+
+
+def _dispatch_move(state: GameState, move_key: str, move: dict, flags: set[str]) -> None:
+    """Route a move to the appropriate handler based on its type."""
     move_name = move["name"]
-
-    # Dice mode override flags
-    dice = state.dice
-    if isinstance(dice, MixedDice):
-        if "manual" in flags:
-            dice.set_manual(True)
-        elif "auto" in flags:
-            dice.set_manual(False)
-
-    # Special moves that don't follow standard resolution
     if move.get("oracle_roll"):
         _handle_ask_the_oracle(state, flags)
-        return
-
-    if move.get("special") == "forsake":
+    elif move.get("special") == "forsake":
         _handle_forsake_vow(state)
-        return
-
-    if move.get("progress_roll"):
+    elif move.get("progress_roll"):
         _handle_progress_roll(state, move_key, move, flags)
-        if isinstance(dice, MixedDice):
-            dice.set_manual(False)
-        return
-
-    # Check if this is a narrative/procedural move (no dice roll)
-    stat_options: list[str] = move.get("stat_options", [])
-    if not stat_options:
+    elif not move.get("stat_options"):
         _handle_narrative_move(move_name, move, state)
-        return
+    else:
+        _execute_action_roll(state, move, move_name, flags)
 
-    # Standard action roll
+
+# ── Standard action roll ──────────────────────────────────────────────────────────
+
+
+def _execute_action_roll(state: GameState, move: dict, move_name: str, flags: set[str]) -> None:
+    """Execute a standard action roll move."""
+    stat_options: list[str] = move.get("stat_options", [])
     stat = _choose_stat(stat_options, state)
     if stat is None:
         return
@@ -156,7 +183,6 @@ def handle_move(state: GameState, args: list[str], flags: set[str]) -> None:
     except ValueError:
         adds = 0
 
-    # Roll dice
     dice_result = roll_action_dice(state.dice)
     if dice_result is None:
         display.info("  Move cancelled.")
@@ -171,41 +197,9 @@ def handle_move(state: GameState, args: list[str], flags: set[str]) -> None:
         momentum=state.character.momentum,
     )
 
-    # Offer momentum burn if it would improve outcome
-    if would_momentum_improve(result.outcome, state.character.momentum, c1, c2):
-        from soloquest.engine.moves import momentum_burn_outcome
-
-        burn_tier = momentum_burn_outcome(state.character.momentum, c1, c2)
-        tier_label = {
-            OutcomeTier.STRONG_HIT: "Strong Hit",
-            OutcomeTier.WEAK_HIT: "Weak Hit",
-            OutcomeTier.MISS: "Miss",
-        }[burn_tier]
-        display.warn(
-            f"Burning momentum ({state.character.momentum:+d}) would upgrade to {tier_label}"
-        )
-        if Confirm.ask("  Burn momentum?", default=False):
-            old_mom = state.character.burn_momentum()
-            result = resolve_move(
-                action_die=action_die,
-                stat=stat_val,
-                adds=adds,
-                c1=c1,
-                c2=c2,
-                momentum=old_mom,
-                burn=True,
-            )
-            state.session.add_mechanical(
-                f"Burned momentum ({old_mom:+d} → {state.character.momentum:+d})"
-            )
-
-    # Apply automatic momentum from move bonuses
+    result = _maybe_burn_momentum(state, result, action_die, stat_val, adds, c1, c2)
     mom_delta = _apply_move_momentum(result.outcome, move, state)
-
-    # Determine outcome text
     outcome_text = _outcome_text(result.outcome, move)
-
-    # Display panel — includes momentum change if any
     display.move_result_panel(
         move_name=move_name,
         stat_name=stat,
@@ -213,17 +207,49 @@ def handle_move(state: GameState, args: list[str], flags: set[str]) -> None:
         outcome_text=outcome_text,
         mom_delta=mom_delta,
     )
-
-    # Log
     _log_move(state, move_name, stat, stat_val, result, c1, c2)
 
-    # Pay the Price trigger on miss
     if result.outcome == OutcomeTier.MISS and not result.match:
         _offer_pay_the_price(state, flags)
 
-    # Reset mixed mode manual flag
-    if isinstance(dice, MixedDice):
-        dice.set_manual(False)
+
+def _maybe_burn_momentum(
+    state: GameState,
+    result: MoveResult,
+    action_die: int,
+    stat_val: int,
+    adds: int,
+    c1: int,
+    c2: int,
+) -> MoveResult:
+    """Offer momentum burn if it would improve the outcome. Returns updated result."""
+    if not would_momentum_improve(result.outcome, state.character.momentum, c1, c2):
+        return result
+
+    from soloquest.engine.moves import momentum_burn_outcome
+
+    burn_tier = momentum_burn_outcome(state.character.momentum, c1, c2)
+    tier_label = {
+        OutcomeTier.STRONG_HIT: "Strong Hit",
+        OutcomeTier.WEAK_HIT: "Weak Hit",
+        OutcomeTier.MISS: "Miss",
+    }[burn_tier]
+    display.warn(f"Burning momentum ({state.character.momentum:+d}) would upgrade to {tier_label}")
+    if not Confirm.ask("  Burn momentum?", default=False):
+        return result
+
+    old_mom = state.character.burn_momentum()
+    result = resolve_move(
+        action_die=action_die,
+        stat=stat_val,
+        adds=adds,
+        c1=c1,
+        c2=c2,
+        momentum=old_mom,
+        burn=True,
+    )
+    state.session.add_mechanical(f"Burned momentum ({old_mom:+d} → {state.character.momentum:+d})")
+    return result
 
 
 # ── Stat selection ─────────────────────────────────────────────────────────────
@@ -341,43 +367,59 @@ def _offer_pay_the_price(state: GameState, flags: set[str]) -> None:
 # ── Progress rolls ─────────────────────────────────────────────────────────────
 
 
-def _handle_progress_roll(state: GameState, move_key: str, move: dict, flags: set[str]) -> None:
-    """Handle a progress roll (Fulfill Vow, Take Decisive Action, etc.)."""
+def _select_vow(state: GameState):
+    """Prompt the player to choose an active vow. Returns the vow or None."""
     from soloquest.models.vow import fuzzy_match_vow
 
-    move_name = move["name"]
-    vow = None
+    active = [v for v in state.vows if not v.fulfilled]
+    if not active:
+        display.error("You have no active vows.")
+        return None
 
+    display.info("  Which vow?")
+    for i, v in enumerate(active, 1):
+        display.info(
+            f"    [{i}] [{v.rank.value}] {v.description}  (progress {v.progress_score}/10)"
+        )
+
+    raw = Prompt.ask("  Vow number or name")
+    if raw.isdigit():
+        idx = int(raw) - 1
+        if 0 <= idx < len(active):
+            return active[idx]
+    else:
+        matches = fuzzy_match_vow(raw, active)
+        if matches:
+            return matches[0]
+
+    display.error("Vow not found.")
+    return None
+
+
+def _resolve_progress_selection(state: GameState, move_key: str) -> tuple[object, int] | None:
+    """Return (vow_or_None, progress_score), or None if the player cancels."""
     if move_key in ("fulfill_your_vow", "forsake_your_vow"):
-        active = [v for v in state.vows if not v.fulfilled]
-        if not active:
-            display.error("You have no active vows.")
-            return
-        display.info("  Which vow?")
-        for i, v in enumerate(active, 1):
-            display.info(
-                f"    [{i}] [{v.rank.value}] {v.description}  (progress {v.progress_score}/10)"
-            )
-        raw = Prompt.ask("  Vow number or name")
-        if raw.isdigit():
-            idx = int(raw) - 1
-            if 0 <= idx < len(active):
-                vow = active[idx]
-        else:
-            matches = fuzzy_match_vow(raw, active)
-            if matches:
-                vow = matches[0]
+        vow = _select_vow(state)
         if vow is None:
-            display.error("Vow not found.")
-            return
-        progress_score = vow.progress_score
+            return None
+        return vow, vow.progress_score
     else:
         raw = Prompt.ask("  Progress score (0–10)")
         try:
-            progress_score = max(0, min(10, int(raw)))
+            return None, max(0, min(10, int(raw)))
         except ValueError:
             display.error("Enter a number 0–10.")
-            return
+            return None
+
+
+def _handle_progress_roll(state: GameState, move_key: str, move: dict, flags: set[str]) -> None:
+    """Handle a progress roll (Fulfill Vow, Take Decisive Action, etc.)."""
+    move_name = move["name"]
+
+    selection = _resolve_progress_selection(state, move_key)
+    if selection is None:
+        return
+    vow, progress_score = selection
 
     dice_result = roll_challenge_dice(state.dice)
     if dice_result is None:
