@@ -20,6 +20,7 @@ ADRs document significant architectural and design decisions. Each ADR describes
 | # | Title | Status | Date |
 |---|-------|--------|------|
 | [001](001-repo-workflow-and-conventions.md) | Repository Workflow and Conventions | Accepted | 2026-02-14 |
+| [002](002-ui-panel-guidelines.md) | UI Panel Guidelines | Accepted | 2026-02-17 |
 
 ---
 
@@ -38,8 +39,8 @@ When making significant architectural decisions:
 ```markdown
 # ADR-XXX: [Title]
 
-**Status:** Proposed | Accepted | Deprecated | Superseded
-**Date:** YYYY-MM-DD
+- **Status:** Proposed | Accepted | Deprecated | Superseded
+- **Date:** YYYY-MM-DD
 
 ## Context
 
