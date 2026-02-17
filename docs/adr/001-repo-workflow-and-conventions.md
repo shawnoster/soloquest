@@ -1,7 +1,7 @@
 # ADR-001: Repository Workflow and Conventions
 
-**Status:** Accepted
-**Date:** 2026-02-14
+- **Status:** Accepted
+- **Date:** 2026-02-14
 
 ## Context
 

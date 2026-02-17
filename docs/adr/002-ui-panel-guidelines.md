@@ -1,7 +1,7 @@
 # ADR-002: UI Panel Guidelines
 
-**Status:** Accepted
-**Date:** 2026-02-17
+- **Status:** Accepted
+- **Date:** 2026-02-17
 
 ## Context
 

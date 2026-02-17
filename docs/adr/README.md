@@ -39,8 +39,8 @@ When making significant architectural decisions:
 ```markdown
 # ADR-XXX: [Title]
 
-**Status:** Proposed | Accepted | Deprecated | Superseded
-**Date:** YYYY-MM-DD
+- **Status:** Proposed | Accepted | Deprecated | Superseded
+- **Date:** YYYY-MM-DD
 
 ## Context
 
