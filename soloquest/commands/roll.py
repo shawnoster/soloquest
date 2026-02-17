@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import random
 import re
 from typing import TYPE_CHECKING
 
@@ -53,8 +54,6 @@ def handle_roll(state: GameState, args: list[str], flags: set[str]) -> None:
             rolls.append(state.dice.roll(named))
         else:
             # Arbitrary die — always digital
-            import random
-
             rolls.append(random.randint(1, sides))
 
     total = sum(rolls)

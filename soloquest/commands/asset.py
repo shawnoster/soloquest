@@ -13,7 +13,7 @@ if TYPE_CHECKING:
     from soloquest.loop import GameState
 
 
-def handle_asset(state: GameState, args: list[str], flags: set[str]) -> None:
+def handle_asset(state: GameState, args: list[str], _flags: set[str]) -> None:
     """Display asset information or list available assets."""
     if not args:
         # List all assets by category

@@ -109,149 +109,106 @@ class CommandCompleter(Completer):
 
         return []
 
+    # ── Private helpers ────────────────────────────────────────────────────────
+
+    @staticmethod
+    def _normalize(text: str) -> str:
+        """Lowercase and replace separators for fuzzy matching."""
+        return text.lower().replace("_", " ").replace("-", " ")
+
+    @staticmethod
+    def _make_completion(text: str, display_meta: str, current_arg: str) -> Completion:
+        """Build a single Completion with correct start position."""
+        return Completion(
+            text=text,
+            start_position=-len(current_arg) if current_arg else 0,
+            display_meta=display_meta,
+        )
+
+    def _complete_options(self, current_arg: str, options: dict[str, str]) -> list[Completion]:
+        """Complete from a fixed dict of {option: description} pairs."""
+        completions = [
+            self._make_completion(option, description, current_arg)
+            for option, description in options.items()
+            if not current_arg or current_arg.lower() in option.lower()
+        ]
+        return sorted(completions, key=lambda c: c.text)
+
     def _complete_oracle_tables(self, current_arg: str) -> list[Completion]:
         """Complete oracle table names."""
-        completions = []
-        for key, table in self.oracles.items():
-            # Match against both key and name (show all if current_arg is empty)
-            if (
-                not current_arg
-                or current_arg.lower() in key.lower()
-                or current_arg.lower() in table.name.lower()
-            ):
-                start_position = -len(current_arg) if current_arg else 0
-                # Prefer the key for completion, show the full name as meta
-                completions.append(
-                    Completion(
-                        text=key,
-                        start_position=start_position,
-                        display_meta=table.name,
-                    )
-                )
+        arg = current_arg.lower()
+        completions = [
+            self._make_completion(key, table.name, current_arg)
+            for key, table in self.oracles.items()
+            if not current_arg or arg in key.lower() or arg in table.name.lower()
+        ]
         return sorted(completions, key=lambda c: c.text)
 
     def _complete_moves(self, current_arg: str) -> list[Completion]:
         """Complete move names and category filters."""
-        completions = []
-
-        # Check if completing a category filter (category:, type:, cat:)
         if ":" in current_arg:
             prefix, partial_value = current_arg.split(":", 1)
-            prefix_lower = prefix.lower()
+            if prefix.lower() in ("category", "type", "cat"):
+                return self._complete_move_categories(partial_value, prefix)
 
-            if prefix_lower in ("category", "type", "cat"):
-                # Complete category names
-                categories = set()
-                for move_data in self.moves.values():
-                    category = move_data.get("category", "")
-                    if category:
-                        categories.add(category)
+        arg_norm = self._normalize(current_arg)
+        completions = [
+            self._make_completion(key, move_data.get("name", ""), current_arg)
+            for key, move_data in self.moves.items()
+            if not current_arg
+            or arg_norm in self._normalize(key)
+            or arg_norm in self._normalize(move_data.get("name", ""))
+        ]
+        return sorted(completions, key=lambda c: c.text)
 
-                for category in sorted(categories):
-                    if not partial_value or partial_value.lower() in category.lower():
-                        # Calculate start position from the value part only
-                        start_position = -len(partial_value) if partial_value else 0
-                        completions.append(
-                            Completion(
-                                text=category,
-                                start_position=start_position,
-                                display_meta=f"{prefix}:{category}",
-                            )
-                        )
-                return completions
-
-        # Regular move name completion
-        for key, move_data in self.moves.items():
-            move_name = move_data.get("name", "")
-            # Match against both key and name (show all if current_arg is empty)
-            # Normalize for matching (spaces/underscores/hyphens)
-            key_normalized = key.replace("_", " ").replace("-", " ")
-            name_normalized = move_name.lower().replace("_", " ").replace("-", " ")
-            arg_normalized = current_arg.lower().replace("_", " ").replace("-", " ")
-
-            if (
-                not current_arg
-                or arg_normalized in key_normalized
-                or arg_normalized in name_normalized
-            ):
-                start_position = -len(current_arg) if current_arg else 0
-                # Prefer the key for completion, show the full name as meta
-                completions.append(
-                    Completion(
-                        text=key,
-                        start_position=start_position,
-                        display_meta=move_name,
-                    )
-                )
+    def _complete_move_categories(self, partial_value: str, prefix: str) -> list[Completion]:
+        """Complete category names for the category: filter syntax."""
+        categories = sorted(
+            {move_data.get("category", "") for move_data in self.moves.values()} - {""}
+        )
+        completions = [
+            self._make_completion(cat, f"{prefix}:{cat}", partial_value)
+            for cat in categories
+            if not partial_value or partial_value.lower() in cat.lower()
+        ]
         return sorted(completions, key=lambda c: c.text)
 
     def _complete_assets(self, current_arg: str) -> list[Completion]:
         """Complete asset names."""
-        completions = []
-        for key, asset in self.assets.items():
-            asset_name = asset.name if hasattr(asset, "name") else key
-            # Match against both key and name (show all if current_arg is empty)
-            # Normalize for matching (spaces/underscores/hyphens)
-            key_normalized = key.replace("_", " ").replace("-", " ")
-            name_normalized = asset_name.lower().replace("_", " ").replace("-", " ")
-            arg_normalized = current_arg.lower().replace("_", " ").replace("-", " ")
-
-            if (
-                not current_arg
-                or arg_normalized in key_normalized
-                or arg_normalized in name_normalized
-            ):
-                start_position = -len(current_arg) if current_arg else 0
-                # Prefer the key for completion, show the full name as meta
-                completions.append(
-                    Completion(
-                        text=key,
-                        start_position=start_position,
-                        display_meta=asset_name,
-                    )
-                )
+        arg_norm = self._normalize(current_arg)
+        completions = [
+            self._make_completion(
+                key,
+                asset.name if hasattr(asset, "name") else key,
+                current_arg,
+            )
+            for key, asset in self.assets.items()
+            if not current_arg
+            or arg_norm in self._normalize(key)
+            or arg_norm in self._normalize(asset.name if hasattr(asset, "name") else key)
+        ]
         return sorted(completions, key=lambda c: c.text)
 
     def _complete_guide_args(self, current_arg: str) -> list[Completion]:
         """Complete guide arguments (commands and steps)."""
-        options = {
-            "start": "Enter guided mode (step-by-step wizard)",
-            "stop": "Exit guided mode",
-            "envision": "Learn about envisioning and describing your story",
-            "oracle": "Learn about asking the oracle",
-            "move": "Learn about making moves",
-            "outcome": "Learn about interpreting outcomes",
-        }
-
-        completions = []
-        for option, description in options.items():
-            if not current_arg or current_arg.lower() in option.lower():
-                start_position = -len(current_arg) if current_arg else 0
-                completions.append(
-                    Completion(
-                        text=option,
-                        start_position=start_position,
-                        display_meta=description,
-                    )
-                )
-        return sorted(completions, key=lambda c: c.text)
+        return self._complete_options(
+            current_arg,
+            {
+                "start": "Enter guided mode (step-by-step wizard)",
+                "stop": "Exit guided mode",
+                "envision": "Learn about envisioning and describing your story",
+                "oracle": "Learn about asking the oracle",
+                "move": "Learn about making moves",
+                "outcome": "Learn about interpreting outcomes",
+            },
+        )
 
     def _complete_truths_args(self, current_arg: str) -> list[Completion]:
         """Complete truths subcommands."""
-        options = {
-            "start": "Start or restart the Choose Your Truths wizard",
-            "show": "Display your current campaign truths",
-        }
-
-        completions = []
-        for option, description in options.items():
-            if not current_arg or current_arg.lower() in option.lower():
-                start_position = -len(current_arg) if current_arg else 0
-                completions.append(
-                    Completion(
-                        text=option,
-                        start_position=start_position,
-                        display_meta=description,
-                    )
-                )
-        return sorted(completions, key=lambda c: c.text)
+        return self._complete_options(
+            current_arg,
+            {
+                "start": "Start or restart the Choose Your Truths wizard",
+                "show": "Display your current campaign truths",
+            },
+        )

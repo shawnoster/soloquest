@@ -7,6 +7,8 @@ of oracle results.
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
+import pytest
+
 from soloquest.commands.oracle import handle_oracle
 from soloquest.engine.oracles import OracleResult, OracleTable, load_oracles
 from soloquest.ui.display import oracle_result_panel, oracle_result_panel_combined
@@ -416,7 +418,7 @@ class TestOracleRangeCoverage:
             die="d100",
             results=[(1, 100, "Result")],
         )
-        assert coverage_percentage(full_table) == 100.0
+        assert coverage_percentage(full_table) == pytest.approx(100.0)
 
         # Partial coverage
         partial_table = OracleTable(
@@ -425,7 +427,7 @@ class TestOracleRangeCoverage:
             die="d100",
             results=[(1, 50, "Half")],
         )
-        assert coverage_percentage(partial_table) == 50.0
+        assert coverage_percentage(partial_table) == pytest.approx(50.0)
 
     def test_oracles_have_good_coverage(self):
         """Most oracles should have >90% coverage of their range."""
