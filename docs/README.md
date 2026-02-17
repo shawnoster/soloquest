@@ -1,12 +1,12 @@
 # Soloquest Documentation
 
-Complete documentation for the Ironsworn: Starforged CLI companion tool.
+Complete documentation for the solo RPG companion CLI.
 
 ---
 
 ## For Users
 
-Start here if you want to use soloquest to play Ironsworn: Starforged solo.
+Start here if you want to use Soloquest to play solo RPGs.
 
 - **[Getting Started](user-guide/getting-started.md)** - Complete walkthrough from installation to your first session
 - **[Adventures Directory Configuration](user-guide/adventures-directory.md)** - How to configure where your game data is stored
@@ -27,9 +27,15 @@ Start here if you want to contribute to soloquest development.
 
 ## Specifications & Design
 
-- **[POC Specification](specifications/poc-spec.md)** - Original proof-of-concept specification
-- **[Choose Your Truths Feature Plan](specifications/choose-your-truths-plan.md)** - Campaign setup wizard implementation plan
+Technical specifications organized for multi-system support:
+
+- **[Specifications Overview](specifications/)** - Complete specification index
+  - **[Architecture](specifications/architecture.md)** - System-agnostic design
+  - **[Game Systems](specifications/systems/)** - System-specific specifications
+  - **[Features](specifications/features/)** - Feature implementation plans
+  - **[Integration](specifications/integration/)** - Cross-system integration
 - **[Architecture Decision Records](adr/)** - Design decisions and their rationale
+- **[CLI Specification](specifications/spec.md)** - Complete CLI specification
 
 ---
 

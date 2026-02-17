@@ -1,61 +1,85 @@
-# Ironsworn: Starforged CLI — POC Spec
+# Soloquest — CLI Specification
 
-**Version:** 0.1  
-**Language:** Python 3.13  
-**Target:** Single-player solo journaling companion CLI
+**Version:** 2.0
+**Language:** Python 3.13
+**Target:** Multi-system solo journaling companion CLI
 
 ---
 
 ## 1. Overview
 
-A terminal-based companion for playing Ironsworn: Starforged solo. The CLI handles the mechanical layer — move resolution, oracle lookups, dice rolling, character tracking — while keeping the journaling experience as the primary surface. Every session produces a Markdown artifact the player can keep.
+Soloquest is a terminal-based companion for playing solo RPGs. The CLI handles the mechanical layer — move resolution, oracle lookups, dice rolling, character tracking — while keeping the journaling experience as the primary surface. Every session produces a Markdown artifact the player can keep.
 
-The POC validates three things:
-1. The hybrid journal/command loop feels natural to use
-2. Physical and digital dice modes work without friction
-3. Session export produces a genuinely readable journal
+### Design Philosophy
+
+1. **Journal-first interface** — The hybrid journal/command loop feels natural to use
+2. **Flexible dice modes** — Physical and digital dice modes work without friction
+3. **Readable export** — Session export produces genuinely readable journals
+4. **System-agnostic core** — Architecture supports multiple game systems
+
+### Supported Systems
+
+- **Ironsworn: Starforged** ✅ Complete — See [systems/ironsworn-starforged.md](systems/ironsworn-starforged.md)
+- **Mythic GME** 🔮 Planned — Universal game master emulator
+
+### Related Documentation
+
+This is the **living specification** for the entire CLI. For detailed information:
+
+- **[Architecture](architecture.md)** — System-agnostic design and integration points
+- **[Systems](systems/)** — Game system specifications
+- **[Features](features/)** — Feature implementation plans
+- **[Process Guide](PROCESS.md)** — How to add new systems and features
 
 ---
 
 ## 2. Architecture Overview
 
+> **Detailed architecture documentation:** See [architecture.md](architecture.md)
+
 ```
-starforged/
+soloquest/
 ├── main.py               # Entry point, session bootstrap
 ├── loop.py               # Main REPL loop
-├── commands/
-│   ├── __init__.py
+├── commands/             # Command handlers (UI layer)
 │   ├── registry.py       # Command routing
 │   ├── move.py           # /move resolution
 │   ├── oracle.py         # /oracle lookups
-│   ├── vow.py            # /vow, /progress
+│   ├── vow.py            # /vow, /progress (Ironsworn)
+│   ├── truths.py         # /truths (Starforged)
+│   ├── guide.py          # /guide (gameplay tutorials)
 │   ├── character.py      # /char, stat/track adjustments
 │   └── session.py        # /log, /end, /note
-├── engine/
-│   ├── dice.py           # Dice provider abstraction (digital/physical/mixed)
-│   ├── moves.py          # Move definitions and resolution logic
-│   ├── oracles.py        # Oracle table data and lookup
-│   └── momentum.py       # Momentum burn logic
-├── models/
+├── engine/               # Game mechanics (business logic)
+│   ├── dice.py           # Dice provider abstraction
+│   ├── moves.py          # Move resolution logic
+│   ├── oracles.py        # Oracle table lookups
+│   ├── truths.py         # Truth category loader
+│   └── assets.py         # Asset system
+├── models/               # Data models
 │   ├── character.py      # Character dataclass
-│   ├── vow.py            # Vow dataclass
-│   └── session.py        # Session log dataclass
-├── journal/
+│   ├── vow.py            # Vow dataclass (Ironsworn)
+│   ├── session.py        # Session log dataclass
+│   └── truths.py         # Truth models (Starforged)
+├── journal/              # Export system
 │   └── exporter.py       # Markdown export
-├── data/
+├── data/                 # Game content (system-specific)
 │   ├── moves.toml        # Move definitions
-│   └── oracles.toml      # Oracle tables
-├── state/
-│   └── save.py           # JSON persistence
-└── ui/
-    └── display.py        # Rich-based rendering helpers
+│   ├── oracles.toml      # Oracle tables
+│   ├── truths.toml       # Truth categories
+│   └── dataforged/       # Vendored Starforged content
+├── state/                # Persistence
+│   └── save.py           # JSON save/load
+└── ui/                   # Display formatting
+    └── display.py        # Rich-based rendering
 ```
 
 **Key dependencies:**
-- `rich` — terminal rendering (panels, tables, progress bars)
-- `prompt_toolkit` — multi-line input, history, autocomplete on commands
-- `tomllib` (stdlib 3.11+) — data file parsing
-- No TUI framework; no curses; no textual
+- `rich` — Terminal rendering (panels, tables, progress bars)
+- `prompt_toolkit` — Multi-line input, history, autocomplete
+- `tomllib` (stdlib 3.11+) — Data file parsing
+- `dataforged` — Ironsworn: Starforged game content
+- No TUI framework; no curses; no textual — Pure REPL with rich formatting
 
 ---
 
@@ -401,29 +425,74 @@ results = [
 
 ---
 
-## 7. Out of Scope for POC
+## 7. Implemented Features
 
-- Full asset compendium (abilities, upgrade tracks)
-- Sector / star map generation and tracking
-- NPC relationship web
-- Campaign threat tracking
-- Co-op / guided mode
-- Audio/sound hooks
-- Web or GUI frontend
-- Full 400-entry oracle tables (representative samples only)
+### Core Mechanics (Starforged)
+- ✅ Move resolution (all 56 moves)
+- ✅ Oracle lookups (200+ tables)
+- ✅ Character creation and management
+- ✅ Vow tracking and progress
+- ✅ Asset library (90+ cards)
+- ✅ Choose Your Truths wizard
+- ✅ Momentum burn mechanic
+
+### Session Management
+- ✅ REPL-based journaling
+- ✅ Markdown export (session + cumulative)
+- ✅ Save/load character state
+- ✅ Persistent sessions (survive Ctrl-C)
+
+### Quality of Life
+- ✅ Guided mode (gameplay tutorial)
+- ✅ Tab completion
+- ✅ Fuzzy command matching
+- ✅ Digital/physical/mixed dice modes
+- ✅ Adventures directory configuration
 
 ---
 
-## 8. Build Order
+## 8. Planned Features
 
-| Phase | Deliverable |
-|-------|-------------|
-| 1 | Project scaffold, dice engine (digital + physical), data loading |
-| 2 | Character model, save/load, `/char` display |
-| 3 | Main REPL loop, journal entry, `/log` |
-| 4 | Move resolution (all outcome tiers, momentum burn) |
-| 5 | Oracle lookups |
-| 6 | Vow tracking (`/vow`, `/progress`, `/fulfill`) |
-| 7 | Session export to Markdown |
-| 8 | Settings, dice mode, help system |
-| 9 | Polish: fuzzy matching, input validation, error handling |
+### Starforged Enhancements
+- 📋 Interactive asset abilities
+- 📋 Asset health/integrity tracking
+- 💭 Sector/star map generation
+- 💭 NPC relationship tracking
+- 💭 Connection system integration
+
+### New Systems
+- 📋 **Mythic GME** - Fate Chart, Chaos Factor, Random Events
+- 💭 **Other systems** - Based on user demand
+
+### Infrastructure
+- 💭 Plugin architecture for community systems
+- 💭 Theme customization
+- 💭 Cloud sync (optional)
+
+**Legend:**
+- ✅ Implemented
+- 📋 Planned (designed, ready to implement)
+- 💭 Proposed (under consideration)
+
+See [features/](features/) for detailed feature specifications.
+
+---
+
+## 9. Living Document
+
+This specification evolves as Soloquest grows:
+
+- **Use cases** remain stable — they define core workflows
+- **Architecture** grows as new systems are added
+- **Features** link to detailed specs in [features/](features/)
+- **Systems** documented in [systems/](systems/)
+
+When adding significant new functionality:
+1. Create a feature spec in [features/](features/)
+2. Link to it from this document
+3. Update use cases if workflows change
+4. Update architecture overview if structure changes
+
+**Version History:**
+- **v2.0** (2026-02-17) - Restructured for multi-system support, renamed from POC spec
+- **v1.0** (2026-02-14) - Original proof-of-concept specification
