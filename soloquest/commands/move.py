@@ -525,7 +525,7 @@ def _handle_narrative_move(move_name: str, move: dict, state: GameState) -> None
     # This preserves table/bullet/bold formatting while avoiding non-functional links.
     import re
 
-    description = re.sub(r"\[([^\]]+)\]\([^)]+\)", r"\1", description)
+    description = re.sub(r"\[([^\]]+)\]\([^)]+\)", r"**\1**", description)
 
     content = Markdown(description) if description else "[dim]No description available[/dim]"
 
