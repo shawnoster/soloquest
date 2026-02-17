@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import re
 from typing import TYPE_CHECKING
 
 from rich.prompt import Confirm, Prompt
@@ -512,6 +511,7 @@ def _display_category_moves(move_data: dict, keys: list[str], category: str) -> 
 
 def _handle_narrative_move(move_name: str, move: dict, state: GameState) -> None:
     """Handle narrative/procedural moves that don't require dice rolls."""
+    from rich.markdown import Markdown
     from rich.panel import Panel
 
     description = move.get("description", "")
@@ -520,8 +520,11 @@ def _handle_narrative_move(move_name: str, move: dict, state: GameState) -> None
     # Format category for display
     category_display = category.replace("_", " ").title() if category else "Move"
 
+    # Use Markdown renderer to preserve table and bullet formatting.
+    # hyperlinks=False prevents dataforged internal paths from becoming
+    # non-functional terminal hyperlinks; cross-references render as plain text.
     content = (
-        _render_move_description(description)
+        Markdown(description, hyperlinks=False)
         if description
         else "[dim]No description available[/dim]"
     )
@@ -537,44 +540,3 @@ def _handle_narrative_move(move_name: str, move: dict, state: GameState) -> None
 
     # Log to session
     state.session.add_move(f"**{move_name}** (narrative move)")
-
-
-def _render_move_description(text: str):
-    """Render a full move description as a Rich renderable Group.
-
-    Splits the text into paragraph blocks. Markdown tables become Rich Table
-    objects; all other blocks are passed through display.render_game_text()
-    for inline markup (bold, cyan cross-references, bullets).
-    """
-    from rich.console import Group
-
-    renderables = []
-    blocks = re.split(r"\n\n+", text.strip())
-
-    for block in blocks:
-        lines = block.strip().split("\n")
-        # Detect markdown table: first line has pipes, second line is a separator
-        if len(lines) >= 3 and "|" in lines[0] and re.match(r"^[\s|\-:]+$", lines[1]):
-            renderables.append(_markdown_table_to_rich(lines))
-        else:
-            renderables.append(display.render_game_text(block))
-
-    return Group(*renderables)
-
-
-def _markdown_table_to_rich(lines: list[str]):
-    """Convert markdown table lines to a Rich Table."""
-    from rich.table import Table
-
-    headers = [h.strip() for h in lines[0].strip("|").split("|")]
-    table = Table(box=None, show_header=True, header_style="bold dim", padding=(0, 2))
-    for h in headers:
-        table.add_column(h)
-
-    for line in lines[2:]:
-        cells = [c.strip() for c in line.strip("|").split("|")]
-        while len(cells) < len(headers):
-            cells.append("")
-        table.add_row(*cells[: len(headers)])
-
-    return table

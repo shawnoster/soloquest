@@ -47,17 +47,20 @@ Border color communicates the *type* of result at a glance:
 
 New features should follow these existing color assignments. Introduce a new color only if the content genuinely doesn't fit any existing category.
 
-### In-text cross-references use `[cyan]`
+### In-text cross-references
 
-Dataforged game text contains cross-references to other moves — e.g., `[Pay the Price](Starforged/Moves/...)` in asset abilities and narrative move descriptions. These are rendered as `[cyan]Move Name[/cyan]` — not as terminal hyperlinks.
+Dataforged game text contains cross-references to other moves — e.g., `[Pay the Price](Starforged/Moves/...)` in asset abilities and narrative move descriptions. These paths are internal dataforged IDs, not real URLs. They must never render as terminal hyperlinks (misleading and non-functional).
 
-**Rationale:**
+The treatment differs by rendering context:
 
-- `cyan` is the established reference color, so colored move names signal "this is a game term you can look up"
-- Terminal hyperlinks (from `rich.markdown.Markdown`) would link to internal dataforged paths, not real URLs — misleading and non-functional
-- Consistent across all game text contexts (asset panels use `bright_magenta` borders, move panels use `cyan` or `blue`, but cross-references are always `cyan` regardless of context)
+| Context | Renderer | Cross-reference style |
+|---|---|---|
+| Asset ability text | Rich markup | `[cyan]Move Name[/cyan]` |
+| Narrative move descriptions | `rich.markdown.Markdown(hyperlinks=False)` | Plain text (structural formatting takes priority) |
 
-The shared utility `display.render_game_text(text)` handles this conversion along with `**bold**` and bullet list normalization. All game text from dataforged should pass through this function before being placed in a panel.
+**Asset panels** use `display.render_game_text(text)`, which converts `[Name](url)` to `[cyan]Name[/cyan]` along with `**bold**` and bullet normalization. This is appropriate because ability text is short prose with no tables.
+
+**Narrative move panels** use `rich.markdown.Markdown(hyperlinks=False)`. These descriptions contain markdown tables (e.g. oracle roll tables) that require the Markdown renderer for correct column alignment and header formatting. `hyperlinks=False` suppresses terminal hyperlinks; cross-references render as plain text. The structural formatting outweighs the color benefit for this context.
 
 ### The character sheet exception
 
