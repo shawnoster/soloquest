@@ -86,7 +86,7 @@ def get_guided_prompt_html(state: GameState) -> HTML:
     phase_display = state.guided_phase.upper()
 
     # Use HTML() which prompt_toolkit will render with proper styling
-    return HTML(f'<{color}>[{phase_display}]</{color}> > ')
+    return HTML(f"<{color}>[{phase_display}]</{color}> > ")
 
 
 def advance_phase(state: GameState) -> None:
