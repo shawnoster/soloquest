@@ -302,6 +302,54 @@ class TestHandleMove:
         call_args = mock_warn.call_args[0][0]
         assert "Multiple matches" in call_args
 
+    @patch("soloquest.commands.move.display.info")
+    @patch("soloquest.commands.move.display.console")
+    def test_handle_move_category_filter_lists_moves(self, mock_console, mock_info):
+        """handle_move with category filter and no query should list moves."""
+        self.state.moves = {
+            "strike": {
+                "name": "Strike",
+                "category": "combat",
+                "stat_options": ["iron", "edge"],
+                "description": "When you fight with force. Roll +iron.",
+            },
+            "clash": {
+                "name": "Clash",
+                "category": "combat",
+                "stat_options": ["iron", "edge"],
+                "description": "When you fight back. Roll +iron.",
+            },
+        }
+
+        handle_move(self.state, ["category:combat"], set())
+
+        # Should print the table, not warn about multiple matches
+        mock_console.print.assert_called()
+        mock_info.assert_called()
+        # Should not call warn
+        # (warn is not mocked, so if it were called with display.warn it would error)
+
+    @patch("soloquest.commands.move.display.warn")
+    def test_handle_move_category_filter_with_query_still_warns(self, mock_warn):
+        """handle_move with category filter AND ambiguous query should still warn."""
+        self.state.moves = {
+            "strike": {
+                "name": "Strike",
+                "category": "combat",
+                "stat_options": ["iron"],
+            },
+            "strong_strike": {
+                "name": "Strong Strike",
+                "category": "combat",
+                "stat_options": ["iron"],
+            },
+        }
+
+        handle_move(self.state, ["category:combat", "str"], set())
+
+        mock_warn.assert_called_once()
+        assert "Multiple matches" in mock_warn.call_args[0][0]
+
     @patch("soloquest.commands.move.display.console.print")
     def test_handle_move_no_stat_options_displays_narrative(self, mock_print):
         """handle_move with move lacking stat_options should display as narrative move."""

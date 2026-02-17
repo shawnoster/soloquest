@@ -103,8 +103,11 @@ def handle_move(state: GameState, args: list[str], flags: set[str]) -> None:
         return
 
     if len(matches) > 1:
-        names = ", ".join(state.moves[k]["name"] for k in matches)
-        display.warn(f"Multiple matches ({len(matches)}): {names}. Be more specific.")
+        if category_filter and not query:
+            _display_category_moves(state.moves, matches, category_filter)
+        else:
+            names = ", ".join(state.moves[k]["name"] for k in matches)
+            display.warn(f"Multiple matches ({len(matches)}): {names}. Be more specific.")
         return
 
     move_key = matches[0]
@@ -477,6 +480,33 @@ def _handle_forsake_vow(state: GameState) -> None:
     state.session.add_mechanical(
         f"Vow forsaken [{vow.rank.value}]: {vow.description} | Spirit -{cost} (now {new_spirit})"
     )
+
+
+def _display_category_moves(move_data: dict, keys: list[str], category: str) -> None:
+    """Display a list of moves in a category with their short descriptions."""
+    from rich.table import Table
+
+    table = Table(show_header=False, box=None, padding=(0, 1))
+    table.add_column("name", style="bold cyan", no_wrap=True)
+    table.add_column("stats", style="dim blue", no_wrap=True)
+    table.add_column("desc", style="dim")
+
+    for key in keys:
+        move = move_data[key]
+        name = move["name"]
+        stat_options = move.get("stat_options", [])
+        stats = "+".join(s[:3] for s in stat_options) if stat_options else "—"
+        desc = move.get("description", "").replace("**", "")
+        short = desc.split(". ")[0].split(".\n")[0].rstrip(".")
+        if len(short) > 65:
+            short = short[:62] + "..."
+        table.add_row(name, stats, short)
+
+    category_display = category.replace("_", " ").title()
+    display.console.print(f"\n[bold]{category_display} Moves[/bold]")
+    display.console.print(table)
+    display.console.print()
+    display.info("  Use /move [name] to play a move.")
 
 
 def _handle_narrative_move(move_name: str, move: dict, state: GameState) -> None:
