@@ -520,14 +520,14 @@ def _handle_narrative_move(move_name: str, move: dict, state: GameState) -> None
     # Format category for display
     category_display = category.replace("_", " ").title() if category else "Move"
 
-    # Use Markdown renderer to preserve table and bullet formatting.
-    # hyperlinks=False prevents dataforged internal paths from becoming
-    # non-functional terminal hyperlinks; cross-references render as plain text.
-    content = (
-        Markdown(description, hyperlinks=False)
-        if description
-        else "[dim]No description available[/dim]"
-    )
+    # Strip dataforged cross-reference URLs before Markdown rendering.
+    # [Move Name](Starforged/Moves/...) → Move Name (plain text).
+    # This preserves table/bullet/bold formatting while avoiding non-functional links.
+    import re
+
+    description = re.sub(r"\[([^\]]+)\]\([^)]+\)", r"\1", description)
+
+    content = Markdown(description) if description else "[dim]No description available[/dim]"
 
     display.console.print(
         Panel(
