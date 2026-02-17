@@ -87,7 +87,7 @@ def _show_game_loop(state: GameState) -> None:
     display.console.print()
     display.console.print("  [dim]> Loop back to step 1 (Envision)[/dim]")
     display.console.print()
-    display.console.print("  " + "-" * 76)
+    display.rule()
     display.console.print()
 
     # Contextual suggestions based on game state
@@ -221,7 +221,7 @@ def _show_oracle_help(state: GameState) -> None:
   • You can roll multiple oracles at once
 """
 
-    display.console.print(Panel(content, border_style="magenta", padding=(1, 2)))
+    display.console.print(Panel(content, border_style="cyan", padding=(1, 2)))
     display.console.print()
 
 
@@ -266,7 +266,7 @@ def _show_move_help(state: GameState) -> None:
   • Follow the outcome text for results
 """
 
-    display.console.print(Panel(content, border_style="yellow", padding=(1, 2)))
+    display.console.print(Panel(content, border_style="cyan", padding=(1, 2)))
     display.console.print()
 
 
@@ -317,30 +317,5 @@ def _show_outcome_help(state: GameState) -> None:
   • Momentum burn ([cyan]/burn[/cyan]) can upgrade outcomes
 """
 
-    display.console.print(Panel(content, border_style="green", padding=(1, 2)))
-    display.console.print()
-
-
-def _show_quick_start(state: GameState) -> None:
-    """Show a quick start guide for new players."""
-    display.rule("Quick Start Guide")
-    display.console.print()
-
-    display.console.print("  [bold]Welcome to Ironsworn: Starforged![/bold]")
-    display.console.print()
-    display.console.print("  [bold cyan]Your first steps:[/bold cyan]")
-    display.console.print()
-    display.console.print("  1. [bold]Describe your scene[/bold]")
-    display.console.print("     Type: [dim]I'm investigating an abandoned mining outpost...[/dim]")
-    display.console.print()
-    display.console.print("  2. [bold]When uncertain, ask the oracle[/bold]")
-    display.console.print("     Type: [cyan]/oracle action theme[/cyan]")
-    display.console.print()
-    display.console.print("  3. [bold]When taking risky action, make a move[/bold]")
-    display.console.print("     Type: [cyan]/move face danger[/cyan]")
-    display.console.print()
-    display.console.print("  4. [bold]Follow the outcome and keep playing[/bold]")
-    display.console.print("     Describe what happens and return to step 1")
-    display.console.print()
-    display.console.print("  [dim]Type [cyan]/guide[/cyan] anytime to see the full game loop[/dim]")
+    display.console.print(Panel(content, border_style="cyan", padding=(1, 2)))
     display.console.print()
