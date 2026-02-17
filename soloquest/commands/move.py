@@ -496,8 +496,8 @@ def _display_category_moves(move_data: dict, keys: list[str], category: str) -> 
         name = move["name"]
         stat_options = move.get("stat_options", [])
         stats = "+".join(s[:3] for s in stat_options) if stat_options else "—"
-        desc = move.get("description", "")
-        short = desc.split(". ")[0].rstrip(".")
+        desc = move.get("description", "").replace("**", "")
+        short = desc.split(". ")[0].split(".\n")[0].rstrip(".")
         if len(short) > 65:
             short = short[:62] + "..."
         table.add_row(name, stats, short)
