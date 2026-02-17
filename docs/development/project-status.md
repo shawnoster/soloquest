@@ -21,6 +21,7 @@ Soloquest is a **functionally complete** CLI companion for playing Ironsworn: St
 - **Oracle System** - 200+ oracle tables via dataforged integration
 - **Vow Tracking** - Create, progress, fulfill, and forsake vows
 - **Asset System** - 90+ assets from dataforged
+- **Choose Your Truths** - Interactive campaign setup wizard with 14 truth categories
 - **Session Journaling** - Hybrid journal/command interface
 - **Markdown Export** - Beautiful session and cumulative journal exports
 - **Adventures Directory** - Configurable data storage for Obsidian/Logseq integration

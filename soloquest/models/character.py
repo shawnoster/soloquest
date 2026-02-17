@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 
 from soloquest.models.asset import CharacterAsset
+from soloquest.models.truths import ChosenTruth
 
 # ── Debilities ─────────────────────────────────────────────────────────────────
 # Conditions that reduce momentum_max and/or momentum_reset
@@ -68,6 +69,9 @@ class Character:
 
     # Assets — instances with progression tracking
     assets: list[CharacterAsset] = field(default_factory=list)
+
+    # Campaign truths — chosen during setup
+    truths: list[ChosenTruth] = field(default_factory=list)
 
     # ── Computed momentum bounds ────────────────────────────────────────────
     @property
@@ -133,6 +137,7 @@ class Character:
                 }
                 for a in self.assets
             ],
+            "truths": [t.to_dict() for t in self.truths],
         }
 
     @classmethod
@@ -157,6 +162,10 @@ class Character:
                     )
                 )
 
+        # Handle truths
+        truths_data = data.get("truths", [])
+        truths = [ChosenTruth.from_dict(t) for t in truths_data]
+
         return cls(
             name=data["name"],
             homeworld=data.get("homeworld", ""),
@@ -167,4 +176,5 @@ class Character:
             momentum=data.get("momentum", 2),
             debilities=set(data.get("debilities", [])),
             assets=assets,
+            truths=truths,
         )

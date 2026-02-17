@@ -547,6 +547,22 @@ See [Adventures Directory Configuration](adventures-directory.md) for more detai
 
 ## Command Quick Reference
 
+### Campaign Setup
+```
+/truths                    Choose Your Truths — establish fundamental facts about your campaign setting
+/truths start              (Re)start the truths selection wizard
+/truths show               Display your current campaign truths
+```
+
+**About Choose Your Truths:**
+The truths wizard guides you through 14 categories that define the nature of your version of the Forge (the game's setting). For each truth, you can:
+- Choose from 3 preset options
+- Roll randomly (d100)
+- Write your own custom truth
+- Skip and decide later
+
+This typically takes 45-60 minutes and is best done at the start of your campaign.
+
 ### Character Management
 ```
 /char                      Show character sheet

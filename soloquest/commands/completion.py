@@ -103,6 +103,10 @@ class CommandCompleter(Completer):
         if command == "/guide":
             return self._complete_guide_args(current_arg)
 
+        # Complete truths subcommands
+        if command == "/truths":
+            return self._complete_truths_args(current_arg)
+
         return []
 
     def _complete_oracle_tables(self, current_arg: str) -> list[Completion]:
@@ -217,6 +221,26 @@ class CommandCompleter(Completer):
             "oracle": "Learn about asking the oracle",
             "move": "Learn about making moves",
             "outcome": "Learn about interpreting outcomes",
+        }
+
+        completions = []
+        for option, description in options.items():
+            if not current_arg or current_arg.lower() in option.lower():
+                start_position = -len(current_arg) if current_arg else 0
+                completions.append(
+                    Completion(
+                        text=option,
+                        start_position=start_position,
+                        display_meta=description,
+                    )
+                )
+        return sorted(completions, key=lambda c: c.text)
+
+    def _complete_truths_args(self, current_arg: str) -> list[Completion]:
+        """Complete truths subcommands."""
+        options = {
+            "start": "Start or restart the Choose Your Truths wizard",
+            "show": "Display your current campaign truths",
         }
 
         completions = []

@@ -30,6 +30,7 @@ from soloquest.commands.session import (
     handle_newsession,
     handle_note,
 )
+from soloquest.commands.truths import handle_truths
 from soloquest.commands.vow import handle_fulfill, handle_progress, handle_vow
 from soloquest.engine.assets import load_assets
 from soloquest.engine.dice import (
@@ -40,6 +41,7 @@ from soloquest.engine.dice import (
     make_dice_provider,
 )
 from soloquest.engine.oracles import OracleTable, load_oracles
+from soloquest.engine.truths import TruthCategory, load_truth_categories
 from soloquest.models.character import Character
 from soloquest.models.session import Session
 from soloquest.models.vow import Vow
@@ -61,6 +63,7 @@ AUTOSAVE_AFTER = {
     "momentum",
     "debility",
     "forsake",
+    "truths",
 }
 
 
@@ -75,6 +78,7 @@ class GameState:
     moves: dict  # raw TOML move data
     oracles: dict[str, OracleTable]
     assets: dict  # asset definitions from dataforged
+    truth_categories: dict[str, TruthCategory]  # truth categories for campaign setup
     running: bool = True
     last_result: object = field(default=None, repr=False)
     _unsaved_entries: int = field(default=0, repr=False)
@@ -163,6 +167,7 @@ def run_session(
     moves = load_move_data()
     oracles = load_oracles(DATA_DIR)
     assets = load_assets(DATA_DIR)
+    truth_categories = load_truth_categories(DATA_DIR)
     dice = make_dice_provider(dice_mode)
 
     state = GameState(
@@ -175,6 +180,7 @@ def run_session(
         moves=moves,
         oracles=oracles,
         assets=assets,
+        truth_categories=truth_categories,
     )
 
     is_new_session = session.number == session_count and len(session.entries) == 0
@@ -244,6 +250,8 @@ def run_session(
                     advance_phase(state)
                 case "guide":
                     handle_guide(state, cmd.args, cmd.flags)
+                case "truths":
+                    handle_truths(state, cmd.args, cmd.flags)
                 case "move":
                     handle_move(state, cmd.args, cmd.flags)
                 case "oracle":

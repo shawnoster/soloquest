@@ -20,6 +20,14 @@ class TestCommandCompleterBasics:
         completion_texts = [c.text for c in completions]
         assert "/move" in completion_texts or "move" in completion_texts
 
+    def test_completes_truths_command(self):
+        """Should complete /truths command."""
+        doc = Document("/tru", cursor_position=4)
+        completions = self.completer.get_completions(doc, None)
+
+        completion_texts = [c.text for c in completions]
+        assert "/truths" in completion_texts
+
     def test_completes_command_aliases(self):
         """Should complete command aliases."""
         doc = Document("/m", cursor_position=2)
@@ -267,6 +275,61 @@ class TestAssetCompletion:
 
         completion_texts = [c.text for c in completions]
         assert "engine_upgrade" in completion_texts
+
+
+class TestTruthsCompletion:
+    """Tests for truths subcommand completion."""
+
+    def setup_method(self):
+        self.completer = CommandCompleter()
+
+    def test_truths_completion_shows_all_subcommands(self):
+        """Truths completion with no args should show all subcommands."""
+        doc = Document("/truths ", cursor_position=8)
+        completions = self.completer.get_completions(doc, None)
+
+        completion_texts = [c.text for c in completions]
+        assert "start" in completion_texts
+        assert "show" in completion_texts
+
+    def test_truths_completion_filters_by_prefix(self):
+        """Truths completion should filter by prefix."""
+        doc = Document("/truths st", cursor_position=10)
+        completions = self.completer.get_completions(doc, None)
+
+        completion_texts = [c.text for c in completions]
+        assert "start" in completion_texts
+        # show should not be included
+        assert "show" not in completion_texts
+
+    def test_truths_completion_shows_descriptions(self):
+        """Truths completion should show descriptions in meta."""
+        doc = Document("/truths start", cursor_position=13)
+        completions = self.completer.get_completions(doc, None)
+
+        # Check that display_meta contains descriptions
+        metas = [str(c.display_meta) for c in completions if c.display_meta]
+        assert any("wizard" in m.lower() for m in metas)
+
+
+class TestGuideCompletion:
+    """Tests for guide subcommand completion."""
+
+    def setup_method(self):
+        self.completer = CommandCompleter()
+
+    def test_guide_completion_shows_all_subcommands(self):
+        """Guide completion with no args should show all subcommands."""
+        doc = Document("/guide ", cursor_position=7)
+        completions = self.completer.get_completions(doc, None)
+
+        completion_texts = [c.text for c in completions]
+        assert "start" in completion_texts
+        assert "stop" in completion_texts
+        assert "envision" in completion_texts
+        assert "oracle" in completion_texts
+        assert "move" in completion_texts
+        assert "outcome" in completion_texts
 
 
 class TestCompletionEdgeCases:
