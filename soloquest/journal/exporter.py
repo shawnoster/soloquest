@@ -81,6 +81,16 @@ def export_session(session: Session, character: Character) -> Path:
     lines.append("---\n\n")
     lines.append(f"# {title}\n")
 
+    # Campaign Truths (if this is session 1 and truths are set)
+    if session.number == 1 and character.truths:
+        lines.append("\n## Campaign Setting\n")
+        lines.append("\n*The fundamental truths of your version of the Forge:*\n\n")
+        for truth in character.truths:
+            display_text = truth.display_text()
+            if display_text != "[To be determined]":
+                lines.append(f"- **{truth.category}:** {display_text}\n")
+        lines.append("\n---\n")
+
     # Entries
     for entry in session.entries:
         lines.append(_format_entry(entry))

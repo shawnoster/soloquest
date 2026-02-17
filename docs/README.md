@@ -28,6 +28,7 @@ Start here if you want to contribute to soloquest development.
 ## Specifications & Design
 
 - **[POC Specification](specifications/poc-spec.md)** - Original proof-of-concept specification
+- **[Choose Your Truths Feature Plan](specifications/choose-your-truths-plan.md)** - Campaign setup wizard implementation plan
 - **[Architecture Decision Records](adr/)** - Design decisions and their rationale
 
 ---
