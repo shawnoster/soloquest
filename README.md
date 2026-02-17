@@ -1,19 +1,22 @@
-# Ironsworn: Starforged CLI
+# Soloquest
 
-A solo journaling companion CLI for [Ironsworn: Starforged](https://www.ironswornrpg.com/) by Shawn Tomkin.
+A solo journaling companion CLI for [Ironsworn](https://www.ironswornrpg.com/) games by Shawn Tomkin.
 
 Handles move resolution, oracle lookups, character tracking, and session journaling — with export to Markdown.
 
-> **Note:** This is a personal, non-commercial companion tool. Ironsworn: Starforged is created by Shawn Tomkin and released under Creative Commons Attribution 4.0.
+> **Note:** This is a personal, non-commercial companion tool for players who own the rulebooks. Ironsworn games are created by Shawn Tomkin and released under Creative Commons Attribution 4.0.
 
 ### Data Attribution
 
-This tool integrates the [dataforged](https://github.com/rsek/dataforged) package, which provides comprehensive game data for Ironsworn: Starforged:
+This tool integrates the [dataforged](https://github.com/rsek/dataforged) package, which provides comprehensive Starforged game data:
 - **200+ oracle tables** for world-building and narrative prompts
 - **90 asset cards** including paths, companions, and modules
 - **56 moves** covering adventure, combat, and fate mechanics
+- **14 truth categories** for campaign setup
 
 dataforged is maintained by rsek and released under Creative Commons licenses (CC BY 4.0 / CC BY-NC 4.0) and MIT License. All game content is © Shawn Tomkin.
+
+This is a companion tool for players who own the Ironsworn rulebooks.
 
 ---
 
@@ -29,7 +32,7 @@ uv run soloquest
 uv run python -m soloquest.main
 ```
 
-**New to Starforged CLI?** See the [Getting Started Guide](docs/user-guide/getting-started.md) for a complete walkthrough.
+**New to Soloquest?** See the [Getting Started Guide](docs/user-guide/getting-started.md) for a complete walkthrough.
 
 ---
 
@@ -128,6 +131,7 @@ This project uses GitHub Actions for continuous integration and automated releas
 | Command | Description |
 |---|---|
 | `/guide [step]` | Show gameplay loop and how to play (try: `/guide envision`, `/guide oracle`, `/guide move`) |
+| `/truths` | Campaign setup wizard (Choose Your Truths) |
 | `/move [name]` | Resolve a move (e.g. `/move strike`) |
 | `/oracle [table]` | Consult an oracle (e.g. `/oracle action theme`) |
 | `/asset [name]` | View asset details (e.g. `/asset starship`) |
@@ -167,11 +171,11 @@ By default, all your adventure data is stored in `~/soloquest-adventures/`:
 
 ```bash
 # Option 1: Command-line argument (recommended)
-soloquest -d ~/Documents/ObsidianVault/Starforged
+soloquest -d ~/Documents/ObsidianVault/Ironsworn
 soloquest --adventures-dir ./my-campaign
 
 # Option 2: Environment variable
-export SOLOQUEST_ADVENTURES_DIR="$HOME/Documents/ObsidianVault/Starforged"
+export SOLOQUEST_ADVENTURES_DIR="$HOME/Documents/ObsidianVault/Ironsworn"
 soloquest
 ```
 
