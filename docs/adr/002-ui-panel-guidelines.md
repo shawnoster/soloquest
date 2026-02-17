@@ -56,11 +56,11 @@ The treatment differs by rendering context:
 | Context | Renderer | Cross-reference style |
 |---|---|---|
 | Asset ability text | Rich markup | `[cyan]Move Name[/cyan]` |
-| Narrative move descriptions | `rich.markdown.Markdown(hyperlinks=False)` | Plain text (structural formatting takes priority) |
+| Narrative move descriptions | `rich.markdown.Markdown` | **Bold** (pre-processed to `**Move Name**`) |
 
 **Asset panels** use `display.render_game_text(text)`, which converts `[Name](url)` to `[cyan]Name[/cyan]` along with `**bold**` and bullet normalization. This is appropriate because ability text is short prose with no tables.
 
-**Narrative move panels** use `rich.markdown.Markdown(hyperlinks=False)`. These descriptions contain markdown tables (e.g. oracle roll tables) that require the Markdown renderer for correct column alignment and header formatting. `hyperlinks=False` suppresses terminal hyperlinks; cross-references render as plain text. The structural formatting outweighs the color benefit for this context.
+**Narrative move panels** use `rich.markdown.Markdown`. These descriptions contain markdown tables (e.g. oracle roll tables) that require the Markdown renderer for correct column alignment and header formatting. Cross-reference links are pre-processed — `[Name](url)` → `**Name**` — so they render as bold text without creating non-functional terminal hyperlinks.
 
 ### The character sheet exception
 
