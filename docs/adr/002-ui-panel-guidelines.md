@@ -51,9 +51,36 @@ New features should follow these existing color assignments. Introduce a new col
 
 `/character` is a special case: it's a full-screen reference view, not the result of a single action. It uses `Rule` separators to organize sections without boxing everything. This keeps it scannable and avoids the visual noise of nested panels.
 
+### Navigation menus use hand-drawn ASCII boxes
+
+The startup menu (choose action, load character) is a third category: neither a game result nor plain flowing text. It uses a hand-drawn ASCII box:
+
+```
++-- Choose an action ----------------------------+
+|                                                |
+|  [r] Resume session (continue)                 |
+|  [n] New character                             |
++------------------------------------------------+
+```
+
+This is intentional and distinct from Rich `Panel`:
+
+- ASCII `+` corners (`+`, `|`, `-`) are visually lighter — appropriate for navigation scaffolding that appears before the game starts
+- Rich `Panel` rounded corners (`╭╮╰╯`) are visually heavier — reserved for in-game results
+- The contrast makes it immediately clear whether the player is in the game or in a setup/navigation context
+
+Do not use Rich `Panel` for startup menus or character selection screens.
+
+### Wizard step content uses Panels; wizard prompts do not
+
+Multi-step wizards (e.g., `/guide envision`, `/truths`) contain two kinds of output:
+
+- **Instructional content** (rules explanation, option descriptions): use `Panel` with `border_style="cyan"` — this is reference material the player may re-read
+- **Prompts and choices** (the actual "what do you choose?" questions): plain text — this is scaffolding
+
 ## Consequences
 
 - Developers have a clear rule: *if you're showing the result of a game action, use a Panel; otherwise, don't*.
 - The scroll-back log is easier to read because results visually stand out from surrounding UI text.
 - New commands should route display through `display.py` functions where possible, rather than calling `Panel` directly from command handlers.
-- Wizard flows (multi-step interactive prompts) may use Panels for individual content steps but should not box the prompt text itself.
+- The visual hierarchy is: ASCII boxes (navigation) → plain text (scaffolding) → Rich Panel (game results). Each layer is visually heavier than the last.
