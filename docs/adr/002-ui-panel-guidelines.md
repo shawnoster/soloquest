@@ -47,6 +47,21 @@ Border color communicates the *type* of result at a glance:
 
 New features should follow these existing color assignments. Introduce a new color only if the content genuinely doesn't fit any existing category.
 
+### In-text cross-references
+
+Dataforged game text contains cross-references to other moves — e.g., `[Pay the Price](Starforged/Moves/...)` in asset abilities and narrative move descriptions. These paths are internal dataforged IDs, not real URLs. They must never render as terminal hyperlinks (misleading and non-functional).
+
+The treatment differs by rendering context:
+
+| Context | Renderer | Cross-reference style |
+|---|---|---|
+| Asset ability text | Rich markup | `[cyan]Move Name[/cyan]` |
+| Narrative move descriptions | `rich.markdown.Markdown` | **Bold** (pre-processed to `**Move Name**`) |
+
+**Asset panels** use `display.render_game_text(text)`, which converts `[Name](url)` to `[cyan]Name[/cyan]` along with `**bold**` and bullet normalization. This is appropriate because ability text is short prose with no tables.
+
+**Narrative move panels** use `rich.markdown.Markdown`. These descriptions contain markdown tables (e.g. oracle roll tables) that require the Markdown renderer for correct column alignment and header formatting. Cross-reference links are pre-processed — `[Name](url)` → `**Name**` — so they render as bold text without creating non-functional terminal hyperlinks.
+
 ### The character sheet exception
 
 `/character` is a special case: it's a full-screen reference view, not the result of a single action. It uses `Rule` separators to organize sections without boxing everything. This keeps it scannable and avoids the visual noise of nested panels.

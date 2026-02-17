@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import re
 from typing import TYPE_CHECKING
 
 from rich.panel import Panel
@@ -96,18 +95,11 @@ def _display_asset_details(asset) -> None:
         lines.append("[bold]Abilities:[/bold]")
         for i, ability in enumerate(asset.abilities, 1):
             enabled_marker = "●" if ability.enabled else "○"
-            lines.append(f"  {enabled_marker} [dim]{i}.[/dim] {_render_ability_text(ability.text)}")
+            lines.append(
+                f"  {enabled_marker} [dim]{i}.[/dim] {display.render_game_text(ability.text)}"
+            )
 
     body = "\n".join(lines)
     display.console.print(
         Panel(body, title=f"[bold]{asset.name.upper()}[/bold]", border_style="bright_magenta")
     )
-
-
-def _render_ability_text(text: str) -> str:
-    """Convert markdown links to Rich underline markup.
-
-    Dataforged ability text uses [Move Name](path) for move references.
-    Rich doesn't render markdown, so we convert to [underline]Move Name[/underline].
-    """
-    return re.sub(r"\[([^\]]+)\]\([^)]+\)", r"[underline]\1[/underline]", text)

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import re
+
 from rich.console import Console
 from rich.panel import Panel
 from rich.rule import Rule
@@ -22,6 +24,21 @@ MATCH_COLOR = "bold cyan"
 MUTED = "dim"
 STAT_COLOR = "bold blue"
 HEADER = "bold white"
+
+
+def render_game_text(text: str) -> str:
+    """Convert dataforged markdown to Rich markup for in-panel display.
+
+    Handles the subset of markdown used in dataforged move and asset text:
+      **bold**        → [bold]text[/bold]
+      [Name](url)     → [cyan]Name[/cyan]  (move cross-references)
+      * item          → • item             (bullet lists)
+    """
+    text = re.sub(r"\*\*([^*]+)\*\*", r"[bold]\1[/bold]", text)
+    text = re.sub(r"\[([^\]]+)\]\([^)]+\)", r"[cyan]\1[/cyan]", text)
+    text = re.sub(r"^  \* ", "  • ", text, flags=re.MULTILINE)
+    text = re.sub(r"^\* ", "• ", text, flags=re.MULTILINE)
+    return text
 
 
 def splash() -> None:
