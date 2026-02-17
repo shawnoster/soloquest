@@ -47,6 +47,18 @@ Border color communicates the *type* of result at a glance:
 
 New features should follow these existing color assignments. Introduce a new color only if the content genuinely doesn't fit any existing category.
 
+### In-text cross-references use `[cyan]`
+
+Dataforged game text contains cross-references to other moves — e.g., `[Pay the Price](Starforged/Moves/...)` in asset abilities and narrative move descriptions. These are rendered as `[cyan]Move Name[/cyan]` — not as terminal hyperlinks.
+
+**Rationale:**
+
+- `cyan` is the established reference color, so colored move names signal "this is a game term you can look up"
+- Terminal hyperlinks (from `rich.markdown.Markdown`) would link to internal dataforged paths, not real URLs — misleading and non-functional
+- Consistent across all game text contexts (asset panels use `bright_magenta` borders, move panels use `cyan` or `blue`, but cross-references are always `cyan` regardless of context)
+
+The shared utility `display.render_game_text(text)` handles this conversion along with `**bold**` and bullet list normalization. All game text from dataforged should pass through this function before being placed in a panel.
+
 ### The character sheet exception
 
 `/character` is a special case: it's a full-screen reference view, not the result of a single action. It uses `Rule` separators to organize sections without boxing everything. This keeps it scannable and avoids the visual noise of nested panels.

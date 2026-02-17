@@ -511,7 +511,6 @@ def _display_category_moves(move_data: dict, keys: list[str], category: str) -> 
 
 def _handle_narrative_move(move_name: str, move: dict, state: GameState) -> None:
     """Handle narrative/procedural moves that don't require dice rolls."""
-    from rich.markdown import Markdown
     from rich.panel import Panel
 
     description = move.get("description", "")
@@ -520,8 +519,11 @@ def _handle_narrative_move(move_name: str, move: dict, state: GameState) -> None
     # Format category for display
     category_display = category.replace("_", " ").title() if category else "Move"
 
-    # Display the move in a panel with its description
-    content = Markdown(description) if description else "[dim]No description available[/dim]"
+    content = (
+        display.render_game_text(description)
+        if description
+        else "[dim]No description available[/dim]"
+    )
 
     display.console.print(
         Panel(
