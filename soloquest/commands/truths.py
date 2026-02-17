@@ -124,7 +124,9 @@ def _start_truths_wizard(state: GameState) -> None:
                     f"  [bold][{option_idx}][/bold] {option.summary} [dim]{roll_range}[/dim]"
                 )
                 display.console.print()
-                display.console.print(f"      [dim]{option.text[:PREVIEW_LENGTH]}...[/dim]")
+                preview = option.text[:PREVIEW_LENGTH]
+                ellipsis = "..." if len(option.text) > PREVIEW_LENGTH else ""
+                display.console.print(f"      [dim]{preview}{ellipsis}[/dim]")
                 display.console.print()
 
             # Get user choice
@@ -207,6 +209,10 @@ def _get_subchoice(subchoices: list[str]) -> str:
                             clean_text = re.sub(r"\s*\[\d+-\d+\]", "", subchoice_text)
                             display.console.print(f"  [bold]Result:[/bold] {clean_text}")
                             return clean_text
+                else:
+                    # No match found for the roll
+                    display.error(f"  No subchoice found for roll {roll}. Please try again.")
+                    continue
 
             # Handle numbered choice
             if choice.isdigit():
@@ -270,6 +276,9 @@ def _get_truth_choice(category: TruthCategory) -> ChosenTruth | None:
                     display.console.print()
                     subchoice = _show_option_details(option)
                     return _create_chosen_truth(category, option, subchoice)
+                else:
+                    display.error(f"  No option found for roll {roll}. Please try again.")
+                    continue
 
             # Handle custom
             if choice == "c":
@@ -285,6 +294,9 @@ def _get_truth_choice(category: TruthCategory) -> ChosenTruth | None:
                         option_summary=custom,
                         custom_text=custom,
                     )
+                else:
+                    display.error("  Custom truth cannot be empty. Please try again.")
+                    continue
 
             # Handle numbered choice
             if choice in ["1", "2", "3"]:
