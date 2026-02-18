@@ -26,7 +26,9 @@ NAMED_DICE = {
 def handle_roll(state: GameState, args: list[str], flags: set[str]) -> None:
     """/roll [dice] [note] — e.g. /roll d6  /roll 2d10  /roll d100 inciting incident"""
     if not args:
-        display.error("Usage: /roll [dice]  (e.g. /roll d6, /roll 2d10, /roll d100)")
+        display.error(
+            "Usage: /roll [dice] [note]  (e.g. /roll d6, /roll 2d10, /roll d100 inciting incident)"
+        )
         return
 
     expr = args[0].lower().strip()
