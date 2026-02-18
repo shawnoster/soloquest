@@ -9,18 +9,18 @@ if TYPE_CHECKING:
     from soloquest.models.character import Character
     from soloquest.models.session import Session
 
-from soloquest.config import journal_dir, sessions_dir
+from soloquest.config import config
 from soloquest.models.session import EntryKind
 
 
 def _sessions_dir() -> Path:
     """Get the sessions directory path."""
-    return sessions_dir()
+    return config.sessions_dir()
 
 
 def _journal_dir() -> Path:
     """Get the journal directory path."""
-    return journal_dir()
+    return config.journal_dir()
 
 
 def _character_slug(character_name: str) -> str:

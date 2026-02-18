@@ -61,14 +61,12 @@ def _show_resume_context(session: Session | None) -> None:
 
 
 def main() -> None:
-    from soloquest.config import set_adventures_dir
+    from soloquest.config import config
 
-    # Parse command-line arguments
     args = parse_args()
 
-    # Set adventures directory from CLI argument if provided
     if args.adventures_dir:
-        set_adventures_dir(args.adventures_dir)
+        config.set_adventures_dir(args.adventures_dir)
 
     data_dir = Path(__file__).parent / "data"
 
