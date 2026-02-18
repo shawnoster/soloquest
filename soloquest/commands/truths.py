@@ -8,6 +8,7 @@ import re
 from typing import TYPE_CHECKING
 
 from prompt_toolkit.shortcuts import prompt
+from rich.padding import Padding
 from rich.panel import Panel
 from rich.prompt import Confirm, Prompt
 
@@ -194,6 +195,7 @@ def _get_subchoice(subchoices: list[str]) -> str:
             if choice == "r":
                 # Parse roll ranges from subchoices to determine the roll
                 roll = random.randint(1, 100)
+                display.console.print()
                 display.console.print(f"  [cyan]Rolled: {roll}[/cyan]")
 
                 # Find matching subchoice by roll range
@@ -229,8 +231,21 @@ def _get_subchoice(subchoices: list[str]) -> str:
             return ""
 
 
+def _prompt_note() -> str:
+    """Prompt for an optional personal note about this truth."""
+    try:
+        note = Prompt.ask(
+            "  [dim italic]What does this truth mean for your story?[/dim italic]",
+            default="",
+            show_default=False,
+        )
+        return note
+    except (KeyboardInterrupt, EOFError):
+        return ""
+
+
 def _create_chosen_truth(
-    category: TruthCategory, option: TruthOption, subchoice: str = ""
+    category: TruthCategory, option: TruthOption, subchoice: str = "", note: str = ""
 ) -> ChosenTruth:
     """Create a ChosenTruth from a category and option."""
     return ChosenTruth(
@@ -239,6 +254,7 @@ def _create_chosen_truth(
         option_text=option.text,
         quest_starter=option.quest_starter,
         subchoice=subchoice,
+        note=note,
     )
 
 
@@ -274,7 +290,8 @@ def _get_truth_choice(category: TruthCategory) -> ChosenTruth | None:
                     display.console.print(f"  [bold]Result:[/bold] {option.summary}")
                     display.console.print()
                     subchoice = _show_option_details(option)
-                    return _create_chosen_truth(category, option, subchoice)
+                    note = _prompt_note()
+                    return _create_chosen_truth(category, option, subchoice, note)
                 else:
                     display.error(f"  No option found for roll {roll}. Please try again.")
                     continue
@@ -288,10 +305,12 @@ def _get_truth_choice(category: TruthCategory) -> ChosenTruth | None:
                     display.console.print()
                     display.console.print(f"  [bold]Your truth:[/bold] {custom}")
                     display.console.print()
+                    note = _prompt_note()
                     return ChosenTruth(
                         category=category.name,
                         option_summary=custom,
                         custom_text=custom,
+                        note=note,
                     )
                 else:
                     display.error("  Custom truth cannot be empty. Please try again.")
@@ -306,7 +325,8 @@ def _get_truth_choice(category: TruthCategory) -> ChosenTruth | None:
                     display.console.print(f"  [bold]You chose:[/bold] {option.summary}")
                     display.console.print()
                     subchoice = _show_option_details(option)
-                    return _create_chosen_truth(category, option, subchoice)
+                    note = _prompt_note()
+                    return _create_chosen_truth(category, option, subchoice, note)
 
             display.error("  Invalid choice. Try again.")
 
@@ -320,11 +340,7 @@ def _show_option_details(option: TruthOption) -> str:
 
     Returns the chosen subchoice if applicable, empty string otherwise.
     """
-    display.console.print(f"  [dim]{option.text}[/dim]")
-    if option.quest_starter:
-        display.console.print()
-        display.console.print("  [bold cyan]Quest Starter:[/bold cyan]")
-        display.console.print(f"  [dim]{option.quest_starter}[/dim]")
+    display.console.print(Padding(f"[dim]{option.text}[/dim]", (0, 0, 0, 2)))
 
     chosen_subchoice = ""
     if option.subchoices:
@@ -337,6 +353,12 @@ def _show_option_details(option: TruthOption) -> str:
 
         chosen_subchoice = _get_subchoice(option.subchoices)
 
+    if option.quest_starter:
+        display.console.print()
+        display.console.print("  [bold cyan]Quest Starter:[/bold cyan]")
+        display.console.print()
+        display.console.print(Padding(f"[dim]{option.quest_starter}[/dim]", (0, 0, 0, 2)))
+
     display.console.print()
     return chosen_subchoice
 
@@ -348,6 +370,8 @@ def _show_summary(truths: list[ChosenTruth]) -> None:
 
     for truth in truths:
         display.console.print(f"  [bold]• {truth.category}:[/bold] {truth.display_text()}")
+        if truth.note:
+            display.console.print(f"    [dim italic]{truth.note}[/dim italic]")
 
     display.console.print()
 
@@ -363,6 +387,8 @@ def _show_truths(state: GameState) -> None:
 
     for truth in state.character.truths:
         display.console.print(f"  [bold]• {truth.category}:[/bold] {truth.display_text()}")
+        if truth.note:
+            display.console.print(f"    [dim italic]{truth.note}[/dim italic]")
 
     display.console.print()
     display.console.print("  [dim]Commands:[/dim]")
