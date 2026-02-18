@@ -193,6 +193,81 @@ class TestOracleCommand:
             # Should have warned about multiple matches or used first match
             # Either way, should not crash
 
+    def test_oracle_trailing_note_displayed(self):
+        """Words after the last matched table are displayed as a dim italic note."""
+        from soloquest.loop import GameState
+
+        mock_state = MagicMock(spec=GameState)
+        mock_state.oracles = self.oracles
+        mock_state.dice = MagicMock()
+        mock_state.session = MagicMock()
+
+        with (
+            patch("soloquest.commands.oracle.roll_oracle", return_value=42),
+            patch("soloquest.commands.oracle.display.oracle_result_panel"),
+            patch("soloquest.commands.oracle.display.console") as mock_console,
+        ):
+            handle_oracle(mock_state, args=["action", "why", "did", "he", "lie"], flags=set())
+
+            calls = [c[0][0] for c in mock_console.print.call_args_list]
+            assert any("why did he lie" in c for c in calls)
+            assert any("dim italic" in c for c in calls)
+
+    def test_oracle_trailing_note_appended_to_log(self):
+        """Note is appended to each oracle log entry with ' — ' separator."""
+        from soloquest.loop import GameState
+        from soloquest.models.session import Session
+
+        mock_state = MagicMock(spec=GameState)
+        mock_state.oracles = self.oracles
+        mock_state.dice = MagicMock()
+        mock_state.session = Session(number=1)
+
+        with (
+            patch("soloquest.commands.oracle.roll_oracle", return_value=42),
+            patch("soloquest.commands.oracle.display.oracle_result_panel"),
+            patch("soloquest.commands.oracle.display.console"),
+        ):
+            handle_oracle(mock_state, args=["action", "why", "did", "he", "lie"], flags=set())
+
+        assert len(mock_state.session.entries) == 1
+        log_text = mock_state.session.entries[0].text
+        assert "why did he lie" in log_text
+        assert " — " in log_text
+
+    def test_oracle_unmatched_word_before_any_table_still_warns(self):
+        """An unmatched arg with no prior results shows a warning, not a note."""
+        from soloquest.loop import GameState
+
+        mock_state = MagicMock(spec=GameState)
+        mock_state.oracles = self.oracles
+        mock_state.dice = MagicMock()
+
+        with patch("soloquest.commands.oracle.display.warn") as mock_warn:
+            handle_oracle(mock_state, args=["notatable"], flags=set())
+
+            mock_warn.assert_called()
+            assert "not found" in mock_warn.call_args[0][0].lower()
+
+    def test_oracle_no_note_no_dim_italic(self):
+        """Without a trailing note, no dim italic line is printed."""
+        from soloquest.loop import GameState
+
+        mock_state = MagicMock(spec=GameState)
+        mock_state.oracles = self.oracles
+        mock_state.dice = MagicMock()
+        mock_state.session = MagicMock()
+
+        with (
+            patch("soloquest.commands.oracle.roll_oracle", return_value=42),
+            patch("soloquest.commands.oracle.display.oracle_result_panel"),
+            patch("soloquest.commands.oracle.display.console") as mock_console,
+        ):
+            handle_oracle(mock_state, args=["action"], flags=set())
+
+            calls = [c[0][0] for c in mock_console.print.call_args_list]
+            assert not any("dim italic" in c for c in calls)
+
 
 class TestOracleTableEdgeCases:
     """Test edge cases in oracle table lookups."""

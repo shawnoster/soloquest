@@ -24,12 +24,14 @@ NAMED_DICE = {
 
 
 def handle_roll(state: GameState, args: list[str], flags: set[str]) -> None:
-    """/roll [dice] — e.g. /roll d6  /roll 2d10  /roll d100"""
+    """/roll [dice] [note] — e.g. /roll d6  /roll 2d10  /roll d100 inciting incident"""
     if not args:
         display.error("Usage: /roll [dice]  (e.g. /roll d6, /roll 2d10, /roll d100)")
         return
 
     expr = args[0].lower().strip()
+    note = " ".join(args[1:]) if len(args) > 1 else ""
+
     m = DICE_PATTERN.match(expr)
     if not m:
         display.error(f"Can't parse dice expression '{expr}'. Try: d6, 2d10, d100")
@@ -61,6 +63,10 @@ def handle_roll(state: GameState, args: list[str], flags: set[str]) -> None:
     result_str = f"{rolls_str} = [bold]{total}[/bold]" if count > 1 else f"[bold]{rolls[0]}[/bold]"
 
     display.console.print(f"  [blue]└[/blue]  🎲 [dim]{count}d{sides}[/dim]  {result_str}")
-    state.session.add_mechanical(
-        f"Roll {count}d{sides}: {rolls_str}" + (f" = {total}" if count > 1 else "")
-    )
+    if note:
+        display.console.print(f"     [dim italic]{note}[/dim italic]")
+
+    log_text = f"Roll {count}d{sides}: {rolls_str}" + (f" = {total}" if count > 1 else "")
+    if note:
+        log_text += f" — {note}"
+    state.session.add_mechanical(log_text)
