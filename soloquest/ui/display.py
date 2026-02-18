@@ -5,7 +5,6 @@ from __future__ import annotations
 import re
 from typing import TYPE_CHECKING
 
-from rich.console import Console
 from rich.panel import Panel
 from rich.rule import Rule
 from rich.table import Table
@@ -14,11 +13,10 @@ from soloquest.engine.moves import MoveResult, OutcomeTier
 from soloquest.models.character import DEBILITY_NAMES, TRACK_MAX, Character
 from soloquest.models.session import EntryKind, LogEntry
 from soloquest.models.vow import Vow
+from soloquest.ui.console import console
 
 if TYPE_CHECKING:
     from soloquest.models.asset import Asset, CharacterAsset
-
-console = Console()
 
 # ── Palette ────────────────────────────────────────────────────────────────────
 STRONG = "bold green"
@@ -264,14 +262,14 @@ def character_sheet(
 
 def _asset_row(char_asset: CharacterAsset, asset_def: Asset | None) -> str:
     """Build a single-line summary for an asset in the character sheet."""
-    name = (
-        asset_def.name if asset_def else char_asset.asset_key.replace("_", " ").title()
-    )
+    name = asset_def.name if asset_def else char_asset.asset_key.replace("_", " ").title()
 
     parts: list[str] = [f"{name:<16}"]
 
     # Optional input value (e.g., ship name)
-    first_input = next(iter(char_asset.input_values.values()), "") if char_asset.input_values else ""
+    first_input = (
+        next(iter(char_asset.input_values.values()), "") if char_asset.input_values else ""
+    )
     if first_input:
         parts.append(f"[dim]«{first_input}»[/dim]")
 
