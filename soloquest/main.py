@@ -95,7 +95,7 @@ def main() -> None:
             display.error("  Save file corrupted. Use --new to start fresh.")
             return
         character, vows, session_count, dice_mode, session = most_recent
-        display.splash(character)
+        display.splash(character, vows)
         _show_resume_context(session)
 
     # Start the session
