@@ -20,30 +20,25 @@ class TestOracleDisplay:
     """Test oracle result panel display formatting."""
 
     def test_oracle_result_panel_creates_colored_panel(self):
-        """Oracle results should be displayed in a bright cyan Panel."""
+        """Oracle results should be displayed with a └ prefix and table name."""
         with patch("soloquest.ui.display.console") as mock_console:
             oracle_result_panel("Action", 42, "Advance")
 
-            # Should have called print with a Panel
             mock_console.print.assert_called_once()
-            panel_arg = mock_console.print.call_args[0][0]
+            output = mock_console.print.call_args[0][0]
 
-            # Verify it's a Panel with correct styling
-            assert hasattr(panel_arg, "border_style")
-            assert panel_arg.border_style == "bright_cyan"
-            assert "ACTION" in str(panel_arg.title)
+            assert "└" in output
+            assert "ACTION" in output
 
     def test_oracle_result_shows_roll_and_result(self):
-        """Oracle panel should show both the roll number and result text."""
+        """Oracle output should show both the roll number and result text."""
         with patch("soloquest.ui.display.console") as mock_console:
             oracle_result_panel("Theme", 67, "Mystery")
 
-            panel_arg = mock_console.print.call_args[0][0]
-            content = str(panel_arg.renderable)
+            output = mock_console.print.call_args[0][0]
 
-            # Should contain both the roll and the result
-            assert "67" in content
-            assert "Mystery" in content
+            assert "67" in output
+            assert "Mystery" in output
 
     def test_oracle_result_with_long_result_text(self):
         """Oracle results with long text should display correctly."""
@@ -66,7 +61,7 @@ class TestOracleDisplay:
             mock_console.print.assert_called_once()
 
     def test_oracle_result_panel_combined_displays_multiple_results(self):
-        """Combined oracle panel should display all results in one panel."""
+        """Combined oracle display should print one line per result."""
         results = [
             OracleResult(table_name="Action", roll=42, result="Advance"),
             OracleResult(table_name="Theme", roll=67, result="Mystery"),
@@ -75,27 +70,18 @@ class TestOracleDisplay:
         with patch("soloquest.ui.display.console") as mock_console:
             oracle_result_panel_combined(results)
 
-            # Should have called print once with a Panel
-            mock_console.print.assert_called_once()
-            panel_arg = mock_console.print.call_args[0][0]
+            # Should have called print once per result
+            assert mock_console.print.call_count == 2
 
-            # Verify it's a Panel with correct styling
-            assert hasattr(panel_arg, "border_style")
-            assert panel_arg.border_style == "bright_cyan"
-            # Title should show all table names: "ORACLE: ACTION THEME"
-            title_str = str(panel_arg.title)
-            assert "ORACLE:" in title_str
-            assert "ACTION" in title_str
-            assert "THEME" in title_str
+            all_output = " ".join(str(c[0][0]) for c in mock_console.print.call_args_list)
 
-            # Content should include both results
-            content = str(panel_arg.renderable)
-            assert "Action" in content
-            assert "42" in content
-            assert "Advance" in content
-            assert "Theme" in content
-            assert "67" in content
-            assert "Mystery" in content
+            assert "└" in all_output
+            assert "ACTION" in all_output
+            assert "42" in all_output
+            assert "Advance" in all_output
+            assert "THEME" in all_output
+            assert "67" in all_output
+            assert "Mystery" in all_output
 
     def test_oracle_result_panel_combined_with_single_result(self):
         """Combined panel with single result should still work."""
