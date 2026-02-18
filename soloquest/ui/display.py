@@ -134,7 +134,7 @@ def move_result_panel(
 
 def oracle_result_panel(table_name: str, roll: int, result: str) -> None:
     console.print(
-        f"  [bright_cyan]└[/bright_cyan]  [dim]{table_name.upper()}[/dim]"
+        f"  [bright_cyan]└[/bright_cyan]  🔮 [dim]{table_name.upper()}[/dim]"
         f"  [dim]{roll}[/dim]  [dim]→[/dim]  [bold cyan]{result}[/bold cyan]"
     )
 
@@ -145,9 +145,32 @@ def oracle_result_panel_combined(results: list) -> None:
     for r in results:
         padded_name = r.table_name.upper().ljust(max_name_width)
         console.print(
-            f"  [bright_cyan]└[/bright_cyan]  [dim]{padded_name}[/dim]"
+            f"  [bright_cyan]└[/bright_cyan]  🔮 [dim]{padded_name}[/dim]"
             f"  [dim]{r.roll:3d}[/dim]  [dim]→[/dim]  [bold cyan]{r.result}[/bold cyan]"
         )
+
+
+def oracle_table_view(table: object) -> None:
+    """Display the full contents of an oracle table for physical dice reference."""
+    from soloquest.engine.oracles import OracleTable
+
+    assert isinstance(table, OracleTable)
+    t = Table(show_header=True, header_style="bold", box=None, padding=(0, 1))
+    t.add_column("Roll", style="dim", justify="right", no_wrap=True)
+    t.add_column("Result", style="bold cyan")
+
+    for low, high, text in table.results:
+        roll_range = str(low) if low == high else f"{low}–{high}"
+        t.add_row(roll_range, text)
+
+    console.print(
+        Panel(
+            t,
+            title=f"[bold]🔮 {table.name}[/bold]",
+            subtitle=f"[dim]{table.die}[/dim]",
+            border_style="cyan",
+        )
+    )
 
 
 def character_sheet(
