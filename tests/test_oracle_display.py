@@ -193,6 +193,90 @@ class TestOracleCommand:
             # Should have warned about multiple matches or used first match
             # Either way, should not crash
 
+    def test_oracle_trailing_note_displayed_before_results(self):
+        """Note is shown as dim italic before oracle results."""
+        from soloquest.loop import GameState
+
+        mock_state = MagicMock(spec=GameState)
+        mock_state.oracles = self.oracles
+        mock_state.dice = MagicMock()
+        mock_state.session = MagicMock()
+
+        with (
+            patch("soloquest.commands.oracle.roll_oracle", return_value=42),
+            patch("soloquest.commands.oracle.display.oracle_result_panel") as mock_panel,
+            patch("soloquest.commands.oracle.display.console") as mock_console,
+        ):
+            handle_oracle(mock_state, args=["action", "why", "did", "he", "lie"], flags=set())
+
+            calls = [c[0][0] for c in mock_console.print.call_args_list]
+            assert any("why did he lie" in c for c in calls)
+            assert any("│" in c for c in calls)
+            # Note console.print (│) comes before oracle_result_panel
+            note_call_idx = next(i for i, c in enumerate(calls) if "│" in c)
+            # panel was called after the note print
+            assert note_call_idx == 0
+            mock_panel.assert_called_once()
+
+    def test_oracle_trailing_note_logged_once_as_note_entry(self):
+        """Note is logged once as a 'note' entry, not appended to each oracle entry."""
+        from soloquest.loop import GameState
+        from soloquest.models.session import EntryKind, Session
+
+        mock_state = MagicMock(spec=GameState)
+        mock_state.oracles = self.oracles
+        mock_state.dice = MagicMock()
+        mock_state.session = Session(number=1)
+
+        with (
+            patch("soloquest.commands.oracle.roll_oracle", return_value=42),
+            patch("soloquest.commands.oracle.display.oracle_result_panel"),
+            patch("soloquest.commands.oracle.display.console"),
+        ):
+            handle_oracle(mock_state, args=["action", "why", "did", "he", "lie"], flags=set())
+
+        # Should have 1 note entry + 1 oracle entry
+        note_entries = [e for e in mock_state.session.entries if e.kind == EntryKind.NOTE]
+        oracle_entries = [e for e in mock_state.session.entries if e.kind == EntryKind.ORACLE]
+        assert len(note_entries) == 1
+        assert "why did he lie" in note_entries[0].text
+        assert len(oracle_entries) == 1
+        # Oracle entry should NOT contain the note text
+        assert "why did he lie" not in oracle_entries[0].text
+
+    def test_oracle_unmatched_word_before_any_table_still_warns(self):
+        """An unmatched arg with no prior results shows a warning, not a note."""
+        from soloquest.loop import GameState
+
+        mock_state = MagicMock(spec=GameState)
+        mock_state.oracles = self.oracles
+        mock_state.dice = MagicMock()
+
+        with patch("soloquest.commands.oracle.display.warn") as mock_warn:
+            handle_oracle(mock_state, args=["notatable"], flags=set())
+
+            mock_warn.assert_called()
+            assert "not found" in mock_warn.call_args[0][0].lower()
+
+    def test_oracle_no_note_no_dim_italic(self):
+        """Without a trailing note, no dim italic line is printed."""
+        from soloquest.loop import GameState
+
+        mock_state = MagicMock(spec=GameState)
+        mock_state.oracles = self.oracles
+        mock_state.dice = MagicMock()
+        mock_state.session = MagicMock()
+
+        with (
+            patch("soloquest.commands.oracle.roll_oracle", return_value=42),
+            patch("soloquest.commands.oracle.display.oracle_result_panel"),
+            patch("soloquest.commands.oracle.display.console") as mock_console,
+        ):
+            handle_oracle(mock_state, args=["action"], flags=set())
+
+            calls = [c[0][0] for c in mock_console.print.call_args_list]
+            assert not any("dim italic" in c for c in calls)
+
 
 class TestOracleTableEdgeCases:
     """Test edge cases in oracle table lookups."""
