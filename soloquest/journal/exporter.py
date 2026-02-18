@@ -41,9 +41,9 @@ def _format_entry(entry) -> str:
     elif entry.kind == EntryKind.ORACLE:
         return f"\n**{time_str}** — *Oracle:* {entry.text}\n"
     elif entry.kind == EntryKind.NOTE:
-        return f"\n> **Note:** {entry.text}\n"
+        return f"\n**{time_str}** — *Note:* {entry.text}\n"
     elif entry.kind == EntryKind.MECHANICAL:
-        return f"\n*{entry.text}*\n"
+        return f"\n**{time_str}** — *{entry.text}*\n"
     else:
         return f"\n{entry.text}\n"
 
