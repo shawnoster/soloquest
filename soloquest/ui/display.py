@@ -43,16 +43,16 @@ def render_game_text(text: str) -> str:
 
 def splash(character: Character | None = None, vows: list[Vow] | None = None) -> None:
     if character:
-        name_line = character.name
+        title_line = f"[bold white]{character.name.upper()}[/bold white]"
         if character.callsign:
-            name_line += f"  [dim]«{character.callsign}»[/dim]"
+            title_line += f"  [dim]«{character.callsign}»[/dim]"
         stats_line = (
             f"[dim]Health[/dim] {character.health}/{TRACK_MAX}  "
             f"[dim]Spirit[/dim] {character.spirit}/{TRACK_MAX}  "
             f"[dim]Supply[/dim] {character.supply}/{TRACK_MAX}  "
             f"[dim]Momentum[/dim] {character.momentum:+d}"
         )
-        content = f"[bold white]SOLOQUEST[/bold white]\n[dim]{name_line}[/dim]\n{stats_line}"
+        content = f"{title_line}\n{stats_line}"
         active_vows = [v for v in (vows or []) if not v.fulfilled]
         if active_vows:
             vow_lines = "\n".join(

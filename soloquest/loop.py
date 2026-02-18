@@ -186,7 +186,6 @@ def run_session(
     is_new_session = session.number == session_count and len(session.entries) == 0
     resume_label = "" if is_new_session else " (Resumed)"
     display.session_header(session.number, resume_label)
-    display.info(f"  Character: {character.name}  |  Dice: {dice_mode.value}")
     display.info("  Type to journal. /guide for gameplay loop, /help for commands.")
 
     # Show context when resuming (not first session)

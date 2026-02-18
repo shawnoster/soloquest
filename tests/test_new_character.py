@@ -76,7 +76,7 @@ class TestRunCreationWizard:
         """Run the wizard with mocked Prompt.ask and Confirm.ask answers."""
         if confirm_answers is None:
             # Default: skip all optional oracle rolls, confirm at end
-            confirm_answers = [False, False, False, False, True]
+            confirm_answers = [False, False, False, True]
 
         with (
             patch("soloquest.commands.new_character.Prompt.ask", side_effect=prompt_answers),
@@ -96,6 +96,8 @@ class TestRunCreationWizard:
     def test_wizard_returns_character_vows_dice_mode(self):
         """Successful completion returns a 3-tuple."""
         prompt_answers = [
+            # Step 1 inspiration (skip)
+            "",
             # Step 3 backstory
             "",
             # Step 4 background vow
@@ -132,6 +134,7 @@ class TestRunCreationWizard:
     def test_wizard_grants_starship_and_two_paths(self):
         """Character must have starship + 2 path assets + 1 free asset."""
         prompt_answers = [
+            "",  # inspiration (skip)
             "",  # backstory
             "Find the truth",  # vow
             "Rusty",  # ship name
@@ -168,6 +171,7 @@ class TestRunCreationWizard:
     def test_wizard_stores_ship_name_in_input_values(self):
         """STARSHIP asset input_values should contain the ship name."""
         prompt_answers = [
+            "",  # inspiration (skip)
             "",
             "Find the truth",
             "Stellar Drift",
@@ -197,6 +201,7 @@ class TestRunCreationWizard:
         from soloquest.models.vow import VowRank
 
         prompt_answers = [
+            "",  # inspiration (skip)
             "",
             "Avenge my homeworld",
             "",
@@ -225,6 +230,7 @@ class TestRunCreationWizard:
     def test_wizard_stores_narrative_fields(self):
         """Narrative fields (look, act, wear, pronouns, callsign, backstory) are stored."""
         prompt_answers = [
+            "",  # inspiration (skip)
             "Fled the war",  # backstory
             "Find the truth",  # vow
             "Ghost",  # ship name
@@ -256,6 +262,7 @@ class TestRunCreationWizard:
     def test_wizard_stores_gear(self):
         """Personal gear items are stored on the character."""
         prompt_answers = [
+            "",  # inspiration (skip)
             "",  # backstory
             "Find the truth",  # vow
             "",  # ship name
@@ -285,6 +292,7 @@ class TestRunCreationWizard:
     def test_wizard_supply_starts_at_5(self):
         """Character supply should start at 5 per rulebook."""
         prompt_answers = [
+            "",  # inspiration (skip)
             "",
             "Find the truth",
             "",
@@ -311,6 +319,7 @@ class TestRunCreationWizard:
     def test_wizard_cancellation_returns_none_on_back(self):
         """Typing 'back' at name prompt returns None."""
         prompt_answers = [
+            "",  # inspiration (skip)
             "",  # backstory
             "Find the truth",  # vow
             "",  # ship name
@@ -348,6 +357,7 @@ class TestRunCreationWizard:
     def test_wizard_dice_mode_physical(self):
         """Selecting '2' sets physical dice mode."""
         prompt_answers = [
+            "",  # inspiration (skip)
             "",
             "Find the truth",
             "",
@@ -374,6 +384,7 @@ class TestRunCreationWizard:
     def test_wizard_confirm_no_returns_none(self):
         """Declining the final confirmation returns None."""
         prompt_answers = [
+            "",  # inspiration (skip)
             "",
             "Find the truth",
             "",
@@ -393,7 +404,7 @@ class TestRunCreationWizard:
             "1",
         ]
         # Last confirm=False means cancel
-        confirm_answers = [False, False, False, False, False]
+        confirm_answers = [False, False, False, False]
         result = self._run_wizard_with_answers(prompt_answers, confirm_answers)
         assert result is None
 
@@ -421,6 +432,7 @@ class TestRunNewCharacterFlow:
 
     def _wizard_prompt_answers(self):
         return [
+            "",  # inspiration (skip)
             "",  # backstory
             "Find the truth",  # vow
             "Ghost",  # ship name
@@ -461,7 +473,7 @@ class TestRunNewCharacterFlow:
             ),
             patch(
                 "soloquest.commands.new_character.Confirm.ask",
-                side_effect=[False, False, False, False, True],
+                side_effect=[False, False, False, True],
             ),
             patch(
                 "soloquest.commands.new_character.PromptSession",

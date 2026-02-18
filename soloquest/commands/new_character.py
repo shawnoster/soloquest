@@ -158,18 +158,35 @@ def _prompt_paths(available_assets: dict[str, Asset]) -> list[CharacterAsset] | 
     path_session = PromptSession(completer=path_completer)
 
     display.console.print()
+    display.console.print(
+        "  [dim]Paths represent your background. Modules and companions come later.[/dim]"
+    )
+    display.console.print()
     display.info(
         "  Available path categories include: Archer, Ace, Empath, Infiltrator, and many more."
     )
-    display.info("  [dim]Press TAB to browse all paths.[/dim]")
 
-    # Offer background paths inspiration
+    # Show the full background paths table
+    display.console.print()
+    for idx, (_lo, _hi, background, suggestion) in enumerate(BACKGROUND_PATHS_TABLE, start=1):
+        display.console.print(f"  [dim][{idx:>2}][/dim]  {background:<28}[dim]{suggestion}[/dim]")
+    display.console.print()
+
+    # Inspiration prompt
     try:
-        suggest = Confirm.ask("  Roll for background path inspiration?", default=False)
+        raw = (
+            Prompt.ask(
+                "  Need inspiration? (1–20, r to roll, Enter to skip)",
+                default="",
+                show_default=False,
+            )
+            .strip()
+            .lower()
+        )
     except (KeyboardInterrupt, EOFError):
         return None
 
-    if suggest:
+    if raw == "r":
         result = _roll_table(BACKGROUND_PATHS_TABLE)
         roll, background, suggestion = result
         display.console.print(
@@ -179,6 +196,17 @@ def _prompt_paths(available_assets: dict[str, Asset]) -> list[CharacterAsset] | 
                 border_style="bright_cyan",
             )
         )
+    elif raw.isdigit():
+        idx = int(raw) - 1
+        if 0 <= idx < len(BACKGROUND_PATHS_TABLE):
+            lo, hi, background, suggestion = BACKGROUND_PATHS_TABLE[idx]
+            display.console.print(
+                Panel(
+                    f"[bold]{background}[/bold]\n[dim]Suggested paths: {suggestion}[/dim]",
+                    title="[bold]BACKGROUND PATHS[/bold]",
+                    border_style="bright_cyan",
+                )
+            )
 
     chosen_paths: list[str] = []
     for i in range(1, 3):
@@ -212,7 +240,6 @@ def _prompt_final_asset(available_assets: dict[str, Asset]) -> CharacterAsset | 
 
     display.console.print()
     display.info("  Choose your final asset — a path, module, companion, or support vehicle.")
-    display.info("  [dim]Press TAB to browse options.[/dim]")
 
     while True:
         try:
@@ -297,23 +324,22 @@ def run_creation_wizard(data_dir: Path) -> tuple[Character, list[Vow], DiceMode]
     display.console.print(
         "    • [bold]1 final asset[/bold] (path, module, companion, or support vehicle)"
     )
-    display.console.print()
-    display.console.print(
-        "  [dim]Paths represent your background. Modules and companions come later.[/dim]"
-    )
     display.console.print("  [dim]Press TAB at any asset prompt to browse options.[/dim]")
 
     try:
         available_assets = load_assets(data_dir)
 
         # ── Step 1: Choose 2 paths ──────────────────────────────────────────
+        display.console.print()
         display.rule("Step 1 — Choose 2 Paths")
+        display.console.print()
         path_assets = _prompt_paths(available_assets)
         if path_assets is None:
             display.console.print()
             return None
 
         # ── Step 2: Backstory ───────────────────────────────────────────────
+        display.console.print()
         display.rule("Step 2 — Backstory")
         display.console.print()
         _prompt_oracle_roll(BACKSTORY_TABLE, "Backstory")
@@ -321,6 +347,7 @@ def run_creation_wizard(data_dir: Path) -> tuple[Character, list[Vow], DiceMode]
         backstory = Prompt.ask("  Your backstory (or Enter to skip)", default="")
 
         # ── Step 3: Background vow ──────────────────────────────────────────
+        display.console.print()
         display.rule("Step 3 — Background Vow")
         display.console.print()
         display.info("  Every character begins with an Epic background vow.")
@@ -328,6 +355,7 @@ def run_creation_wizard(data_dir: Path) -> tuple[Character, list[Vow], DiceMode]
         vows = [Vow(description=bg_vow_text, rank=VowRank.EPIC)]
 
         # ── Step 4: STARSHIP ────────────────────────────────────────────────
+        display.console.print()
         display.rule("Step 4 — Board Your STARSHIP")
         display.console.print()
         display.info("  Your STARSHIP is auto-granted as a command vehicle.")
@@ -340,7 +368,9 @@ def run_creation_wizard(data_dir: Path) -> tuple[Character, list[Vow], DiceMode]
         )
 
         # ── Step 5: Final asset ─────────────────────────────────────────────
+        display.console.print()
         display.rule("Step 5 — Choose Final Asset")
+        display.console.print()
         final_asset = _prompt_final_asset(available_assets)
         if final_asset is None:
             display.console.print()
@@ -349,13 +379,16 @@ def run_creation_wizard(data_dir: Path) -> tuple[Character, list[Vow], DiceMode]
         assets = path_assets + [starship_asset, final_asset]
 
         # ── Step 6: Set stats ───────────────────────────────────────────────
+        display.console.print()
         display.rule("Step 6 — Set Stats")
+        display.console.print()
         stats = _prompt_stats()
         if stats is None:
             display.console.print()
             return None
 
         # ── Step 7: Condition meters (display only) ─────────────────────────
+        display.console.print()
         display.rule("Step 7 — Condition Meters")
         display.console.print()
         display.console.print(
@@ -371,6 +404,7 @@ def run_creation_wizard(data_dir: Path) -> tuple[Character, list[Vow], DiceMode]
         display.info("  These are set automatically.")
 
         # ── Step 8: Envision your character ─────────────────────────────────
+        display.console.print()
         display.rule("Step 8 — Envision Your Character")
         display.console.print()
         display.info("  All fields optional — press Enter to skip.")
@@ -379,6 +413,7 @@ def run_creation_wizard(data_dir: Path) -> tuple[Character, list[Vow], DiceMode]
         wear = Prompt.ask("  Wear (what you wear)", default="")
 
         # ── Step 9: Name your character ────────────────────────────────────
+        display.console.print()
         display.rule("Step 9 — Name Your Character")
         display.console.print()
         name = Prompt.ask("  Character name (or 'back' to cancel)")
@@ -389,6 +424,7 @@ def run_creation_wizard(data_dir: Path) -> tuple[Character, list[Vow], DiceMode]
         homeworld = Prompt.ask("  Homeworld or origin", default="")
 
         # ── Step 10: Gear up ────────────────────────────────────────────────
+        display.console.print()
         display.rule("Step 10 — Gear Up")
         display.console.print()
         display.console.print(
@@ -412,6 +448,7 @@ def run_creation_wizard(data_dir: Path) -> tuple[Character, list[Vow], DiceMode]
             gear.append(item)
 
         # ── Dice mode ───────────────────────────────────────────────────────
+        display.console.print()
         display.rule("Dice Mode")
         display.console.print()
         display.info("  How should dice be handled?")
