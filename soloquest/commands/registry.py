@@ -100,7 +100,7 @@ COMMAND_HELP: dict[str, str] = {
     "vow": "/vow [rank] [text] (alias: /v) — create a vow",
     "progress": "/progress [vow] (alias: /p) — mark progress on a vow",
     "fulfill": "/fulfill [vow] (alias: /f) — attempt to fulfill a vow",
-    "char": "/char (alias: /c) — show character sheet",
+    "char": "/char [new] (alias: /c) — show character sheet, or /char new to start over",
     "log": "/log — show session log so far",
     "note": "/note [text] — add a scene note",
     "health": "/health +N or -N — adjust health",

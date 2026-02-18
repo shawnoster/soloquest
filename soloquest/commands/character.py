@@ -2,9 +2,14 @@
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import TYPE_CHECKING
 
+from rich.prompt import Confirm
+
+from soloquest.commands.new_character import run_new_character_flow
 from soloquest.engine.dice import DiceMode, make_dice_provider
+from soloquest.state.save import save_game
 from soloquest.ui import display
 
 if TYPE_CHECKING:
@@ -14,12 +19,42 @@ TRACKS = {"health", "spirit", "supply"}
 
 
 def handle_char(state: GameState, args: list[str], flags: set[str]) -> None:
+    if args and args[0] == "new":
+        _handle_char_new(state)
+        return
     display.character_sheet(
         state.character,
         state.vows,
         session_count=state.session_count,
         assets=state.assets,
     )
+
+
+def _handle_char_new(state: GameState) -> None:
+    display.warn("This will create a new character. Your current save is kept as a backup.")
+    try:
+        if not Confirm.ask("  Start over?", default=False):
+            return
+    except (KeyboardInterrupt, EOFError):
+        return
+
+    data_dir = Path(__file__).parent.parent / "data"
+    result = run_new_character_flow(data_dir, state.truth_categories)
+    if result is None:
+        display.info("New character creation cancelled.")
+        return
+
+    character, vows, dice_mode = result
+    # Update state in-place (session_count=0/session=None matches main.py new-game path;
+    # run_session will increment and create the first session on entry)
+    state.character = character
+    state.vows = vows
+    state.session_count = 0
+    state.session = None
+    state.dice_mode = dice_mode
+    state.dice = make_dice_provider(dice_mode)
+    save_game(character, vows, 0, dice_mode)
+    display.success(f"New character created: {character.name}. Your journey begins!")
 
 
 def handle_track(state: GameState, track: str, args: list[str]) -> None:
