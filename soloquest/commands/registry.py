@@ -111,6 +111,7 @@ COMMAND_HELP: dict[str, str] = {
     "debility": "/debility [name] — toggle a debility (wounded, shaken, unprepared, etc.)",
     "roll": "/roll [dice] — raw dice roll (e.g. /roll d6, /roll 2d10)",
     "forsake": "/forsake — forsake a vow (costs spirit)",
+    "config": "/config — show adventures directory and other config",
     "settings": "/settings dice [digital|physical|mixed] — change dice mode",
     "newsession": "/newsession — export current session and start a new one",
     "end": "/end — export session journal and exit",

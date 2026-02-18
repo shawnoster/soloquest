@@ -73,7 +73,7 @@ def _show_resume_context(character: Character, session: Session | None) -> None:
 
 
 def main() -> None:
-    from soloquest.config import get_adventures_dir, set_adventures_dir
+    from soloquest.config import set_adventures_dir
 
     # Parse command-line arguments
     args = parse_args()
@@ -83,11 +83,6 @@ def main() -> None:
         set_adventures_dir(args.adventures_dir)
 
     display.splash()
-
-    # Show adventures directory location
-    adventures_dir = get_adventures_dir()
-    display.console.print(f"  [dim]Adventures directory:[/dim] {adventures_dir}", markup=True)
-    display.console.print()
 
     data_dir = Path(__file__).parent / "data"
 
