@@ -139,15 +139,7 @@ class Character:
             "supply": self.supply,
             "momentum": self.momentum,
             "debilities": sorted(self.debilities),
-            "assets": [
-                {
-                    "asset_key": a.asset_key,
-                    "abilities_unlocked": a.abilities_unlocked,
-                    "track_values": a.track_values,
-                    "input_values": a.input_values,
-                }
-                for a in self.assets
-            ],
+            "assets": [a.to_dict() for a in self.assets],
             "truths": [t.to_dict() for t in self.truths],
             "pronouns": self.pronouns,
             "callsign": self.callsign,
@@ -164,21 +156,7 @@ class Character:
 
         # Handle both old format (list[str]) and new format (list[dict])
         assets_data = data.get("assets", [])
-        assets = []
-        for item in assets_data:
-            if isinstance(item, str):
-                # Old format: just asset keys
-                assets.append(CharacterAsset(asset_key=item))
-            elif isinstance(item, dict):
-                # New format: full CharacterAsset data
-                assets.append(
-                    CharacterAsset(
-                        asset_key=item.get("asset_key", ""),
-                        abilities_unlocked=item.get("abilities_unlocked", []),
-                        track_values=item.get("track_values", {}),
-                        input_values=item.get("input_values", {}),
-                    )
-                )
+        assets = [CharacterAsset.from_dict(item) for item in assets_data]
 
         # Handle truths
         truths_data = data.get("truths", [])

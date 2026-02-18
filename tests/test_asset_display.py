@@ -156,15 +156,20 @@ class TestAssetCommandIntegration:
             handle_asset(mock_state, args=[], _flags=set())
             # Should not raise exception
 
+    def _make_state_no_assets(self, catalog: dict) -> MagicMock:
+        """Return a mock state with an empty-asset character."""
+        mock_state = MagicMock()
+        mock_state.assets = catalog
+        mock_state.character = MagicMock()
+        mock_state.character.assets = []
+        return mock_state
+
     def test_handle_asset_with_exact_match(self):
         """Calling /asset starship should display starship details."""
-        from soloquest.loop import GameState
-
         if "starship" not in self.assets:
             return  # Skip if asset not available
 
-        mock_state = MagicMock(spec=GameState)
-        mock_state.assets = self.assets
+        mock_state = self._make_state_no_assets(self.assets)
 
         with patch("soloquest.commands.asset._display_asset_details") as mock_display:
             handle_asset(mock_state, args=["starship"], _flags=set())
@@ -176,10 +181,7 @@ class TestAssetCommandIntegration:
 
     def test_handle_asset_with_nonexistent_asset(self):
         """Calling /asset with non-existent asset should show error."""
-        from soloquest.loop import GameState
-
-        mock_state = MagicMock(spec=GameState)
-        mock_state.assets = self.assets
+        mock_state = self._make_state_no_assets(self.assets)
 
         with patch("soloquest.commands.asset.display.error") as mock_error:
             handle_asset(mock_state, args=["nonexistent_asset_xyz"], _flags=set())
@@ -191,13 +193,9 @@ class TestAssetCommandIntegration:
 
     def test_handle_asset_with_multiple_matches(self):
         """Calling /asset with ambiguous name should show warning."""
-        from soloquest.loop import GameState
-
-        mock_state = MagicMock(spec=GameState)
-        mock_state.assets = self.assets
+        mock_state = self._make_state_no_assets(self.assets)
 
         # Find a query that matches multiple assets
-        # "engine" might match "engine_upgrade" and other engine-related assets
         with patch("soloquest.commands.asset.display.warn"):
             handle_asset(mock_state, args=["module"], _flags=set())
 

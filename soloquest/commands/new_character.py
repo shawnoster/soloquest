@@ -18,6 +18,15 @@ from soloquest.models.character import Character, Stats
 from soloquest.models.vow import Vow, VowRank
 from soloquest.ui import display
 
+
+def _init_asset_tracks(char_asset: CharacterAsset, assets: dict[str, Asset]) -> None:
+    """Initialise track_values to max for all tracks not yet set."""
+    defn = assets.get(char_asset.asset_key)
+    if defn:
+        for track_name, (_, max_val) in defn.tracks.items():
+            if track_name not in char_asset.track_values:
+                char_asset.track_values[track_name] = max_val
+
 # ── Oracle tables (used only during character creation) ────────────────────────
 # Format: list of (min_roll, max_roll, text)
 
@@ -337,6 +346,8 @@ def run_creation_wizard(data_dir: Path) -> tuple[Character, list[Vow], DiceMode]
         if path_assets is None:
             display.console.print()
             return None
+        for ca in path_assets:
+            _init_asset_tracks(ca, available_assets)
 
         # ── Step 2: Backstory ───────────────────────────────────────────────
         display.console.print()
@@ -366,6 +377,7 @@ def run_creation_wizard(data_dir: Path) -> tuple[Character, list[Vow], DiceMode]
             asset_key="starship",
             input_values={"name": ship_name} if ship_name else {},
         )
+        _init_asset_tracks(starship_asset, available_assets)
 
         # ── Step 5: Final asset ─────────────────────────────────────────────
         display.console.print()
@@ -375,6 +387,7 @@ def run_creation_wizard(data_dir: Path) -> tuple[Character, list[Vow], DiceMode]
         if final_asset is None:
             display.console.print()
             return None
+        _init_asset_tracks(final_asset, available_assets)
 
         assets = path_assets + [starship_asset, final_asset]
 

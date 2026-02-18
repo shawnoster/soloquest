@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+from typing import TYPE_CHECKING
 
 from rich.console import Console
 from rich.panel import Panel
@@ -13,6 +14,9 @@ from soloquest.engine.moves import MoveResult, OutcomeTier
 from soloquest.models.character import DEBILITY_NAMES, TRACK_MAX, Character
 from soloquest.models.session import EntryKind, LogEntry
 from soloquest.models.vow import Vow
+
+if TYPE_CHECKING:
+    from soloquest.models.asset import Asset, CharacterAsset
 
 console = Console()
 
@@ -250,27 +254,54 @@ def character_sheet(
     # Assets
     rule("Assets")
     if char.assets:
-        console.print(
-            "  "
-            + "  /  ".join(
-                (
-                    assets[a.asset_key].name
-                    if assets and a.asset_key in assets
-                    else a.asset_key.replace("_", " ").title()
-                )
-                for a in char.assets
-            )
-        )
+        for char_asset in char.assets:
+            asset_def = assets.get(char_asset.asset_key) if assets else None
+            console.print("  " + _asset_row(char_asset, asset_def))
     else:
         console.print("  [dim]No assets.[/dim]")
     console.print()
 
 
-def _track_bar(label: str, value: int, max_val: int) -> str:
+def _asset_row(char_asset: CharacterAsset, asset_def: Asset | None) -> str:
+    """Build a single-line summary for an asset in the character sheet."""
+    name = (
+        asset_def.name if asset_def else char_asset.asset_key.replace("_", " ").title()
+    )
+
+    parts: list[str] = [f"{name:<16}"]
+
+    # Optional input value (e.g., ship name)
+    first_input = next(iter(char_asset.input_values.values()), "") if char_asset.input_values else ""
+    if first_input:
+        parts.append(f"[dim]«{first_input}»[/dim]")
+
+    # Meter bar for the first track
+    if asset_def and asset_def.tracks:
+        track_name = next(iter(asset_def.tracks))
+        _, max_val = asset_def.tracks[track_name]
+        current = char_asset.track_values.get(track_name, max_val)
+        parts.append(make_track_bar(track_name.title(), current, max_val))
+
+    # Active conditions
+    if char_asset.conditions:
+        cond_str = "  ".join(
+            f"[bold red]{c.title()}[/bold red]" for c in sorted(char_asset.conditions)
+        )
+        parts.append(f"[{cond_str}]")
+
+    return "  ".join(parts)
+
+
+def make_track_bar(label: str, value: int, max_val: int) -> str:
+    """Return a Rich-markup meter bar string (usable inline or printed directly)."""
     filled = "●" * value
     empty = "○" * (max_val - value)
     color = "green" if value > max_val // 2 else ("yellow" if value > 0 else "red")
     return f"{label:<8} [{color}]{filled}{empty}[/{color}]  [bold]{value}[/bold]/{max_val}"
+
+
+def _track_bar(label: str, value: int, max_val: int) -> str:
+    return make_track_bar(label, value, max_val)
 
 
 def _vow_row(vow: Vow) -> None:
