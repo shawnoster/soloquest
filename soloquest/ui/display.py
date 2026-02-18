@@ -144,15 +144,36 @@ def oracle_result_panel_combined(results: list) -> None:
     console.print(Panel(body, title=title, border_style="bright_cyan"))
 
 
-def character_sheet(char: Character, vows: list[Vow], session_count: int, dice_mode: str) -> None:
+def character_sheet(char: Character, vows: list[Vow], session_count: int) -> None:
     """Render full character sheet."""
     console.print()
     rule(char.name.upper())
 
     # Identity row
+    name_line = char.name.upper()
+    if char.pronouns:
+        name_line += f"  [dim]({char.pronouns})[/dim]"
+    if char.callsign:
+        name_line += f"  [dim]«{char.callsign}»[/dim]"
+    console.print(f"  {name_line}")
     if char.homeworld:
         console.print(f"  [dim]Homeworld:[/dim] {char.homeworld}")
-    console.print(f"  [dim]Sessions:[/dim] {session_count}    [dim]Dice mode:[/dim] {dice_mode}")
+    console.print(f"  [dim]Sessions:[/dim] {session_count}")
+
+    # Narrative flavour
+    if char.backstory:
+        console.print(f"  [dim]Backstory:[/dim] {char.backstory}")
+    if char.look or char.act or char.wear:
+        parts = []
+        if char.look:
+            parts.append(f"[dim]Look:[/dim] {char.look}")
+        if char.act:
+            parts.append(f"[dim]Act:[/dim] {char.act}")
+        if char.wear:
+            parts.append(f"[dim]Wear:[/dim] {char.wear}")
+        console.print("  " + "    ".join(parts))
+    if char.gear:
+        console.print(f"  [dim]Gear:[/dim] {', '.join(char.gear)}")
     console.print()
 
     # Stats table

@@ -4,8 +4,8 @@ from pathlib import Path
 
 from prompt_toolkit.document import Document
 
+from soloquest.commands.new_character import AssetCompleter
 from soloquest.engine.assets import load_assets
-from soloquest.main import AssetCompleter
 
 DATA_DIR = Path(__file__).parent.parent / "soloquest" / "data"
 
