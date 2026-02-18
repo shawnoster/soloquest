@@ -6,7 +6,7 @@ import contextlib
 import json
 from pathlib import Path
 
-from soloquest.config import saves_dir
+from soloquest.config import config
 from soloquest.engine.dice import DiceMode
 from soloquest.models.character import Character
 from soloquest.models.session import Session
@@ -15,7 +15,7 @@ from soloquest.models.vow import Vow
 
 def _saves_dir() -> Path:
     """Get the saves directory path."""
-    return saves_dir()
+    return config.saves_dir()
 
 
 def saves_path(character_name: str) -> Path:
