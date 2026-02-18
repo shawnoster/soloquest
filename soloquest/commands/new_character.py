@@ -106,7 +106,7 @@ def _roll_table(table: list[tuple]) -> tuple:
     for row in table:
         if row[0] <= roll <= row[1]:
             return (roll, *row[2:])
-    return (roll, table[-1][2:])
+    return (roll, *table[-1][2:])
 
 
 class AssetCompleter(Completer):
