@@ -12,6 +12,7 @@ from soloquest.commands.new_character import (
     STARSHIP_QUIRK_TABLE,
     _roll_table,
     run_creation_wizard,
+    run_new_character_flow,
 )
 from soloquest.engine.dice import DiceMode
 
@@ -394,4 +395,114 @@ class TestRunCreationWizard:
         # Last confirm=False means cancel
         confirm_answers = [False, False, False, False, False]
         result = self._run_wizard_with_answers(prompt_answers, confirm_answers)
+        assert result is None
+
+
+class TestRunNewCharacterFlow:
+    """Tests for run_new_character_flow — truths then character wizard."""
+
+    def _make_truth_categories(self):
+        """Return a minimal truth categories dict with one category."""
+        from soloquest.models.truths import TruthCategory, TruthOption
+
+        option = TruthOption(
+            roll_range=(1, 100),
+            summary="All is well",
+            text="The universe is fine.",
+            quest_starter="",
+        )
+        category = TruthCategory(
+            name="The Cataclysm",
+            description="What caused the cataclysm?",
+            order=1,
+            options=[option],
+        )
+        return {"The Cataclysm": category}
+
+    def _wizard_prompt_answers(self):
+        return [
+            "",  # backstory
+            "Find the truth",  # vow
+            "Ghost",  # ship name
+            "3",
+            "2",
+            "2",
+            "1",
+            "1",  # stats
+            "",
+            "",
+            "",  # envision
+            "Kael",
+            "",
+            "",
+            "",  # name/pronouns/callsign/homeworld
+            "",  # gear done
+            "1",  # dice mode
+        ]
+
+    def test_truths_attached_to_character(self):
+        """Truths returned by run_truths_wizard are attached to the character."""
+        from soloquest.models.truths import ChosenTruth
+
+        chosen = [ChosenTruth(category="The Cataclysm", option_summary="All is well")]
+        truth_categories = self._make_truth_categories()
+
+        mock_session = MagicMock()
+        mock_session.prompt.side_effect = ["ace", "navigator", "empath"]
+
+        with (
+            patch(
+                "soloquest.commands.new_character.run_truths_wizard",
+                return_value=chosen,
+            ),
+            patch(
+                "soloquest.commands.new_character.Prompt.ask",
+                side_effect=self._wizard_prompt_answers(),
+            ),
+            patch(
+                "soloquest.commands.new_character.Confirm.ask",
+                side_effect=[False, False, False, False, True],
+            ),
+            patch(
+                "soloquest.commands.new_character.PromptSession",
+                return_value=mock_session,
+            ),
+        ):
+            result = run_new_character_flow(DATA_DIR, truth_categories)
+
+        assert result is not None
+        character, vows, dice_mode = result
+        assert character.truths == chosen
+
+    def test_cancel_during_truths_returns_none(self):
+        """Cancelling at the truths wizard returns None."""
+        truth_categories = self._make_truth_categories()
+
+        with patch(
+            "soloquest.commands.new_character.run_truths_wizard",
+            return_value=None,
+        ):
+            result = run_new_character_flow(DATA_DIR, truth_categories)
+
+        assert result is None
+
+    def test_cancel_during_character_creation_returns_none(self):
+        """Cancelling during character creation returns None."""
+        from soloquest.models.truths import ChosenTruth
+
+        chosen = [ChosenTruth(category="The Cataclysm", option_summary="All is well")]
+        truth_categories = self._make_truth_categories()
+
+        with (
+            patch(
+                "soloquest.commands.new_character.run_truths_wizard",
+                return_value=chosen,
+            ),
+            patch(
+                "soloquest.commands.new_character.run_creation_wizard",
+                return_value=None,
+            ),
+        ):
+            result = run_new_character_flow(DATA_DIR, truth_categories)
+
         assert result is None

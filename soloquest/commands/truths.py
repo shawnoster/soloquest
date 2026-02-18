@@ -71,35 +71,18 @@ def _prompt_to_start_wizard(state: GameState) -> None:
         display.info("You can start later with: /truths start")
 
 
-def _start_truths_wizard(state: GameState) -> None:
-    """Start the interactive truths wizard."""
-    # If truths already exist, confirm overwrite
-    if state.character.truths:
-        display.console.print()
-        try:
-            if not Confirm.ask(
-                "  You already have truths set. Start over and replace them?",
-                default=False,
-            ):
-                display.info("Keeping existing truths.")
-                return
-        except (KeyboardInterrupt, EOFError):
-            display.console.print()
-            display.info("Keeping existing truths.")
-            return
-
+def run_truths_wizard(truth_categories: dict[str, TruthCategory]) -> list[ChosenTruth] | None:
+    """Run the interactive truths wizard. Returns chosen truths or None if cancelled."""
     display.rule("Choose Your Truths — Campaign Setup")
     display.console.print()
 
-    # Show introduction
     _show_introduction()
 
-    # Get ordered categories
-    categories = get_ordered_categories(state.truth_categories)
+    categories = get_ordered_categories(truth_categories)
 
     if not categories:
         display.error("No truth categories found. Check data files.")
-        return
+        return None
 
     chosen_truths: list[ChosenTruth] = []
 
@@ -140,21 +123,45 @@ def _start_truths_wizard(state: GameState) -> None:
         display.console.print()
         _show_summary(chosen_truths)
 
-        # Confirm and save
+        # Confirm
         display.console.print()
         if Confirm.ask("  [bold]Save these truths?[/bold]", default=True):
-            state.character.truths = chosen_truths
-            display.success("Campaign truths saved!")
-            display.console.print()
-            state.session.add_note(f"Campaign truths established ({len(chosen_truths)} categories)")
-            display.info("  Truths have been added to your session log.")
+            return chosen_truths
         else:
             display.info("Truths not saved. Run /truths start to try again.")
+            return None
 
     except (KeyboardInterrupt, EOFError):
         display.console.print()
         display.console.print()
         display.info("Truth selection cancelled. Run /truths start to begin again.")
+        return None
+
+
+def _start_truths_wizard(state: GameState) -> None:
+    """Start the interactive truths wizard."""
+    # If truths already exist, confirm overwrite
+    if state.character.truths:
+        display.console.print()
+        try:
+            if not Confirm.ask(
+                "  You already have truths set. Start over and replace them?",
+                default=False,
+            ):
+                display.info("Keeping existing truths.")
+                return
+        except (KeyboardInterrupt, EOFError):
+            display.console.print()
+            display.info("Keeping existing truths.")
+            return
+
+    result = run_truths_wizard(state.truth_categories)
+    if result is not None:
+        state.character.truths = result
+        display.success("Campaign truths saved!")
+        display.console.print()
+        state.session.add_note(f"Campaign truths established ({len(result)} categories)")
+        display.info("  Truths have been added to your session log.")
 
 
 def _show_introduction() -> None:

@@ -5,21 +5,10 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-from rich.prompt import Prompt
-
-from soloquest.engine.dice import DiceMode
 from soloquest.models.character import Character
-from soloquest.models.vow import Vow
-from soloquest.state.save import list_saves, load_game, load_most_recent
+from soloquest.models.session import Session
+from soloquest.state.save import list_saves, load_most_recent, save_game
 from soloquest.ui import display
-
-
-def new_character() -> tuple[Character, list[Vow], DiceMode] | None:
-    """Walk through the full 11-step character creation wizard. Returns None if cancelled."""
-    from soloquest.commands.new_character import run_creation_wizard
-
-    data_dir = Path(__file__).parent / "data"
-    return run_creation_wizard(data_dir)
 
 
 def parse_args() -> argparse.Namespace:
@@ -33,6 +22,7 @@ Examples:
   soloquest                                    # Use default directory
   soloquest -d ~/my-campaigns                  # Use custom directory
   soloquest --adventures-dir ./test-campaign   # Use relative path
+  soloquest --new                              # Start a new character
 
 For more information: https://github.com/shawnoster/solo-cli
         """,
@@ -49,7 +39,37 @@ For more information: https://github.com/shawnoster/solo-cli
         action="version",
         version="%(prog)s 0.1.0",
     )
+    parser.add_argument(
+        "--new",
+        action="store_true",
+        help="start with a new character",
+    )
     return parser.parse_args()
+
+
+def _new_game_flow(data_dir: Path):
+    from soloquest.commands.new_character import run_new_character_flow
+    from soloquest.engine.truths import load_truth_categories
+
+    truth_categories = load_truth_categories(data_dir)
+    return run_new_character_flow(data_dir, truth_categories)
+
+
+def _show_resume_context(character: Character, session: Session | None) -> None:
+    """Show a compact welcome-back snapshot."""
+    char = character
+    display.console.print(
+        f"  [bold]{char.name}[/bold]" + (f"  [dim]«{char.callsign}»[/dim]" if char.callsign else "")
+    )
+    display.console.print(
+        f"  [dim]Health[/dim] {char.health}/5  "
+        f"[dim]Spirit[/dim] {char.spirit}/5  "
+        f"[dim]Supply[/dim] {char.supply}/5  "
+        f"[dim]Momentum[/dim] {char.momentum:+d}"
+    )
+    display.console.print()
+    if session and session.entries:
+        display.recent_log(session.entries, n=3)
 
 
 def main() -> None:
@@ -69,114 +89,30 @@ def main() -> None:
     display.console.print(f"  [dim]Adventures directory:[/dim] {adventures_dir}", markup=True)
     display.console.print()
 
-    saves = list_saves()
-    most_recent = load_most_recent()
+    data_dir = Path(__file__).parent / "data"
 
-    if most_recent:
-        character, vows, session_count, dice_mode, session = most_recent
-
-        # Check if there's an active session to resume
-        has_active_session = session is not None and len(session.entries) > 0
-
-        if has_active_session:
-            display.console.print(
-                f"  [dim]Last played:[/dim] [bold]{character.name}[/bold]  "
-                f"Session {session.number} ({len(session.entries)} entries)"
-            )
-        else:
-            display.console.print(
-                f"  [dim]Last played:[/dim] [bold]{character.name}[/bold]  Session {session_count}"
-            )
-
-        display.console.print()
-        display.console.print("  +-- Choose an action ----------------------------+", markup=False)
-        display.console.print("  |                                                |", markup=False)
-
-        if has_active_session:
-            display.console.print(
-                "  |  [r] Resume session (continue)                 |", markup=False
-            )
-            display.console.print(
-                "  |  [s] Start new session                         |", markup=False
-            )
-        else:
-            display.console.print(
-                "  |  [r] Continue (new session)                    |", markup=False
-            )
-
-        display.console.print("  |  [n] New character                             |", markup=False)
-        if len(saves) > 1:
-            display.console.print(
-                "  |  [l] Load different character                  |", markup=False
-            )
-        display.console.print("  |                                                |", markup=False)
-        display.console.print("  +------------------------------------------------+", markup=False)
-        display.console.print()
-
-        choice_options = (
-            "r/n" + ("/s" if has_active_session else "") + ("/l" if len(saves) > 1 else "")
-        )
-        choice = Prompt.ask(f"  Choice ({choice_options})", default="r").strip().lower()
-
-        if choice == "r":
-            pass  # use loaded character and session (if any)
-        elif choice == "s" and has_active_session:
-            # User wants to start a new session, clear the current one
-            session = None
-        elif choice == "n":
-            result = new_character()
-            if result is None:
-                # User cancelled, resume last session instead
-                display.console.print()
-                display.info("  Resuming last session...")
-            else:
-                character, vows, dice_mode = result
-                session_count = 0
-                session = None
-        elif choice == "l" and len(saves) > 1:
+    # Determine startup path
+    if args.new or not list_saves():
+        if not list_saves():
+            display.console.print("  [dim]No saves found. Let's build your world.[/dim]")
             display.console.print()
-            display.console.print(
-                "  +-- Saved Characters ----------------------------+", markup=False
-            )
-            display.console.print(
-                "  |                                                |", markup=False
-            )
-            for i, name in enumerate(saves, 1):
-                display.console.print(f"  |  [{i}] {name:<43} |", markup=False)
-            display.console.print(
-                "  |                                                |", markup=False
-            )
-            display.console.print(
-                "  +------------------------------------------------+", markup=False
-            )
-            display.console.print()
-            raw = Prompt.ask("  Choose character (1-" + str(len(saves)) + ")")
-            try:
-                idx = int(raw) - 1
-                char_name = saves[idx]
-                character, vows, session_count, dice_mode, session = load_game(char_name)
-            except (ValueError, IndexError):
-                display.error("Invalid choice, resuming last session.")
-        else:
-            pass  # default to resume
-
-    else:
-        # No existing saves
-        display.console.print("  +-- No saves found ------------------------------+", markup=False)
-        display.console.print("  |                                                |", markup=False)
-        display.console.print("  |  Let's create your character.                  |", markup=False)
-        display.console.print("  |                                                |", markup=False)
-        display.console.print("  +------------------------------------------------+", markup=False)
-        display.console.print()
-        result = new_character()
+        result = _new_game_flow(data_dir)
         if result is None:
-            # User cancelled but there are no saves to resume
-            display.console.print()
-            display.error("  Character creation cancelled. No saves to resume. Exiting.")
+            display.error("  Character creation cancelled. Exiting.")
             return
         character, vows, dice_mode = result
         session_count = 0
         session = None
+        # Save immediately so next launch auto-resumes
+        save_game(character, vows, session_count, dice_mode)
+    else:
+        # Auto-resume most recent save
+        most_recent = load_most_recent()
+        if most_recent is None:
+            display.error("  Save file corrupted. Use --new to start fresh.")
+            return
+        character, vows, session_count, dice_mode, session = most_recent
+        _show_resume_context(character, session)
 
     # Start the session
     from soloquest.loop import run_session

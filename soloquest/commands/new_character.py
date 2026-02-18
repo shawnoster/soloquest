@@ -10,6 +10,7 @@ from prompt_toolkit.completion import Completer, Completion
 from rich.panel import Panel
 from rich.prompt import Confirm, Prompt
 
+from soloquest.commands.truths import run_truths_wizard
 from soloquest.engine.assets import load_assets
 from soloquest.engine.dice import DiceMode
 from soloquest.models.asset import Asset, CharacterAsset
@@ -260,6 +261,27 @@ def _prompt_stats() -> Stats | None:
                 display.error("  Enter a number.")
 
     return Stats(**assigned)
+
+
+def run_new_character_flow(
+    data_dir: Path,
+    truth_categories: dict,
+) -> tuple[Character, list[Vow], DiceMode] | None:
+    """Run the full new-game flow: Truths → character wizard.
+
+    Returns (character, vows, dice_mode) or None if cancelled.
+    """
+    truths = run_truths_wizard(truth_categories)
+    if truths is None:
+        return None  # cancelled during truths
+
+    result = run_creation_wizard(data_dir)
+    if result is None:
+        return None  # cancelled during character creation
+
+    character, vows, dice_mode = result
+    character.truths = truths
+    return character, vows, dice_mode
 
 
 def run_creation_wizard(data_dir: Path) -> tuple[Character, list[Vow], DiceMode] | None:

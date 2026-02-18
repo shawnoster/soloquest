@@ -2,7 +2,12 @@
 
 from unittest.mock import MagicMock, patch
 
-from soloquest.commands.character import handle_char, handle_momentum, handle_settings, handle_track
+from soloquest.commands.character import (
+    handle_char,
+    handle_momentum,
+    handle_settings,
+    handle_track,
+)
 from soloquest.engine.dice import DiceMode
 from soloquest.models.character import Character, Stats
 from soloquest.models.session import Session
@@ -267,3 +272,89 @@ class TestHandleSettings:
         handle_settings(self.state, ["dice", "PHYSICAL"], set())
 
         assert self.state.dice_mode == DiceMode("physical")
+
+
+class TestHandleCharNew:
+    """Tests for /char new subcommand."""
+
+    def setup_method(self):
+        self.state = MagicMock()
+        self.state.character = Character(
+            name="Old Character", stats=Stats(edge=2, heart=1, iron=3, shadow=2, wits=3)
+        )
+        self.state.vows = []
+        self.state.session_count = 5
+        self.state.dice_mode = DiceMode("digital")
+        self.state.truth_categories = {}
+
+    @patch("soloquest.commands.character.display.character_sheet")
+    def test_no_args_shows_character_sheet(self, mock_sheet):
+        """handle_char with no args still shows character sheet."""
+        handle_char(self.state, [], set())
+
+        mock_sheet.assert_called_once()
+
+    @patch("soloquest.commands.character.display.info")
+    @patch("soloquest.commands.character.display.warn")
+    @patch("soloquest.commands.character.Confirm.ask", return_value=False)
+    def test_char_new_deny_returns_early(self, mock_confirm, mock_warn, mock_info):
+        """Declining the confirmation guard returns without creating a character."""
+        handle_char(self.state, ["new"], set())
+
+        mock_warn.assert_called_once()
+        # State should be unchanged
+        assert self.state.character.name == "Old Character"
+
+    @patch("soloquest.commands.character.display.info")
+    @patch("soloquest.commands.character.display.warn")
+    @patch("soloquest.commands.character.Confirm.ask", side_effect=KeyboardInterrupt)
+    def test_char_new_keyboard_interrupt_returns_early(self, mock_confirm, mock_warn, mock_info):
+        """KeyboardInterrupt at confirmation returns without creating a character."""
+        handle_char(self.state, ["new"], set())
+
+        assert self.state.character.name == "Old Character"
+
+    @patch("soloquest.commands.character.save_game")
+    @patch("soloquest.commands.character.make_dice_provider")
+    @patch("soloquest.commands.character.display.success")
+    @patch("soloquest.commands.character.display.warn")
+    @patch("soloquest.commands.character.Confirm.ask", return_value=True)
+    def test_char_new_updates_state_on_success(
+        self, mock_confirm, mock_warn, mock_success, mock_make_dice, mock_save
+    ):
+        """Successful /char new updates state in-place with new character."""
+        from soloquest.models.character import Character, Stats
+        from soloquest.models.vow import Vow
+
+        new_char = Character(name="New Hero", stats=Stats())
+        from soloquest.models.vow import VowRank
+
+        new_vows = [Vow(description="A new vow", rank=VowRank.EPIC)]
+        mock_make_dice.return_value = MagicMock()
+
+        with patch(
+            "soloquest.commands.character.run_new_character_flow",
+            return_value=(new_char, new_vows, DiceMode.DIGITAL),
+        ):
+            handle_char(self.state, ["new"], set())
+
+        assert self.state.character == new_char
+        assert self.state.vows == new_vows
+        assert self.state.session_count == 1
+        mock_save.assert_called_once()
+        mock_success.assert_called_once()
+
+    @patch("soloquest.commands.character.display.info")
+    @patch("soloquest.commands.character.display.warn")
+    @patch("soloquest.commands.character.Confirm.ask", return_value=True)
+    def test_char_new_cancelled_flow_shows_info(self, mock_confirm, mock_warn, mock_info):
+        """Cancelling during new character flow shows info message."""
+        with patch(
+            "soloquest.commands.character.run_new_character_flow",
+            return_value=None,
+        ):
+            handle_char(self.state, ["new"], set())
+
+        mock_info.assert_called_once()
+        # State unchanged
+        assert self.state.character.name == "Old Character"
