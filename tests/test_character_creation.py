@@ -33,28 +33,25 @@ class TestAssetCompleter:
 
         # Should have some matches for "ace"
         assert len(completions) > 0
-        # All matches should contain "ace" in key or name
+        # All matches should contain "ace" in the display name
         for completion in completions:
-            assert "ace" in completion.text.lower() or (
-                completion.display_meta and "ace" in completion.display_meta.lower()
-            )
+            assert "ace" in completion.text.lower()
 
     def test_completer_matches_asset_key(self):
-        """Should match against asset keys."""
+        """Typing a key should match and complete to the display name."""
         doc = Document("starship", cursor_position=8)
         completions = list(self.completer.get_completions(doc, None))
 
-        # Should find starship
-        assert any(c.text == "starship" for c in completions)
+        # Should find starship; completion text is the display name
+        assert any("Starship" in c.text for c in completions)
 
     def test_completer_matches_asset_name(self):
         """Should match against asset display names."""
-        # "Starship" is the display name for "starship" key
         doc = Document("star", cursor_position=4)
         completions = list(self.completer.get_completions(doc, None))
 
         # Should find starship by matching the name
-        assert any("starship" in c.text or "star" in c.text.lower() for c in completions)
+        assert any("star" in c.text.lower() for c in completions)
 
     def test_completions_are_alphabetically_sorted(self):
         """Completions should be returned in alphabetical order."""
@@ -68,27 +65,22 @@ class TestAssetCompleter:
         assert completion_texts == sorted(completion_texts)
 
     def test_completer_handles_underscores(self):
-        """Should handle underscores in asset names."""
+        """Typing a key with underscores should match and complete to display name."""
         doc = Document("crew_commander", cursor_position=14)
         completions = list(self.completer.get_completions(doc, None))
 
-        # Should find crew_commander
+        # Should find Crew Commander by display name
         assert len(completions) > 0
-        assert any(c.text == "crew_commander" for c in completions)
+        assert any("Crew Commander" in c.text for c in completions)
 
-    def test_completer_shows_display_meta(self):
-        """Completions should include display names as meta."""
+    def test_completer_shows_display_name_as_text(self):
+        """Completion text should be the human-readable display name."""
         doc = Document("starship", cursor_position=8)
         completions = list(self.completer.get_completions(doc, None))
 
-        # Find starship completion
-        starship_completion = next(c for c in completions if c.text == "starship")
-
-        # Should have display meta showing full name
-        assert starship_completion.display_meta
-        # display_meta can be a string or FormattedText, convert to string
-        meta_str = str(starship_completion.display_meta)
-        assert "Starship" in meta_str or "starship" in meta_str
+        # Completion text should be the display name, not the key
+        assert any(c.text == "Starship" for c in completions)
+        assert not any(c.text == "starship" for c in completions)
 
     def test_completer_case_insensitive(self):
         """Completion matching should be case-insensitive."""
@@ -103,13 +95,13 @@ class TestAssetCompleter:
         assert set(c.text for c in completions_lower) == set(c.text for c in completions_upper)
 
     def test_completer_handles_spaces_in_input(self):
-        """Should normalize spaces to underscores for matching."""
+        """Typing with spaces should match the display name."""
         doc = Document("crew commander", cursor_position=14)
         completions = list(self.completer.get_completions(doc, None))
 
-        # Should find crew_commander even with spaces
+        # Should find Crew Commander even with spaces
         assert len(completions) > 0
-        assert any(c.text == "crew_commander" for c in completions)
+        assert any("Crew Commander" in c.text for c in completions)
 
     def test_completer_with_no_matches(self):
         """Should return empty list when no assets match."""

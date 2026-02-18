@@ -18,6 +18,7 @@ def handle_char(state: GameState, args: list[str], flags: set[str]) -> None:
         state.character,
         state.vows,
         session_count=state.session_count,
+        assets=state.assets,
     )
 
 
