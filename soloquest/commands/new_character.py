@@ -132,9 +132,8 @@ class AssetCompleter(Completer):
             ):
                 completions.append(
                     Completion(
-                        text=key,
+                        text=asset_name,
                         start_position=-len(current_arg) if current_arg else 0,
-                        display_meta=asset_name,
                     )
                 )
 
@@ -192,10 +191,10 @@ def _prompt_paths(available_assets: dict[str, Asset]) -> list[CharacterAsset] | 
                 display.error("  Path cannot be empty.")
                 continue
             if key not in paths:
-                display.error(f"  '{key}' is not a valid path. Try TAB for options.")
+                display.error(f"  '{raw.strip()}' is not a valid path. Try TAB for options.")
                 continue
             if key in chosen_paths:
-                display.error(f"  You already chose '{key}'. Pick a different path.")
+                display.error(f"  You already chose '{paths[key].name}'. Pick a different path.")
                 continue
             chosen_paths.append(key)
             break
@@ -225,7 +224,7 @@ def _prompt_final_asset(available_assets: dict[str, Asset]) -> CharacterAsset | 
             continue
         if key not in eligible:
             display.error(
-                f"  '{key}' is not available. Choose a path, module, companion, or support vehicle."
+                f"  '{raw.strip()}' is not available. Choose a path, module, companion, or support vehicle."
             )
             continue
         return CharacterAsset(asset_key=key)
@@ -408,7 +407,7 @@ def run_creation_wizard(data_dir: Path) -> tuple[Character, list[Vow], DiceMode]
         # ── Confirmation summary ─────────────────────────────────────────────
         display.console.print()
         asset_summary = "\n".join(
-            f"  • {a.asset_key.replace('_', ' ').title()}"
+            f"  • {available_assets[a.asset_key].name if a.asset_key in available_assets else a.asset_key.replace('_', ' ').title()}"
             + (f" ({a.input_values.get('name', '')})" if a.input_values.get("name") else "")
             for a in assets
         )

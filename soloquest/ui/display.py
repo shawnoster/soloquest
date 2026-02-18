@@ -134,7 +134,9 @@ def oracle_result_panel_combined(results: list) -> None:
         )
 
 
-def character_sheet(char: Character, vows: list[Vow], session_count: int) -> None:
+def character_sheet(
+    char: Character, vows: list[Vow], session_count: int, assets: dict | None = None
+) -> None:
     """Render full character sheet."""
     console.print()
     rule(char.name.upper())
@@ -235,7 +237,15 @@ def character_sheet(char: Character, vows: list[Vow], session_count: int) -> Non
     rule("Assets")
     if char.assets:
         console.print(
-            "  " + "  /  ".join(a.asset_key.replace("_", " ").title() for a in char.assets)
+            "  "
+            + "  /  ".join(
+                (
+                    assets[a.asset_key].name
+                    if assets and a.asset_key in assets
+                    else a.asset_key.replace("_", " ").title()
+                )
+                for a in char.assets
+            )
         )
     else:
         console.print("  [dim]No assets.[/dim]")
