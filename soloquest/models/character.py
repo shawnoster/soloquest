@@ -21,6 +21,8 @@ DEBILITY_NAMES = [
     "corrupted",
 ]
 
+TRACK_MAX = 5
+MOMENTUM_MIN = -6
 MOMENTUM_MAX_BASE = 10
 MOMENTUM_RESET_BASE = 2
 
@@ -56,13 +58,13 @@ class Character:
     homeworld: str = ""
     stats: Stats = field(default_factory=Stats)
 
-    # Tracks (0–5)
-    health: int = 5
-    spirit: int = 5
-    supply: int = 5
+    # Tracks (0–TRACK_MAX)
+    health: int = TRACK_MAX
+    spirit: int = TRACK_MAX
+    supply: int = TRACK_MAX
 
-    # Momentum (-6 to +10, modified by debilities)
-    momentum: int = 2
+    # Momentum (MOMENTUM_MIN to momentum_max, modified by debilities)
+    momentum: int = MOMENTUM_RESET_BASE
 
     # Debilities — stored as set of active debility names
     debilities: set[str] = field(default_factory=set)
@@ -94,15 +96,15 @@ class Character:
         return 0 if len(self.debilities) >= 2 else MOMENTUM_RESET_BASE
 
     def adjust_track(self, track: str, delta: int) -> int:
-        """Adjust a track (health/spirit/supply) by delta, clamped 0–5. Returns new value."""
+        """Adjust a track (health/spirit/supply) by delta, clamped 0–TRACK_MAX. Returns new value."""
         current = getattr(self, track)
-        new_val = max(0, min(5, current + delta))
+        new_val = max(0, min(TRACK_MAX, current + delta))
         setattr(self, track, new_val)
         return new_val
 
     def adjust_momentum(self, delta: int) -> int:
-        """Adjust momentum, clamped -6 to momentum_max. Returns new value."""
-        self.momentum = max(-6, min(self.momentum_max, self.momentum + delta))
+        """Adjust momentum, clamped MOMENTUM_MIN to momentum_max. Returns new value."""
+        self.momentum = max(MOMENTUM_MIN, min(self.momentum_max, self.momentum + delta))
         return self.momentum
 
     def burn_momentum(self) -> int:
@@ -186,10 +188,10 @@ class Character:
             name=data["name"],
             homeworld=data.get("homeworld", ""),
             stats=stats,
-            health=data.get("health", 5),
-            spirit=data.get("spirit", 5),
-            supply=data.get("supply", 5),
-            momentum=data.get("momentum", 2),
+            health=data.get("health", TRACK_MAX),
+            spirit=data.get("spirit", TRACK_MAX),
+            supply=data.get("supply", TRACK_MAX),
+            momentum=data.get("momentum", MOMENTUM_RESET_BASE),
             debilities=set(data.get("debilities", [])),
             assets=assets,
             truths=truths,
