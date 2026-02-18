@@ -10,7 +10,7 @@ from rich.rule import Rule
 from rich.table import Table
 
 from soloquest.engine.moves import MoveResult, OutcomeTier
-from soloquest.models.character import DEBILITY_NAMES, Character
+from soloquest.models.character import DEBILITY_NAMES, TRACK_MAX, Character
 from soloquest.models.session import EntryKind, LogEntry
 from soloquest.models.vow import Vow
 
@@ -47,9 +47,9 @@ def splash(character: Character | None = None, vows: list[Vow] | None = None) ->
         if character.callsign:
             name_line += f"  [dim]«{character.callsign}»[/dim]"
         stats_line = (
-            f"[dim]Health[/dim] {character.health}/5  "
-            f"[dim]Spirit[/dim] {character.spirit}/5  "
-            f"[dim]Supply[/dim] {character.supply}/5  "
+            f"[dim]Health[/dim] {character.health}/{TRACK_MAX}  "
+            f"[dim]Spirit[/dim] {character.spirit}/{TRACK_MAX}  "
+            f"[dim]Supply[/dim] {character.supply}/{TRACK_MAX}  "
             f"[dim]Momentum[/dim] {character.momentum:+d}"
         )
         content = f"[bold white]SOLOQUEST[/bold white]\n[dim]{name_line}[/dim]\n{stats_line}"
@@ -195,9 +195,9 @@ def character_sheet(
     console.print()
 
     # Tracks
-    console.print("  " + _track_bar("Health", char.health, 5))
-    console.print("  " + _track_bar("Spirit", char.spirit, 5))
-    console.print("  " + _track_bar("Supply", char.supply, 5))
+    console.print("  " + _track_bar("Health", char.health, TRACK_MAX))
+    console.print("  " + _track_bar("Spirit", char.spirit, TRACK_MAX))
+    console.print("  " + _track_bar("Supply", char.supply, TRACK_MAX))
     console.print()
 
     # Momentum — shows current, max (affected by debilities), reset value
