@@ -269,14 +269,13 @@ class TestHandleMove:
         self.state.vows = []
         self.state.oracles = {}
 
-    @patch("soloquest.commands.move.display.error")
-    def test_handle_move_no_args_shows_error(self, mock_error):
-        """handle_move with no args should show error."""
+    @patch("soloquest.commands.move.display.console")
+    def test_handle_move_no_args_lists_moves(self, mock_console):
+        """handle_move with no args should list all moves grouped by category."""
         handle_move(self.state, [], set())
 
-        mock_error.assert_called_once()
-        call_args = mock_error.call_args[0][0]
-        assert "Usage" in call_args
+        # Should have printed something (the category table)
+        mock_console.print.assert_called()
 
     @patch("soloquest.commands.move.display.error")
     def test_handle_move_not_found_shows_error(self, mock_error):
