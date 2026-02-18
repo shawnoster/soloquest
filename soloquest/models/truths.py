@@ -47,6 +47,7 @@ class ChosenTruth:
     custom_text: str = ""
     quest_starter: str = ""
     subchoice: str = ""
+    note: str = ""
 
     def to_dict(self) -> dict:
         """Serialize to dictionary for JSON storage."""
@@ -57,6 +58,7 @@ class ChosenTruth:
             "custom_text": self.custom_text,
             "quest_starter": self.quest_starter,
             "subchoice": self.subchoice,
+            "note": self.note,
         }
 
     @classmethod
@@ -69,6 +71,7 @@ class ChosenTruth:
             custom_text=data.get("custom_text", ""),
             quest_starter=data.get("quest_starter", ""),
             subchoice=data.get("subchoice", ""),
+            note=data.get("note", ""),
         )
 
     def display_text(self) -> str:
