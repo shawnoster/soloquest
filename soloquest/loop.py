@@ -282,10 +282,6 @@ def run_session(
                     from soloquest.commands.move import _handle_forsake_vow
 
                     _handle_forsake_vow(state)
-                case "config":
-                    from soloquest.config import get_adventures_dir
-
-                    display.info(f"  Adventures directory: {get_adventures_dir()}")
                 case "settings":
                     handle_settings(state, cmd.args, cmd.flags)
                 case "newsession":
