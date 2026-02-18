@@ -102,21 +102,19 @@ class TestOracleCommand:
     def setup_method(self):
         self.oracles = load_oracles(DATA_DIR)
 
-    def test_oracle_with_no_args_shows_error(self):
-        """Calling /oracle with no args should show usage error."""
+    def test_oracle_with_no_args_shows_list(self):
+        """Calling /oracle with no args should show the oracle table list."""
         from soloquest.loop import GameState
 
         mock_state = MagicMock(spec=GameState)
         mock_state.oracles = self.oracles
         mock_state.dice = MagicMock()
 
-        with patch("soloquest.commands.oracle.display.error") as mock_error:
+        with patch("soloquest.commands.oracle.display.console") as mock_console:
             handle_oracle(mock_state, args=[], flags=set())
 
-            # Should have shown error
-            mock_error.assert_called_once()
-            error_msg = mock_error.call_args[0][0]
-            assert "Usage" in error_msg or "oracle" in error_msg.lower()
+            # Should have printed the oracle list panel
+            mock_console.print.assert_called_once()
 
     def test_oracle_with_single_table(self):
         """Calling /oracle action should roll on action table."""

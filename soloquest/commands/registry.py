@@ -95,7 +95,7 @@ COMMAND_HELP: dict[str, str] = {
     "truths": "/truths [start|show] — choose campaign truths or view current truths",
     "next": "/next — advance to next phase (guided mode only)",
     "move": "/move [name] (alias: /m) — resolve a move (e.g. /move strike)",
-    "oracle": "/oracle [table] (alias: /o) — consult an oracle (e.g. /oracle action theme)",
+    "oracle": "/oracle [table] (alias: /o) — consult an oracle (e.g. /oracle action theme)  --table to view full table",
     "asset": "/asset [name] [+/-N | meter +/-N | condition] — view or update asset meters/conditions",
     "vow": "/vow [rank] [text] (alias: /v) — create a vow",
     "progress": "/progress [vow] (alias: /p) — mark progress on a vow",
