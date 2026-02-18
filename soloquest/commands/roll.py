@@ -60,7 +60,7 @@ def handle_roll(state: GameState, args: list[str], flags: set[str]) -> None:
     rolls_str = " + ".join(str(r) for r in rolls) if count > 1 else str(rolls[0])
     result_str = f"{rolls_str} = [bold]{total}[/bold]" if count > 1 else f"[bold]{rolls[0]}[/bold]"
 
-    display.console.print(f"  🎲 {count}d{sides}: {result_str}")
+    display.console.print(f"  [blue]└[/blue]  [dim]{count}d{sides}[/dim]  {result_str}")
     state.session.add_mechanical(
         f"Roll {count}d{sides}: {rolls_str}" + (f" = {total}" if count > 1 else "")
     )

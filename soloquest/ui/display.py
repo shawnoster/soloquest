@@ -111,8 +111,9 @@ def move_result_panel(
         lines.append("")
         lines.append(f"[dim]Momentum {mom_delta:+d}[/dim]")
 
-    body = "\n".join(lines)
-    console.print(Panel(body, title=f"[bold]{move_name.upper()}[/bold]", border_style="blue"))
+    console.print(f"  [blue]└[/blue]  [bold]{move_name.upper()}[/bold]")
+    for line in lines:
+        console.print(f"     {line}")
 
 
 def oracle_result_panel(table_name: str, roll: int, result: str) -> None:
