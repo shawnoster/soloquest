@@ -288,6 +288,8 @@ def run_session(
                     handle_newsession(state, cmd.args, cmd.flags)
                 case "end":
                     handle_end(state, cmd.args, cmd.flags)
+                case "clear":
+                    display.console.clear()
                 case "help":
                     handle_help(state, cmd.args, cmd.flags)
                 case "quit" | "q" | "exit":

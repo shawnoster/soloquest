@@ -114,6 +114,7 @@ COMMAND_HELP: dict[str, str] = {
     "settings": "/settings [dice digital|physical|mixed] — show config or change dice mode",
     "newsession": "/newsession — export current session and start a new one",
     "end": "/end — export session journal and exit",
+    "clear": "/clear — clear the screen",
     "help": "/help (alias: /h) — show help",
     "quit": "/quit (alias: /q) — save session and exit",
 }
