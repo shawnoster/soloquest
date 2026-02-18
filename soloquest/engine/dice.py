@@ -6,10 +6,9 @@ import random
 from enum import StrEnum
 from typing import Protocol
 
-from rich.console import Console
 from rich.prompt import Prompt
 
-console = Console()
+from soloquest.ui.console import console
 
 
 class DiceMode(StrEnum):
