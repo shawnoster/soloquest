@@ -340,7 +340,8 @@ class TestHandleCharNew:
 
         assert self.state.character == new_char
         assert self.state.vows == new_vows
-        assert self.state.session_count == 1
+        assert self.state.session_count == 0
+        assert self.state.session is None
         mock_save.assert_called_once()
         mock_success.assert_called_once()
 

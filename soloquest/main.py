@@ -57,15 +57,15 @@ def _new_game_flow(data_dir: Path):
 
 def _show_resume_context(character: Character, session: Session | None) -> None:
     """Show a compact welcome-back snapshot."""
-    char = character
     display.console.print(
-        f"  [bold]{char.name}[/bold]" + (f"  [dim]«{char.callsign}»[/dim]" if char.callsign else "")
+        f"  [bold]{character.name}[/bold]"
+        + (f"  [dim]«{character.callsign}»[/dim]" if character.callsign else "")
     )
     display.console.print(
-        f"  [dim]Health[/dim] {char.health}/5  "
-        f"[dim]Spirit[/dim] {char.spirit}/5  "
-        f"[dim]Supply[/dim] {char.supply}/5  "
-        f"[dim]Momentum[/dim] {char.momentum:+d}"
+        f"  [dim]Health[/dim] {character.health}/5  "
+        f"[dim]Spirit[/dim] {character.spirit}/5  "
+        f"[dim]Supply[/dim] {character.supply}/5  "
+        f"[dim]Momentum[/dim] {character.momentum:+d}"
     )
     display.console.print()
     if session and session.entries:

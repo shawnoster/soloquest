@@ -9,7 +9,6 @@ from rich.prompt import Confirm
 
 from soloquest.commands.new_character import run_new_character_flow
 from soloquest.engine.dice import DiceMode, make_dice_provider
-from soloquest.models.session import Session
 from soloquest.state.save import save_game
 from soloquest.ui import display
 
@@ -46,14 +45,15 @@ def _handle_char_new(state: GameState) -> None:
         return
 
     character, vows, dice_mode = result
-    # Update state in-place
+    # Update state in-place (session_count=0/session=None matches main.py new-game path;
+    # run_session will increment and create the first session on entry)
     state.character = character
     state.vows = vows
-    state.session_count = 1
-    state.session = Session(number=1)
+    state.session_count = 0
+    state.session = None
     state.dice_mode = dice_mode
     state.dice = make_dice_provider(dice_mode)
-    save_game(character, vows, 1, dice_mode)
+    save_game(character, vows, 0, dice_mode)
     display.success(f"New character created: {character.name}. Your journey begins!")
 
 
