@@ -211,9 +211,9 @@ class TestOracleCommand:
 
             calls = [c[0][0] for c in mock_console.print.call_args_list]
             assert any("why did he lie" in c for c in calls)
-            assert any("dim italic" in c for c in calls)
-            # Note console.print comes before oracle_result_panel
-            note_call_idx = next(i for i, c in enumerate(calls) if "dim italic" in c)
+            assert any("│" in c for c in calls)
+            # Note console.print (│) comes before oracle_result_panel
+            note_call_idx = next(i for i, c in enumerate(calls) if "│" in c)
             # panel was called after the note print
             assert note_call_idx == 0
             mock_panel.assert_called_once()

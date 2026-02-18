@@ -57,7 +57,7 @@ def handle_oracle(state: GameState, args: list[str], flags: set[str]) -> None:
     note = " ".join(note_parts)
 
     if note:
-        display.console.print(f"     [dim italic]{note}[/dim italic]")
+        display.console.print(f"  [bright_cyan]│[/bright_cyan]  [dim italic]{note}[/dim italic]")
         state.session.add_note(note)
 
     # Display all results in a single panel if multiple tables

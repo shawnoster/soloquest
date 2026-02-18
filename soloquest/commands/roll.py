@@ -63,7 +63,7 @@ def handle_roll(state: GameState, args: list[str], flags: set[str]) -> None:
     result_str = f"{rolls_str} = [bold]{total}[/bold]" if count > 1 else f"[bold]{rolls[0]}[/bold]"
 
     if note:
-        display.console.print(f"     [dim italic]{note}[/dim italic]")
+        display.console.print(f"  [blue]│[/blue]  [dim italic]{note}[/dim italic]")
     display.console.print(f"  [blue]└[/blue]  🎲 [dim]{count}d{sides}[/dim]  {result_str}")
 
     log_text = f"Roll {count}d{sides}: {rolls_str}" + (f" = {total}" if count > 1 else "")

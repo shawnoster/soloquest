@@ -89,14 +89,14 @@ class TestHandleRollNote:
 
     @patch("soloquest.commands.roll.display.console")
     def test_note_displayed_before_result(self, mock_console):
-        """Note is shown as dim italic before the dice result line."""
+        """Note is shown with a │ pipe above the └ result line."""
         handle_roll(self.state, ["d100", "inciting", "incident"], flags=set())
 
         calls = [c[0][0] for c in mock_console.print.call_args_list]
         assert any("inciting incident" in c for c in calls)
-        assert any("dim italic" in c for c in calls)
-        # Note line comes before the result line
-        note_idx = next(i for i, c in enumerate(calls) if "dim italic" in c)
+        assert any("│" in c for c in calls)
+        # Note line (│) comes before the result line (└)
+        note_idx = next(i for i, c in enumerate(calls) if "│" in c)
         result_idx = next(i for i, c in enumerate(calls) if "🎲" in c)
         assert note_idx < result_idx
 
