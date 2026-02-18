@@ -116,32 +116,21 @@ def move_result_panel(
 
 
 def oracle_result_panel(table_name: str, roll: int, result: str) -> None:
-    body = f"[dim]{roll}[/dim]  →  [bold]{result}[/bold]"
     console.print(
-        Panel(body, title=f"[bold]ORACLE: {table_name.upper()}[/bold]", border_style="bright_cyan")
+        f"  [bright_cyan]└[/bright_cyan]  [dim]{table_name.upper()}[/dim]"
+        f"  [dim]{roll}[/dim]  [dim]→[/dim]  [bold cyan]{result}[/bold cyan]"
     )
 
 
 def oracle_result_panel_combined(results: list) -> None:
-    """Display multiple oracle results in a single panel."""
-    # Build title with all table names on one line
-    table_names = " ".join(r.table_name.upper() for r in results)
-    title = f"[bold]ORACLE: {table_names}[/bold]"
-
-    # Calculate max table name width for alignment
+    """Display multiple oracle results, one per line."""
     max_name_width = max(len(r.table_name) for r in results)
-
-    # Build body with aligned columns
-    lines = []
     for r in results:
-        # Pad table name to align columns
-        padded_name = r.table_name.ljust(max_name_width)
-        lines.append(
-            f"[bold]{padded_name}[/bold]   [dim]{r.roll:3d}[/dim]  →  [bold]{r.result}[/bold]"
+        padded_name = r.table_name.upper().ljust(max_name_width)
+        console.print(
+            f"  [bright_cyan]└[/bright_cyan]  [dim]{padded_name}[/dim]"
+            f"  [dim]{r.roll:3d}[/dim]  [dim]→[/dim]  [bold cyan]{r.result}[/bold cyan]"
         )
-
-    body = "\n".join(lines)
-    console.print(Panel(body, title=title, border_style="bright_cyan"))
 
 
 def character_sheet(char: Character, vows: list[Vow], session_count: int) -> None:
