@@ -123,8 +123,7 @@ def _reset_dice_mode(dice) -> None:
 
 def handle_move(state: GameState, args: list[str], flags: set[str]) -> None:
     if not args:
-        display.error("Usage: /move [name]  (e.g. /move strike)")
-        display.info("  Filter by category: /move category:adventure")
+        _list_all_moves(state.moves)
         return
 
     query, category_filter, query_parts = _parse_move_args(args)
@@ -522,6 +521,17 @@ def _handle_forsake_vow(state: GameState) -> None:
     state.session.add_mechanical(
         f"Vow forsaken [{vow.rank.value}]: {vow.description} | Spirit -{cost} (now {new_spirit})"
     )
+
+
+def _list_all_moves(move_data: dict) -> None:
+    """List all moves grouped by category."""
+    categories: dict[str, list[str]] = {}
+    for key, move in move_data.items():
+        cat = move.get("category", "other")
+        categories.setdefault(cat, []).append(key)
+
+    for category in sorted(categories.keys()):
+        _display_category_moves(move_data, categories[category], category)
 
 
 def _display_category_moves(move_data: dict, keys: list[str], category: str) -> None:
