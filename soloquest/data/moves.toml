@@ -177,7 +177,7 @@ oracle_table = "pay_the_price"
 [ask_the_oracle]
 name = "Ask the Oracle"
 category = "fate"
-description = "When you seek to resolve questions, discover details in the world, determine how an NPC acts or responds, or trigger a discovery, you may roll the challenge dice and interpret the results. Use the Action and Theme oracles for open-ended questions."
+description = "When you seek to resolve questions, discover details in the world, determine how an NPC acts or responds, or trigger a discovery, choose the odds and roll your oracle die (d100). On a result within the range, the answer is **yes**. Otherwise, it is **no**. For open-ended answers, use the Action and Theme oracles."
 stat_options = []
 oracle_roll = true
 

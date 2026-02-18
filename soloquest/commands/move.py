@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 
 from rich.prompt import Confirm, Prompt
 
-from soloquest.engine.dice import MixedDice, roll_action_dice, roll_challenge_dice
+from soloquest.engine.dice import MixedDice, roll_action_dice, roll_challenge_dice, roll_oracle
 from soloquest.engine.moves import (
     MoveResult,
     OutcomeTier,
@@ -153,7 +153,7 @@ def _dispatch_move(state: GameState, move_key: str, move: dict, flags: set[str])
     """Route a move to the appropriate handler based on its type."""
     move_name = move["name"]
     if move.get("oracle_roll"):
-        _handle_ask_the_oracle(state, flags)
+        _handle_ask_the_oracle(state, flags, move)
     elif move.get("special") == "forsake":
         _handle_forsake_vow(state)
     elif move.get("progress_roll"):
@@ -468,19 +468,70 @@ def _handle_progress_roll(state: GameState, move_key: str, move: dict, flags: se
 # ── Special move handlers ──────────────────────────────────────────────────────
 
 
-def _handle_ask_the_oracle(state: GameState, flags: set[str]) -> None:
-    """Ask the Oracle — route to oracle lookup."""
-    display.info("  Ask the Oracle: roll on any oracle table.")
-    display.info("  Use /oracle [table] directly, or roll the challenge dice:")
-    dice_result = roll_challenge_dice(state.dice)
-    if dice_result is None:
+_ORACLE_ODDS: list[tuple[str, int]] = [
+    ("Almost Certain", 90),
+    ("Likely", 75),
+    ("50/50", 50),
+    ("Unlikely", 25),
+    ("Small Chance", 10),
+]
+
+
+def _handle_ask_the_oracle(state: GameState, flags: set[str], move: dict | None = None) -> None:
+    """Ask the Oracle — prompt for odds, roll d100, report yes/no."""
+    import re
+
+    from rich.console import Group
+    from rich.markdown import Markdown
+    from rich.panel import Panel
+    from rich.text import Text
+
+    category = move.get("category", "") if move else ""
+    category_display = category.replace("_", " ").title() if category else "Move"
+
+    description = ""
+    if move:
+        description = move.get("description", "")
+        description = re.sub(r"\[([^\]]+)\]\([^)]+\)", r"**\1**", description)
+
+    odds_text = Text("\nChoose the odds:\n", style="bold")
+    for i, (name, threshold) in enumerate(_ORACLE_ODDS, 1):
+        odds_text.append(f"  [{i}] {name}", style="")
+        odds_text.append(f"  (yes if ≤ {threshold})\n", style="dim")
+
+    content = Group(Markdown(description), odds_text) if description else odds_text
+    display.console.print(
+        Panel(
+            content,
+            title="[bold]Ask the Oracle[/bold]",
+            subtitle=f"[dim]{category_display}[/dim]",
+            border_style="cyan",
+        )
+    )
+
+    raw = Prompt.ask("  Odds")
+    try:
+        idx = int(raw.strip()) - 1
+        if not 0 <= idx < len(_ORACLE_ODDS):
+            raise ValueError
+    except ValueError:
+        display.error("  Invalid selection.")
+        return
+
+    odds_name, threshold = _ORACLE_ODDS[idx]
+
+    result = roll_oracle(state.dice)
+    if result is None:
         display.info("  Ask the Oracle cancelled.")
         return
-    c1, c2 = dice_result
-    total = c1 + c2
-    display.info(f"  Challenge dice: {c1} + {c2} = {total}")
-    display.info("  Interpret yes/no: 11+ likely yes, 6–10 maybe, 1–5 likely no")
-    state.session.add_mechanical(f"Ask the Oracle: challenge dice {c1}+{c2}={total}")
+
+    answer = "Yes" if result <= threshold else "No"
+    color = "green" if answer == "Yes" else "red"
+    display.console.print(
+        f"  Oracle roll: [bold]{result}[/bold]  —  [{color}][bold]{answer}[/bold][/{color}]"
+        f"  [dim]({odds_name}: yes if ≤ {threshold})[/dim]"
+    )
+    state.session.add_mechanical(f"Ask the Oracle ({odds_name}): rolled {result} → {answer}")
 
 
 def _handle_forsake_vow(state: GameState) -> None:
