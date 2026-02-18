@@ -18,9 +18,6 @@ from soloquest.ui import display
 if TYPE_CHECKING:
     from soloquest.loop import GameState
 
-# Constants
-PREVIEW_LENGTH = 200  # Characters to show in option preview
-
 
 def handle_truths(state: GameState, args: list[str], flags: set[str]) -> None:
     """Interactive wizard for choosing campaign truths.
@@ -97,8 +94,6 @@ def run_truths_wizard(truth_categories: dict[str, TruthCategory]) -> list[Chosen
                 f"  [bold cyan]Truth {idx} of {len(categories)}: {category.name.upper()}[/bold cyan]"
             )
             display.console.print()
-            display.console.print(f"  {category.description}")
-            display.console.print()
 
             # Show options
             for option_idx, option in enumerate(category.options, start=1):
@@ -106,11 +101,6 @@ def run_truths_wizard(truth_categories: dict[str, TruthCategory]) -> list[Chosen
                 display.console.print(
                     f"  [bold][{option_idx}][/bold] {option.summary} [dim]{roll_range}[/dim]"
                 )
-                display.console.print()
-                preview = option.text[:PREVIEW_LENGTH]
-                ellipsis = "..." if len(option.text) > PREVIEW_LENGTH else ""
-                display.console.print(f"      [dim]{preview}{ellipsis}[/dim]")
-                display.console.print()
 
             # Get user choice
             chosen_truth = _get_truth_choice(category)
@@ -194,6 +184,7 @@ def _get_subchoice(subchoices: list[str]) -> str:
     """
     while True:
         try:
+            display.console.print()
             choice = Prompt.ask(
                 f"  Choose (1-{len(subchoices)}), or roll (r)",
                 default="r",
@@ -255,6 +246,7 @@ def _get_truth_choice(category: TruthCategory) -> ChosenTruth | None:
     """Get the user's choice for a truth category."""
     while True:
         try:
+            display.console.print()
             choice = Prompt.ask(
                 "  Choose (1-3), roll (r), custom (c), or skip (s)",
                 default="r",
@@ -331,16 +323,17 @@ def _show_option_details(option: TruthOption) -> str:
     display.console.print(f"  [dim]{option.text}[/dim]")
     if option.quest_starter:
         display.console.print()
-        display.console.print("  [yellow]Quest Starter:[/yellow]")
+        display.console.print("  [bold cyan]Quest Starter:[/bold cyan]")
         display.console.print(f"  [dim]{option.quest_starter}[/dim]")
 
     chosen_subchoice = ""
     if option.subchoices:
         display.console.print()
-        display.console.print("  [yellow]Choose a subchoice:[/yellow]")
-        for idx, subchoice in enumerate(option.subchoices, start=1):
-            display.console.print(f"    [{idx}] {subchoice}")
+        display.console.print("  [bold cyan]Choose a subchoice:[/bold cyan]")
         display.console.print()
+        for idx, subchoice in enumerate(option.subchoices, start=1):
+            styled = re.sub(r"\[(\d+-\d+)\]", r"[dim][\1][/dim]", subchoice)
+            display.console.print(f"  [bold][{idx}][/bold] {styled}")
 
         chosen_subchoice = _get_subchoice(option.subchoices)
 
