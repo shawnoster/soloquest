@@ -56,6 +56,10 @@ def handle_oracle(state: GameState, args: list[str], flags: set[str]) -> None:
 
     note = " ".join(note_parts)
 
+    if note:
+        display.console.print(f"     [dim italic]{note}[/dim italic]")
+        state.session.add_note(note)
+
     # Display all results in a single panel if multiple tables
     if len(results) == 1:
         r = results[0]
@@ -63,12 +67,6 @@ def handle_oracle(state: GameState, args: list[str], flags: set[str]) -> None:
     elif len(results) > 1:
         display.oracle_result_panel_combined(results)
 
-    if note:
-        display.console.print(f"     [dim italic]{note}[/dim italic]")
-
     # Log each result separately
     for r in results:
-        log_text = f"Oracle [{r.table_name}] roll {r.roll} → {r.result}"
-        if note:
-            log_text += f" — {note}"
-        state.session.add_oracle(log_text)
+        state.session.add_oracle(f"Oracle [{r.table_name}] roll {r.roll} → {r.result}")
