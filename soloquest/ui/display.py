@@ -41,15 +41,22 @@ def render_game_text(text: str) -> str:
     return text
 
 
-def splash() -> None:
-    console.print()
-    console.print(
-        Panel(
-            "[bold white]SOLOQUEST[/bold white]\n[dim]Ironsworn: Starforged companion[/dim]",
-            border_style="blue",
-            padding=(1, 4),
+def splash(character: Character | None = None) -> None:
+    if character:
+        name_line = character.name
+        if character.callsign:
+            name_line += f"  [dim]«{character.callsign}»[/dim]"
+        stats_line = (
+            f"[dim]Health[/dim] {character.health}/5  "
+            f"[dim]Spirit[/dim] {character.spirit}/5  "
+            f"[dim]Supply[/dim] {character.supply}/5  "
+            f"[dim]Momentum[/dim] {character.momentum:+d}"
         )
-    )
+        content = f"[bold white]SOLOQUEST[/bold white]\n[dim]{name_line}[/dim]\n{stats_line}"
+    else:
+        content = "[bold white]SOLOQUEST[/bold white]"
+    console.print()
+    console.print(Panel(content, border_style="blue", padding=(1, 4)))
     console.print()
 
 
