@@ -45,7 +45,7 @@ def splash() -> None:
     console.print()
     console.print(
         Panel(
-            "[bold white]IRONSWORN: STARFORGED[/bold white]\n[dim]The Forge awaits.[/dim]",
+            "[bold white]SOLOQUEST[/bold white]\n[dim]Ironsworn: Starforged companion[/dim]",
             border_style="blue",
             padding=(1, 4),
         )
