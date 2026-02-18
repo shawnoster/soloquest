@@ -64,6 +64,7 @@ AUTOSAVE_AFTER = {
     "debility",
     "forsake",
     "truths",
+    "asset",
 }
 
 
