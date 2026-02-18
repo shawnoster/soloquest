@@ -132,7 +132,7 @@ class TestCharacter:
 
         # This should not raise an AttributeError
         try:
-            character_sheet(self.char, vows=[], session_count=1, dice_mode="digital")
+            character_sheet(self.char, vows=[], session_count=1)
             # If we get here without exception, the test passes
         except AttributeError as e:
             # If we get AttributeError about 'replace', the bug is present
@@ -151,7 +151,7 @@ class TestCharacter:
 
         # Should not crash
         try:
-            character_sheet(self.char, vows=[], session_count=1, dice_mode="digital")
+            character_sheet(self.char, vows=[], session_count=1)
         except Exception as e:
             raise AssertionError(f"Character sheet crashed with empty assets: {e}") from e
 
@@ -167,11 +167,92 @@ class TestCharacter:
 
         # Should not crash and should format the name correctly
         try:
-            character_sheet(self.char, vows=[], session_count=1, dice_mode="digital")
+            character_sheet(self.char, vows=[], session_count=1)
         except Exception as e:
             raise AssertionError(
                 f"Character sheet crashed with underscore in asset key: {e}"
             ) from e
+
+
+class TestCharacterNarrativeFields:
+    def test_supply_default_is_5(self):
+        char = Character(name="Test")
+        assert char.supply == 5
+
+    def test_new_fields_default_to_empty(self):
+        char = Character(name="Test")
+        assert char.pronouns == ""
+        assert char.callsign == ""
+        assert char.backstory == ""
+        assert char.look == ""
+        assert char.act == ""
+        assert char.wear == ""
+        assert char.gear == []
+
+    def test_new_fields_serialized_in_to_dict(self):
+        char = Character(
+            name="Kael",
+            pronouns="they/them",
+            callsign="Ghost",
+            backstory="Fled the war.",
+            look="Tall, scarred",
+            act="Calm under pressure",
+            wear="Worn flight jacket",
+            gear=["data pad", "lucky coin"],
+        )
+        data = char.to_dict()
+        assert data["pronouns"] == "they/them"
+        assert data["callsign"] == "Ghost"
+        assert data["backstory"] == "Fled the war."
+        assert data["look"] == "Tall, scarred"
+        assert data["act"] == "Calm under pressure"
+        assert data["wear"] == "Worn flight jacket"
+        assert data["gear"] == ["data pad", "lucky coin"]
+
+    def test_new_fields_roundtrip(self):
+        char = Character(
+            name="Kael",
+            pronouns="she/her",
+            callsign="Ace",
+            backstory="Origin story.",
+            look="Short hair",
+            act="Bold",
+            wear="Armour",
+            gear=["knife"],
+        )
+        restored = Character.from_dict(char.to_dict())
+        assert restored.pronouns == "she/her"
+        assert restored.callsign == "Ace"
+        assert restored.backstory == "Origin story."
+        assert restored.look == "Short hair"
+        assert restored.act == "Bold"
+        assert restored.wear == "Armour"
+        assert restored.gear == ["knife"]
+
+    def test_old_saves_load_with_empty_defaults(self):
+        """Existing saves without new fields load with empty/default values."""
+        old_data = {
+            "name": "OldChar",
+            "homeworld": "Sol",
+            "stats": {"edge": 2, "heart": 2, "iron": 1, "shadow": 2, "wits": 3},
+            "health": 5,
+            "spirit": 5,
+            "supply": 3,
+            "momentum": 2,
+            "debilities": [],
+            "assets": [],
+            "truths": [],
+        }
+        char = Character.from_dict(old_data)
+        assert char.pronouns == ""
+        assert char.callsign == ""
+        assert char.backstory == ""
+        assert char.look == ""
+        assert char.act == ""
+        assert char.wear == ""
+        assert char.gear == []
+        # Old supply value preserved (not overridden)
+        assert char.supply == 3
 
 
 class TestDebilities:

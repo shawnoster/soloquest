@@ -29,7 +29,6 @@ class TestHandleChar:
             self.state.character,
             self.state.vows,
             session_count=5,
-            dice_mode="digital",
         )
 
 

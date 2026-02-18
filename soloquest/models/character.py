@@ -59,7 +59,7 @@ class Character:
     # Tracks (0–5)
     health: int = 5
     spirit: int = 5
-    supply: int = 3
+    supply: int = 5
 
     # Momentum (-6 to +10, modified by debilities)
     momentum: int = 2
@@ -72,6 +72,15 @@ class Character:
 
     # Campaign truths — chosen during setup
     truths: list[ChosenTruth] = field(default_factory=list)
+
+    # Narrative / flavour fields (all optional)
+    pronouns: str = ""
+    callsign: str = ""
+    backstory: str = ""
+    look: str = ""
+    act: str = ""
+    wear: str = ""
+    gear: list[str] = field(default_factory=list)
 
     # ── Computed momentum bounds ────────────────────────────────────────────
     @property
@@ -138,6 +147,13 @@ class Character:
                 for a in self.assets
             ],
             "truths": [t.to_dict() for t in self.truths],
+            "pronouns": self.pronouns,
+            "callsign": self.callsign,
+            "backstory": self.backstory,
+            "look": self.look,
+            "act": self.act,
+            "wear": self.wear,
+            "gear": self.gear,
         }
 
     @classmethod
@@ -172,9 +188,16 @@ class Character:
             stats=stats,
             health=data.get("health", 5),
             spirit=data.get("spirit", 5),
-            supply=data.get("supply", 3),
+            supply=data.get("supply", 5),
             momentum=data.get("momentum", 2),
             debilities=set(data.get("debilities", [])),
             assets=assets,
             truths=truths,
+            pronouns=data.get("pronouns", ""),
+            callsign=data.get("callsign", ""),
+            backstory=data.get("backstory", ""),
+            look=data.get("look", ""),
+            act=data.get("act", ""),
+            wear=data.get("wear", ""),
+            gear=data.get("gear", []),
         )
