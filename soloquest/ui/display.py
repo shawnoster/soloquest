@@ -41,15 +41,29 @@ def render_game_text(text: str) -> str:
     return text
 
 
-def splash() -> None:
-    console.print()
-    console.print(
-        Panel(
-            "[bold white]SOLOQUEST[/bold white]\n[dim]Ironsworn: Starforged companion[/dim]",
-            border_style="blue",
-            padding=(1, 4),
+def splash(character: Character | None = None, vows: list[Vow] | None = None) -> None:
+    if character:
+        name_line = character.name
+        if character.callsign:
+            name_line += f"  [dim]«{character.callsign}»[/dim]"
+        stats_line = (
+            f"[dim]Health[/dim] {character.health}/5  "
+            f"[dim]Spirit[/dim] {character.spirit}/5  "
+            f"[dim]Supply[/dim] {character.supply}/5  "
+            f"[dim]Momentum[/dim] {character.momentum:+d}"
         )
-    )
+        content = f"[bold white]SOLOQUEST[/bold white]\n[dim]{name_line}[/dim]\n{stats_line}"
+        active_vows = [v for v in (vows or []) if not v.fulfilled]
+        if active_vows:
+            vow_lines = "\n".join(
+                f"[dim]◈ {v.description}  {v.rank.value} {v.progress_score}/10[/dim]"
+                for v in active_vows
+            )
+            content += f"\n\n{vow_lines}"
+    else:
+        content = "[bold white]SOLOQUEST[/bold white]"
+    console.print()
+    console.print(Panel(content, border_style="blue", padding=(1, 4)))
     console.print()
 
 

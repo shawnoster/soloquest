@@ -189,9 +189,10 @@ class TestHandleSettings:
         """handle_settings with no args should display current settings."""
         handle_settings(self.state, [], set())
 
-        # Should be called twice: once for dice mode, once for usage
-        assert mock_info.call_count == 2
+        # Should be called three times: adventures dir, dice mode, usage
+        assert mock_info.call_count == 3
         calls = [call[0][0] for call in mock_info.call_args_list]
+        assert any("Adventures directory" in call for call in calls)
         assert any("Dice mode: digital" in call for call in calls)
         assert any("Usage" in call for call in calls)
 

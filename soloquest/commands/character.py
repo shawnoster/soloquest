@@ -95,6 +95,9 @@ def handle_momentum(state: GameState, args: list[str], flags: set[str]) -> None:
 
 def handle_settings(state: GameState, args: list[str], flags: set[str]) -> None:
     if not args:
+        from soloquest.config import get_adventures_dir
+
+        display.info(f"  Adventures directory: {get_adventures_dir()}")
         display.info(f"  Dice mode: {state.dice_mode.value}")
         display.info("  Usage: /settings dice [digital|physical|mixed]")
         return

@@ -5,7 +5,6 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-from soloquest.models.character import Character
 from soloquest.models.session import Session
 from soloquest.state.save import list_saves, load_most_recent, save_game
 from soloquest.ui import display
@@ -55,25 +54,14 @@ def _new_game_flow(data_dir: Path):
     return run_new_character_flow(data_dir, truth_categories)
 
 
-def _show_resume_context(character: Character, session: Session | None) -> None:
-    """Show a compact welcome-back snapshot."""
-    display.console.print(
-        f"  [bold]{character.name}[/bold]"
-        + (f"  [dim]«{character.callsign}»[/dim]" if character.callsign else "")
-    )
-    display.console.print(
-        f"  [dim]Health[/dim] {character.health}/5  "
-        f"[dim]Spirit[/dim] {character.spirit}/5  "
-        f"[dim]Supply[/dim] {character.supply}/5  "
-        f"[dim]Momentum[/dim] {character.momentum:+d}"
-    )
-    display.console.print()
+def _show_resume_context(session: Session | None) -> None:
+    """Show recent session log on resume."""
     if session and session.entries:
         display.recent_log(session.entries, n=3)
 
 
 def main() -> None:
-    from soloquest.config import get_adventures_dir, set_adventures_dir
+    from soloquest.config import set_adventures_dir
 
     # Parse command-line arguments
     args = parse_args()
@@ -82,17 +70,11 @@ def main() -> None:
     if args.adventures_dir:
         set_adventures_dir(args.adventures_dir)
 
-    display.splash()
-
-    # Show adventures directory location
-    adventures_dir = get_adventures_dir()
-    display.console.print(f"  [dim]Adventures directory:[/dim] {adventures_dir}", markup=True)
-    display.console.print()
-
     data_dir = Path(__file__).parent / "data"
 
     # Determine startup path
     if args.new or not list_saves():
+        display.splash()
         if not list_saves():
             display.console.print("  [dim]No saves found. Let's build your world.[/dim]")
             display.console.print()
@@ -109,10 +91,12 @@ def main() -> None:
         # Auto-resume most recent save
         most_recent = load_most_recent()
         if most_recent is None:
+            display.splash()
             display.error("  Save file corrupted. Use --new to start fresh.")
             return
         character, vows, session_count, dice_mode, session = most_recent
-        _show_resume_context(character, session)
+        display.splash(character, vows)
+        _show_resume_context(session)
 
     # Start the session
     from soloquest.loop import run_session
