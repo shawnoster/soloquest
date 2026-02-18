@@ -377,18 +377,23 @@ class TestHandleMoveOracleRoll:
         }
         self.state.dice = MagicMock()
 
-    @patch("soloquest.commands.move.roll_challenge_dice")
+    @patch("soloquest.commands.move.roll_oracle")
+    @patch("soloquest.commands.move.Prompt.ask", return_value="3")
+    @patch("soloquest.commands.move.display.console")
     @patch("soloquest.commands.move.display.info")
-    def test_handle_ask_the_oracle_rolls_challenge_dice(self, mock_info, mock_roll):
-        """Ask the Oracle should roll challenge dice."""
-        mock_roll.return_value = (7, 4)
+    def test_handle_ask_the_oracle_rolls_d100(
+        self, mock_info, mock_console, mock_prompt, mock_roll
+    ):
+        """Ask the Oracle should roll d100 against chosen odds."""
+        mock_roll.return_value = 42
 
         handle_move(self.state, ["ask_the_oracle"], set())
 
         mock_roll.assert_called_once_with(self.state.dice)
-        # Should display the result
-        info_calls = [call[0][0] for call in mock_info.call_args_list]
-        assert any("Challenge dice" in call for call in info_calls)
+        # Should log result to session
+        entries = " ".join(e.text for e in self.state.session.entries)
+        assert "Ask the Oracle" in entries
+        assert "42" in entries
 
 
 class TestHandleMoveForsakeVow:
