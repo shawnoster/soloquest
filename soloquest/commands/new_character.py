@@ -1,4 +1,4 @@
-"""Full 11-step character creation wizard for Ironsworn: Starforged (p.103–112)."""
+"""Full 10-step character creation wizard for Ironsworn: Starforged (p.103–112)."""
 
 from __future__ import annotations
 
@@ -263,54 +263,50 @@ def _prompt_stats() -> Stats | None:
 
 
 def run_creation_wizard(data_dir: Path) -> tuple[Character, list[Vow], DiceMode] | None:
-    """Full 11-step character creation wizard (Starforged p.103–112).
+    """Full 10-step character creation wizard (Starforged p.103–112).
 
     Returns (Character, vows, dice_mode) on success, or None if cancelled.
     """
     display.rule("New Character")
     display.console.print()
+    display.console.print("  You begin with:")
+    display.console.print("    • [bold]2 path assets[/bold] (your background and training)")
+    display.console.print("    • [bold]STARSHIP[/bold] (auto-granted command vehicle)")
+    display.console.print(
+        "    • [bold]1 final asset[/bold] (path, module, companion, or support vehicle)"
+    )
+    display.console.print()
+    display.console.print(
+        "  [dim]Paths represent your background. Modules and companions come later.[/dim]"
+    )
+    display.console.print("  [dim]Press TAB at any asset prompt to browse options.[/dim]")
 
     try:
-        # ── Step 1: Ready assets (display only) ────────────────────────────
-        display.rule("Step 1 — Ready Your Assets")
-        display.console.print()
-        display.console.print("  You begin with:")
-        display.console.print("    • [bold]2 path assets[/bold] (your background and training)")
-        display.console.print("    • [bold]STARSHIP[/bold] (auto-granted command vehicle)")
-        display.console.print(
-            "    • [bold]1 final asset[/bold] (path, module, companion, or support vehicle)"
-        )
-        display.console.print()
-        display.console.print(
-            "  [dim]Paths represent your background. Modules and companions come later.[/dim]"
-        )
-        display.console.print("  [dim]Press TAB at any asset prompt to browse options.[/dim]")
-
         available_assets = load_assets(data_dir)
 
-        # ── Step 2: Choose 2 paths ──────────────────────────────────────────
-        display.rule("Step 2 — Choose 2 Paths")
+        # ── Step 1: Choose 2 paths ──────────────────────────────────────────
+        display.rule("Step 1 — Choose 2 Paths")
         path_assets = _prompt_paths(available_assets)
         if path_assets is None:
             display.console.print()
             return None
 
-        # ── Step 3: Backstory ───────────────────────────────────────────────
-        display.rule("Step 3 — Backstory")
+        # ── Step 2: Backstory ───────────────────────────────────────────────
+        display.rule("Step 2 — Backstory")
         display.console.print()
         _prompt_oracle_roll(BACKSTORY_TABLE, "Backstory")
         display.console.print()
         backstory = Prompt.ask("  Your backstory (or Enter to skip)", default="")
 
-        # ── Step 4: Background vow ──────────────────────────────────────────
-        display.rule("Step 4 — Background Vow")
+        # ── Step 3: Background vow ──────────────────────────────────────────
+        display.rule("Step 3 — Background Vow")
         display.console.print()
         display.info("  Every character begins with an Epic background vow.")
         bg_vow_text = Prompt.ask("  Your background vow")
         vows = [Vow(description=bg_vow_text, rank=VowRank.EPIC)]
 
-        # ── Step 5: STARSHIP ────────────────────────────────────────────────
-        display.rule("Step 5 — Board Your STARSHIP")
+        # ── Step 4: STARSHIP ────────────────────────────────────────────────
+        display.rule("Step 4 — Board Your STARSHIP")
         display.console.print()
         display.info("  Your STARSHIP is auto-granted as a command vehicle.")
         ship_name = Prompt.ask("  Name your starship", default="")
@@ -321,8 +317,8 @@ def run_creation_wizard(data_dir: Path) -> tuple[Character, list[Vow], DiceMode]
             input_values={"name": ship_name} if ship_name else {},
         )
 
-        # ── Step 6: Final asset ─────────────────────────────────────────────
-        display.rule("Step 6 — Choose Final Asset")
+        # ── Step 5: Final asset ─────────────────────────────────────────────
+        display.rule("Step 5 — Choose Final Asset")
         final_asset = _prompt_final_asset(available_assets)
         if final_asset is None:
             display.console.print()
@@ -330,15 +326,15 @@ def run_creation_wizard(data_dir: Path) -> tuple[Character, list[Vow], DiceMode]
 
         assets = path_assets + [starship_asset, final_asset]
 
-        # ── Step 7: Set stats ───────────────────────────────────────────────
-        display.rule("Step 7 — Set Stats")
+        # ── Step 6: Set stats ───────────────────────────────────────────────
+        display.rule("Step 6 — Set Stats")
         stats = _prompt_stats()
         if stats is None:
             display.console.print()
             return None
 
-        # ── Step 8: Condition meters (display only) ─────────────────────────
-        display.rule("Step 8 — Condition Meters")
+        # ── Step 7: Condition meters (display only) ─────────────────────────
+        display.rule("Step 7 — Condition Meters")
         display.console.print()
         display.console.print(
             Panel(
@@ -352,16 +348,16 @@ def run_creation_wizard(data_dir: Path) -> tuple[Character, list[Vow], DiceMode]
         )
         display.info("  These are set automatically.")
 
-        # ── Step 9: Envision your character ─────────────────────────────────
-        display.rule("Step 9 — Envision Your Character")
+        # ── Step 8: Envision your character ─────────────────────────────────
+        display.rule("Step 8 — Envision Your Character")
         display.console.print()
         display.info("  All fields optional — press Enter to skip.")
         look = Prompt.ask("  Look (appearance, one or two facts)", default="")
         act = Prompt.ask("  Act (how you behave)", default="")
         wear = Prompt.ask("  Wear (what you wear)", default="")
 
-        # ── Step 10: Name your character ────────────────────────────────────
-        display.rule("Step 10 — Name Your Character")
+        # ── Step 9: Name your character ────────────────────────────────────
+        display.rule("Step 9 — Name Your Character")
         display.console.print()
         name = Prompt.ask("  Character name (or 'back' to cancel)")
         if name.lower() in {"back", "cancel", "quit", "exit"}:
@@ -370,8 +366,8 @@ def run_creation_wizard(data_dir: Path) -> tuple[Character, list[Vow], DiceMode]
         callsign = Prompt.ask("  Callsign (optional)", default="")
         homeworld = Prompt.ask("  Homeworld or origin", default="")
 
-        # ── Step 11: Gear up ────────────────────────────────────────────────
-        display.rule("Step 11 — Gear Up")
+        # ── Step 10: Gear up ────────────────────────────────────────────────
+        display.rule("Step 10 — Gear Up")
         display.console.print()
         display.console.print(
             Panel(
