@@ -57,9 +57,7 @@ def handle_asset(state: GameState, args: list[str], _flags: set[str]) -> None:
     _handle_asset_mutation(state, char_asset, asset_def, remaining)
 
 
-def _find_char_asset(
-    state: GameState, query: str
-) -> tuple[CharacterAsset, Asset] | None:
+def _find_char_asset(state: GameState, query: str) -> tuple[CharacterAsset, Asset] | None:
     """Find a character-owned asset matching the query.
 
     Returns (CharacterAsset, Asset) on unique match, None if not found or ambiguous.
@@ -151,9 +149,7 @@ def _update_named_meter(
 
     if found is None:
         available = ", ".join(asset_def.tracks.keys()) or "none"
-        display.error(
-            f"No meter '{meter_name}' on {asset_def.name}. Available: {available}"
-        )
+        display.error(f"No meter '{meter_name}' on {asset_def.name}. Available: {available}")
         return
 
     min_val, max_val = asset_def.tracks[found]
@@ -162,7 +158,9 @@ def _update_named_meter(
 
     label = f"{asset_def.name} {found.title()}"
     display.mechanical_update(f"{label} {old_val} → {new_val} ({delta:+d})")
-    state.session.add_mechanical(f"[{asset_def.name}] {found.title()} {old_val} → {new_val} ({delta:+d})")
+    state.session.add_mechanical(
+        f"[{asset_def.name}] {found.title()} {old_val} → {new_val} ({delta:+d})"
+    )
 
 
 def _toggle_asset_condition(
