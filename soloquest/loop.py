@@ -382,12 +382,36 @@ def _poll_and_display(state: GameState, explicit: bool = False) -> None:
     events = state.sync.poll()
     if events:
         display.partner_activity(events)
-        # Track the latest partner interpretation for /accept
+        # Track relevant partner events for follow-up commands
         for event in events:
             if event.type == "interpret":
                 state.pending_partner_interpretation = event
+            elif event.type == "accept_truth" and event.player != state.sync.player_id:
+                # A partner accepted a truth we proposed — apply it to our character too
+                _apply_accepted_truth_to_character(state, event)
     elif explicit:
         display.info("  No new partner activity.")
+
+
+def _apply_accepted_truth_to_character(state: GameState, event: object) -> None:
+    """When a partner accepts a truth we proposed, apply it to our character."""
+    from soloquest.sync.models import Event
+
+    assert isinstance(event, Event)
+    cat = event.data.get("category", "")
+    summary = event.data.get("option_summary", "")
+    if not cat:
+        return
+
+    # Only apply if we don't already have this truth set
+    existing = [t for t in state.character.truths if t.category == cat]
+    if existing:
+        return
+
+    from soloquest.models.truths import ChosenTruth
+
+    truth = ChosenTruth(category=cat, option_summary=summary)
+    state.character.truths.append(truth)
 
 
 def _autosave_state(state: GameState) -> None:

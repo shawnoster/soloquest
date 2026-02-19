@@ -378,3 +378,83 @@ class TestHandleTruthAccept:
             _handle_truth_accept(state, ["cata"])  # partial match
 
         assert "Cataclysm" not in state.campaign.pending_truth_proposals
+
+
+# ---------------------------------------------------------------------------
+# Poll: accept_truth auto-applies to proposer's character
+# ---------------------------------------------------------------------------
+
+
+class TestPollAppliesAcceptedTruth:
+    def test_accept_truth_from_partner_applies_to_character(self):
+        """When a partner accepts our proposed truth via poll, apply it to character."""
+        from soloquest.loop import _poll_and_display
+        from soloquest.sync.models import Event
+
+        campaign = _make_campaign()
+        state = _make_state(campaign=campaign)
+        accept_event = Event(
+            player="Dax",  # partner accepted
+            type="accept_truth",
+            data={"category": "Cataclysm", "option_summary": "The Sun Plague"},
+        )
+        mock_sync = MagicMock()
+        mock_sync.player_id = "Kira"
+        mock_sync.poll.return_value = [accept_event]
+        state.sync = mock_sync
+
+        with patch("soloquest.loop.display"):
+            _poll_and_display(state, explicit=False)
+
+        assert len(state.character.truths) == 1
+        assert state.character.truths[0].option_summary == "The Sun Plague"
+
+    def test_accept_truth_from_self_not_applied_again(self):
+        """When we accept our own truth (shouldn't happen), don't double-apply."""
+        from soloquest.loop import _poll_and_display
+        from soloquest.sync.models import Event
+
+        campaign = _make_campaign()
+        state = _make_state(campaign=campaign)
+        # Self-accept event (edge case)
+        accept_event = Event(
+            player="Kira",  # same player as us
+            type="accept_truth",
+            data={"category": "Cataclysm", "option_summary": "The Sun Plague"},
+        )
+        mock_sync = MagicMock()
+        mock_sync.player_id = "Kira"
+        mock_sync.poll.return_value = [accept_event]
+        state.sync = mock_sync
+
+        with patch("soloquest.loop.display"):
+            _poll_and_display(state, explicit=False)
+
+        # Not applied (same player)
+        assert state.character.truths == []
+
+    def test_accept_truth_not_applied_if_already_have_it(self):
+        """If we already have a truth for this category, don't overwrite it."""
+        from soloquest.loop import _poll_and_display
+        from soloquest.models.truths import ChosenTruth
+        from soloquest.sync.models import Event
+
+        campaign = _make_campaign()
+        state = _make_state(campaign=campaign)
+        state.character.truths = [ChosenTruth(category="Cataclysm", option_summary="My Own Truth")]
+
+        accept_event = Event(
+            player="Dax",
+            type="accept_truth",
+            data={"category": "Cataclysm", "option_summary": "The Sun Plague"},
+        )
+        mock_sync = MagicMock()
+        mock_sync.player_id = "Kira"
+        mock_sync.poll.return_value = [accept_event]
+        state.sync = mock_sync
+
+        with patch("soloquest.loop.display"):
+            _poll_and_display(state, explicit=False)
+
+        # Still has original truth
+        assert state.character.truths[0].option_summary == "My Own Truth"
