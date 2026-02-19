@@ -32,6 +32,7 @@ class Vow:
     rank: VowRank
     ticks: int = 0
     fulfilled: bool = False
+    shared: bool = False  # True = campaign-level vow, visible to all players
 
     @property
     def progress_score(self) -> int:
@@ -53,12 +54,15 @@ class Vow:
         return self.ticks
 
     def to_dict(self) -> dict:
-        return {
+        d: dict = {
             "description": self.description,
             "rank": self.rank.value,
             "ticks": self.ticks,
             "fulfilled": self.fulfilled,
         }
+        if self.shared:
+            d["shared"] = True
+        return d
 
     @classmethod
     def from_dict(cls, data: dict) -> Vow:
@@ -73,6 +77,7 @@ class Vow:
             rank=rank,
             ticks=data.get("ticks", 0),
             fulfilled=data.get("fulfilled", False),
+            shared=data.get("shared", False),
         )
 
 

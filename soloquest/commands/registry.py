@@ -102,7 +102,7 @@ COMMAND_HELP: dict[str, str] = {
     "move": "/move [name] (alias: /m) — resolve a move (e.g. /move strike)",
     "oracle": "/oracle [table] (alias: /o) — consult an oracle (e.g. /oracle action theme)  --table to view full table",
     "asset": "/asset [name] [+/-N | meter +/-N | condition] — view or update asset meters/conditions",
-    "vow": "/vow [rank] [text] (alias: /v) — create a vow",
+    "vow": "/vow [rank] [text] (alias: /v) — create a vow  --shared to make it campaign-wide",
     "progress": "/progress [vow] (alias: /p) — mark progress on a vow",
     "fulfill": "/fulfill [vow] (alias: /f) — attempt to fulfill a vow",
     "char": "/char [new] (alias: /c) — show character sheet, or /char new to start over",

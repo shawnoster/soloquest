@@ -438,6 +438,17 @@ def partner_activity(events: list) -> None:
                 f"  [magenta]└[/magenta]  💬 [dim]interpretation:[/dim]  [italic]{text}[/italic]"
             )
             console.print("  [dim]    Type /accept to adopt this interpretation.[/dim]")
+        elif event.type == "shared_vow_created":
+            rank = event.data.get("rank", "?")
+            desc = event.data.get("description", "")
+            console.print(f"  [green]└[/green]  ⚔ [dim]shared vow sworn [{rank}]:[/dim]  {desc}")
+        elif event.type == "shared_vow_progress":
+            desc = event.data.get("description", "")
+            score = event.data.get("progress_score", 0)
+            console.print(
+                f"  [green]└[/green]  ⚔ [dim]shared vow progress:[/dim]  {desc}  "
+                f"[dim]→[/dim]  [bold]{score}/10[/bold]"
+            )
         else:
             # Generic fallback for unrecognised event types
             console.print(f"  [dim]  {event.type}: {event.data}[/dim]")
