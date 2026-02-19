@@ -78,9 +78,7 @@ class TestUpdatePrimaryMeter:
 
         handle_asset(state, ["starship", "-1"], set())
 
-        mech_entries = [
-            e for e in state.session.entries if e.kind == EntryKind.MECHANICAL
-        ]
+        mech_entries = [e for e in state.session.entries if e.kind == EntryKind.MECHANICAL]
         assert len(mech_entries) == 1
         assert "Integrity" in mech_entries[0].text
         assert "Starship" in mech_entries[0].text

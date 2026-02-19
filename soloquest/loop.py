@@ -228,9 +228,7 @@ def run_session(
                 from prompt_toolkit.formatted_text import HTML
 
                 line = prompt_session.prompt(
-                    HTML(
-                        "<ansibrightblue>▌</ansibrightblue>\n<ansibrightblue>▌</ansibrightblue> "
-                    )
+                    HTML("<ansibrightblue>▌</ansibrightblue>\n<ansibrightblue>▌</ansibrightblue> ")
                 )
         except (KeyboardInterrupt, EOFError):
             display.console.print()
