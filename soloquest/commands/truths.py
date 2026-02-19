@@ -24,17 +24,33 @@ def handle_truths(state: GameState, args: list[str], flags: set[str]) -> None:
     """Interactive wizard for choosing campaign truths.
 
     Usage:
-        /truths - Show current truths or start wizard if none set
-        /truths start - (Re)start the truth selection wizard
-        /truths show - Display current truths
-        /truths edit [category] - Edit a specific truth (future enhancement)
+        /truths              — show current truths or start wizard if none set
+        /truths start        — (re)start the truth selection wizard
+        /truths show         — display current truths
+        /truths propose [category]  — propose a truth for co-op approval
+        /truths review              — show pending truth proposals
+        /truths accept [category]   — accept a pending truth proposal
+        /truths counter [option]    — counter-propose a different option
     """
-    if args and args[0].lower() == "start":
+    sub = args[0].lower() if args else ""
+
+    if sub == "start":
         _start_truths_wizard(state)
         return
-
-    if args and args[0].lower() == "show":
+    if sub == "show":
         _show_truths(state)
+        return
+    if sub == "propose":
+        _handle_truth_propose(state, args[1:])
+        return
+    if sub == "review":
+        _handle_truth_review(state)
+        return
+    if sub == "accept":
+        _handle_truth_accept(state, args[1:])
+        return
+    if sub == "counter":
+        _handle_truth_counter(state, args[1:])
         return
 
     # Default behavior: show truths if set, otherwise start wizard
@@ -394,3 +410,232 @@ def _show_truths(state: GameState) -> None:
     display.console.print("  [dim]Commands:[/dim]")
     display.console.print("    [cyan]/truths start[/cyan] - Restart truth selection")
     display.console.print()
+
+
+# ---------------------------------------------------------------------------
+# Co-op truth consensus
+# ---------------------------------------------------------------------------
+
+
+def _handle_truth_propose(state: GameState, args: list[str]) -> None:
+    """Propose a truth for co-op approval (/truths propose [category])."""
+    from soloquest.models.campaign import TruthProposal
+
+    # Resolve category
+    categories = list(state.truth_categories.values())
+    category = None
+
+    if args:
+        query = " ".join(args).lower()
+        matches = [c for c in categories if query in c.name.lower()]
+        if not matches:
+            display.error(f"No truth category matching '{' '.join(args)}'.")
+            display.info("Use /truths review to see available categories.")
+            return
+        category = matches[0]
+    else:
+        # Let user pick
+        display.rule("Propose a Truth")
+        from soloquest.engine.truths import get_ordered_categories
+
+        ordered = get_ordered_categories(state.truth_categories)
+        for i, cat in enumerate(ordered, 1):
+            display.console.print(f"  [bold][{i}][/bold] {cat.name}")
+        display.console.print()
+        try:
+            from rich.prompt import Prompt
+
+            choice = Prompt.ask("  Choose category number")
+            if choice.isdigit():
+                idx = int(choice) - 1
+                if 0 <= idx < len(ordered):
+                    category = ordered[idx]
+        except (KeyboardInterrupt, EOFError):
+            display.console.print()
+            return
+
+    if category is None:
+        display.error("No category selected.")
+        return
+
+    # Pick an option for this category
+    display.rule(f"Propose: {category.name.upper()}")
+    display.console.print()
+    for i, opt in enumerate(category.options, 1):
+        display.console.print(f"  [bold][{i}][/bold] {opt.summary}")
+    display.console.print()
+
+    chosen_truth = _get_truth_choice(category)
+    if chosen_truth is None:
+        return
+
+    player = state.character.name
+
+    # Solo mode: auto-accept immediately
+    if state.campaign is None:
+        _apply_truth_to_character(state, chosen_truth)
+        display.success(f"Truth set: [{category.name}] {chosen_truth.option_summary}")
+        state.session.add_note(
+            f"Truth established [{category.name}]: {chosen_truth.option_summary}"
+        )
+        return
+
+    # Co-op mode: create proposal
+    from datetime import UTC, datetime
+
+    from soloquest.state.campaign import save_campaign
+    from soloquest.sync.models import Event
+
+    proposal = TruthProposal(
+        category=category.name,
+        option_summary=chosen_truth.option_summary,
+        custom_text=chosen_truth.custom_text,
+        proposer=player,
+        proposed_at=datetime.now(UTC).isoformat(),
+    )
+    state.campaign.pending_truth_proposals[category.name] = proposal
+    save_campaign(state.campaign, state.campaign_dir)
+
+    # Track for /truths counter
+    state.last_proposed_truth_category = category.name
+
+    state.sync.publish(
+        Event(
+            player=player,
+            type="propose_truth",
+            data={
+                "category": category.name,
+                "option_summary": chosen_truth.option_summary,
+                "custom_text": chosen_truth.custom_text,
+            },
+        )
+    )
+
+    display.success(f"Truth proposal submitted: [{category.name}] {chosen_truth.option_summary}")
+    display.info("  Waiting for partner to review and accept (/truths review, /truths accept).")
+
+
+def _handle_truth_review(state: GameState) -> None:
+    """Show pending truth proposals."""
+    if state.campaign is None:
+        display.info("  (Solo mode — truths are set immediately, no review needed.)")
+        return
+
+    pending = state.campaign.pending_truth_proposals
+    if not pending:
+        display.info("  No pending truth proposals.")
+        return
+
+    display.rule("Pending Truth Proposals")
+    display.console.print()
+    for cat, proposal in pending.items():
+        display.console.print(
+            f"  [bold cyan]{cat}[/bold cyan]  [dim]proposed by {proposal.proposer}[/dim]"
+        )
+        display.console.print(f"    {proposal.option_summary}")
+        if proposal.custom_text:
+            display.console.print(f"    [dim italic]{proposal.custom_text}[/dim italic]")
+        display.console.print()
+
+    display.info(
+        "  Use /truths accept [category] to accept, or /truths counter [option] to counter."
+    )
+
+
+def _handle_truth_accept(state: GameState, args: list[str]) -> None:
+    """Accept a pending truth proposal."""
+    if state.campaign is None:
+        display.info("  (Solo mode — truths are set immediately, no accept step needed.)")
+        return
+
+    pending = state.campaign.pending_truth_proposals
+    if not pending:
+        display.info("  No pending proposals to accept.")
+        return
+
+    # Resolve which proposal to accept
+    if args:
+        query = " ".join(args).lower()
+        matches = {cat: p for cat, p in pending.items() if query in cat.lower()}
+        if not matches:
+            display.error(f"No pending proposal for category matching '{' '.join(args)}'.")
+            return
+        cat = next(iter(matches))
+    elif len(pending) == 1:
+        cat = next(iter(pending))
+    else:
+        display.warn("Multiple pending proposals. Specify a category: /truths accept [category]")
+        for c in pending:
+            display.info(f"  • {c}")
+        return
+
+    proposal = pending.pop(cat)
+
+    # Build a ChosenTruth from the proposal and apply it
+    from soloquest.models.truths import ChosenTruth
+    from soloquest.state.campaign import save_campaign
+    from soloquest.sync.models import Event
+
+    chosen = ChosenTruth(
+        category=proposal.category,
+        option_summary=proposal.option_summary,
+        custom_text=proposal.custom_text,
+    )
+    _apply_truth_to_character(state, chosen)
+
+    # Also record in campaign.truths
+    state.campaign.truths = [t for t in state.campaign.truths if t.category != cat]
+    state.campaign.truths.append(chosen)
+    save_campaign(state.campaign, state.campaign_dir)
+
+    player = state.character.name
+    state.sync.publish(
+        Event(
+            player=player,
+            type="accept_truth",
+            data={"category": cat, "option_summary": proposal.option_summary},
+        )
+    )
+
+    state.session.add_note(f"Truth accepted [{cat}]: {proposal.option_summary}")
+    display.success(f"Truth accepted: [{cat}] {proposal.option_summary}")
+
+
+def _handle_truth_counter(state: GameState, args: list[str]) -> None:
+    """Counter-propose a different option for the last proposed category."""
+    if state.campaign is None:
+        display.info("  (Solo mode — use /truths propose to set truths directly.)")
+        return
+
+    # Determine category to counter
+    cat_name = None
+    if hasattr(state, "last_proposed_truth_category") and state.last_proposed_truth_category:
+        cat_name = state.last_proposed_truth_category
+    elif state.campaign.pending_truth_proposals:
+        if len(state.campaign.pending_truth_proposals) == 1:
+            cat_name = next(iter(state.campaign.pending_truth_proposals))
+        else:
+            display.warn(
+                "Multiple pending proposals. Use /truths propose [category] to counter-propose."
+            )
+            return
+
+    if cat_name is None:
+        display.warn("No pending truth proposal to counter. Use /truths propose [category] first.")
+        return
+
+    if cat_name not in state.truth_categories:
+        display.error(f"Truth category '{cat_name}' not found.")
+        return
+
+    # Treat as a new proposal for the same category
+    _handle_truth_propose(state, [cat_name])
+
+
+def _apply_truth_to_character(state: GameState, truth: object) -> None:
+    """Add or replace a ChosenTruth in character.truths."""
+    from soloquest.models.truths import ChosenTruth
+
+    assert isinstance(truth, ChosenTruth)
+    state.character.truths = [t for t in state.character.truths if t.category != truth.category]
+    state.character.truths.append(truth)

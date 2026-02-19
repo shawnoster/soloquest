@@ -95,6 +95,7 @@ class GameState:
     campaign_dir: Path | None = field(default=None, repr=False)
     last_oracle_event_id: str | None = field(default=None, repr=False)
     pending_partner_interpretation: object = field(default=None, repr=False)  # Event | None
+    last_proposed_truth_category: str | None = field(default=None, repr=False)
 
 
 def load_dataforged_moves() -> dict:

@@ -438,6 +438,17 @@ def partner_activity(events: list) -> None:
                 f"  [magenta]└[/magenta]  💬 [dim]interpretation:[/dim]  [italic]{text}[/italic]"
             )
             console.print("  [dim]    Type /accept to adopt this interpretation.[/dim]")
+        elif event.type == "propose_truth":
+            cat = event.data.get("category", "?")
+            summary = event.data.get("option_summary", "")
+            console.print(f"  [yellow]└[/yellow]  📜 [dim]truth proposal [{cat}]:[/dim]  {summary}")
+            console.print(
+                "  [dim]    Use /truths review to see details, /truths accept to agree.[/dim]"
+            )
+        elif event.type == "accept_truth":
+            cat = event.data.get("category", "?")
+            summary = event.data.get("option_summary", "")
+            console.print(f"  [yellow]└[/yellow]  📜 [dim]truth accepted [{cat}]:[/dim]  {summary}")
         elif event.type == "shared_vow_created":
             rank = event.data.get("rank", "?")
             desc = event.data.get("description", "")
