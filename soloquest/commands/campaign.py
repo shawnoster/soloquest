@@ -22,6 +22,7 @@ from soloquest.state.campaign import (
 from soloquest.state.save import save_game
 from soloquest.sync import FileLogAdapter, LocalAdapter
 from soloquest.ui import display
+from soloquest.ui.theme import BORDER_REFERENCE, COOP_TRUTH, HINT_COMMAND
 
 if TYPE_CHECKING:
     from soloquest.loop import GameState
@@ -328,10 +329,10 @@ def _handle_status(state: GameState) -> None:
     pending = state.campaign.pending_truth_proposals
     if pending:
         display.console.print()
-        display.console.print("  [bold yellow]Pending Truth Proposals:[/bold yellow]")
+        display.console.print(f"  [bold {COOP_TRUTH}]Pending Truth Proposals:[/bold {COOP_TRUTH}]")
         for cat, proposal in pending.items():
             display.console.print(
-                f"  [dim]•[/dim] [cyan]{cat}[/cyan]  "
+                f"  [dim]•[/dim] [{HINT_COMMAND}]{cat}[/{HINT_COMMAND}]  "
                 f"[dim]by {proposal.proposer}[/dim]  {proposal.option_summary}"
             )
         display.console.print(
@@ -358,10 +359,10 @@ def _show_no_campaign_help() -> None:
     content = (
         "[bold]Co-op Campaign Mode[/bold]\n\n"
         "You are currently playing solo. Start or join a campaign to play with others.\n\n"
-        "  [cyan]/campaign start[/cyan]   — begin your adventure (solo, create co-op, or join)\n"
-        "  [cyan]/campaign create[/cyan]  — create a new campaign (you become the first player)\n"
-        "  [cyan]/campaign join[/cyan]    — join an existing campaign\n\n"
+        f"  [{HINT_COMMAND}]/campaign start[/{HINT_COMMAND}]   — begin your adventure (solo, create co-op, or join)\n"
+        f"  [{HINT_COMMAND}]/campaign create[/{HINT_COMMAND}]  — create a new campaign (you become the first player)\n"
+        f"  [{HINT_COMMAND}]/campaign join[/{HINT_COMMAND}]    — join an existing campaign\n\n"
         "Campaign files are shared via a common directory (Dropbox, Syncthing, etc.).\n"
         "Each player keeps their own character save; events sync via JSONL log files."
     )
-    display.console.print(Panel(content, border_style="cyan", padding=(1, 2)))
+    display.console.print(Panel(content, border_style=BORDER_REFERENCE, padding=(1, 2)))

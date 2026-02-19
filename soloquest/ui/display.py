@@ -5,6 +5,7 @@ from __future__ import annotations
 import re
 from typing import TYPE_CHECKING
 
+from rich.markup import escape
 from rich.panel import Panel
 from rich.rule import Rule
 from rich.table import Table
@@ -14,17 +15,48 @@ from soloquest.models.character import DEBILITY_NAMES, TRACK_MAX, Character
 from soloquest.models.session import EntryKind, LogEntry
 from soloquest.models.vow import Vow
 from soloquest.ui.console import console
+from soloquest.ui.theme import (
+    BORDER_ACTION,
+    BORDER_ORACLE,
+    COOP_INTERPRET,
+    COOP_PLAYER,
+    COOP_TRUTH,
+    COOP_VOW,
+    FEEDBACK_ERROR,
+    FEEDBACK_INFO,
+    FEEDBACK_SUCCESS,
+    FEEDBACK_WARN,
+    MECHANIC_GUTTER,
+    MECHANIC_STAT,
+    MECHANIC_TRACK_HIGH,
+    MECHANIC_TRACK_LOW,
+    MECHANIC_TRACK_MID,
+    NARRATIVE_JOURNAL,
+    NARRATIVE_NOTE,
+    ORACLE_GUTTER,
+    ORACLE_RESULT,
+    OUTCOME_MATCH,
+    OUTCOME_MISS,
+    OUTCOME_STRONG,
+    OUTCOME_WEAK,
+    RANK_DANGEROUS,
+    RANK_EPIC,
+    RANK_EXTREME,
+    RANK_FORMIDABLE,
+    RANK_TROUBLESOME,
+    STRUCTURE_RULE,
+)
 
 if TYPE_CHECKING:
     from soloquest.models.asset import Asset, CharacterAsset
 
-# ── Palette ────────────────────────────────────────────────────────────────────
-STRONG = "bold green"
-WEAK = "bold yellow"
-MISS_COLOR = "bold red"
-MATCH_COLOR = "bold cyan"
+# Legacy aliases preserved for external uses
+STRONG = OUTCOME_STRONG
+WEAK = OUTCOME_WEAK
+MISS_COLOR = OUTCOME_MISS
+MATCH_COLOR = OUTCOME_MATCH
 MUTED = "dim"
-STAT_COLOR = "bold blue"
+STAT_COLOR = f"bold {MECHANIC_STAT}"
 HEADER = "bold white"
 
 
@@ -65,12 +97,12 @@ def splash(character: Character | None = None, vows: list[Vow] | None = None) ->
     else:
         content = "[bold white]SOLOQUEST[/bold white]"
     console.print()
-    console.print(Panel(content, border_style="blue", padding=(1, 4)))
+    console.print(Panel(content, border_style=BORDER_ACTION, padding=(1, 4)))
     console.print()
 
 
 def rule(title: str = "") -> None:
-    console.print(Rule(title, style="dim blue"))
+    console.print(Rule(title, style=STRUCTURE_RULE))
 
 
 def move_result_panel(
@@ -108,8 +140,8 @@ def move_result_panel(
             f" = [bold]{result.action_score}[/bold]"
         )
 
-    c1_style = "bold red" if not result.beats_c1 else "dim"
-    c2_style = "bold red" if not result.beats_c2 else "dim"
+    c1_style = f"bold {FEEDBACK_ERROR}" if not result.beats_c1 else "dim"
+    c2_style = f"bold {FEEDBACK_ERROR}" if not result.beats_c2 else "dim"
     lines.append(
         f"Challenge: [{c1_style}]{result.challenge_1}[/{c1_style}]"
         f"  [{c2_style}]{result.challenge_2}[/{c2_style}]"
@@ -127,15 +159,15 @@ def move_result_panel(
         lines.append("")
         lines.append(f"[dim]Momentum {mom_delta:+d}[/dim]")
 
-    console.print(f"  [blue]└[/blue]  [bold]{move_name.upper()}[/bold]")
+    console.print(f"  [{MECHANIC_GUTTER}]└[/{MECHANIC_GUTTER}]  [bold]{move_name.upper()}[/bold]")
     for line in lines:
         console.print(f"     {line}")
 
 
 def oracle_result_panel(table_name: str, roll: int, result: str) -> None:
     console.print(
-        f"  [bright_cyan]└[/bright_cyan]  🔮 [dim]{table_name.upper()}[/dim]"
-        f"  [dim]{roll}[/dim]  [dim]→[/dim]  [bold cyan]{result}[/bold cyan]"
+        f"  [{ORACLE_GUTTER}]└[/{ORACLE_GUTTER}]  🔮 [dim]{table_name.upper()}[/dim]"
+        f"  [dim]{roll}[/dim]  [dim]→[/dim]  [{ORACLE_RESULT}]{result}[/{ORACLE_RESULT}]"
     )
 
 
@@ -145,8 +177,8 @@ def oracle_result_panel_combined(results: list) -> None:
     for r in results:
         padded_name = r.table_name.upper().ljust(max_name_width)
         console.print(
-            f"  [bright_cyan]└[/bright_cyan]  🔮 [dim]{padded_name}[/dim]"
-            f"  [dim]{r.roll:3d}[/dim]  [dim]→[/dim]  [bold cyan]{r.result}[/bold cyan]"
+            f"  [{ORACLE_GUTTER}]└[/{ORACLE_GUTTER}]  🔮 [dim]{padded_name}[/dim]"
+            f"  [dim]{r.roll:3d}[/dim]  [dim]→[/dim]  [{ORACLE_RESULT}]{r.result}[/{ORACLE_RESULT}]"
         )
 
 
@@ -157,7 +189,7 @@ def oracle_table_view(table: object) -> None:
     assert isinstance(table, OracleTable)
     t = Table(show_header=True, header_style="bold", box=None, padding=(0, 1))
     t.add_column("Roll", style="dim", justify="right", no_wrap=True)
-    t.add_column("Result", style="bold cyan")
+    t.add_column("Result", style=ORACLE_RESULT)
 
     for low, high, text in table.results:
         roll_range = str(low) if low == high else f"{low}–{high}"
@@ -168,7 +200,7 @@ def oracle_table_view(table: object) -> None:
             t,
             title=f"[bold]🔮 {table.name}[/bold]",
             subtitle=f"[dim]{table.die}[/dim]",
-            border_style="cyan",
+            border_style=BORDER_ORACLE,
         )
     )
 
@@ -233,7 +265,7 @@ def character_sheet(
     mom_pos = mom_val + 6  # 0..16
     filled = "█" * mom_pos
     empty = "░" * (16 - mom_pos)
-    mom_color = "green" if mom_val >= 0 else "red"
+    mom_color = MECHANIC_TRACK_HIGH if mom_val >= 0 else MECHANIC_TRACK_LOW
     debility_note = f"  [dim](max {mom_max}, reset {mom_reset})[/dim]" if char.debilities else ""
     console.print(
         f"  Momentum  [{mom_color}]{filled}{empty}[/{mom_color}]"
@@ -245,7 +277,9 @@ def character_sheet(
     if char.debilities:
         active = sorted(char.debilities)
         inactive = [d for d in DEBILITY_NAMES if d not in char.debilities]
-        active_str = "  ".join(f"[bold red]{d.capitalize()}[/bold red]" for d in active)
+        active_str = "  ".join(
+            f"[bold {FEEDBACK_ERROR}]{d.capitalize()}[/bold {FEEDBACK_ERROR}]" for d in active
+        )
         inactive_str = "  ".join(f"[dim]{d.capitalize()}[/dim]" for d in inactive)
         rule("Debilities")
         console.print(f"  {active_str}")
@@ -306,7 +340,8 @@ def _asset_row(char_asset: CharacterAsset, asset_def: Asset | None) -> str:
     # Active conditions
     if char_asset.conditions:
         cond_str = "  ".join(
-            f"[bold red]{c.title()}[/bold red]" for c in sorted(char_asset.conditions)
+            f"[bold {FEEDBACK_ERROR}]{c.title()}[/bold {FEEDBACK_ERROR}]"
+            for c in sorted(char_asset.conditions)
         )
         parts.append(f"[{cond_str}]")
 
@@ -317,7 +352,11 @@ def make_track_bar(label: str, value: int, max_val: int) -> str:
     """Return a Rich-markup meter bar string (usable inline or printed directly)."""
     filled = "●" * value
     empty = "○" * (max_val - value)
-    color = "green" if value > max_val // 2 else ("yellow" if value > 0 else "red")
+    color = (
+        MECHANIC_TRACK_HIGH
+        if value > max_val // 2
+        else (MECHANIC_TRACK_MID if value > 0 else MECHANIC_TRACK_LOW)
+    )
     return f"{label:<8} [{color}]{filled}{empty}[/{color}]  [bold]{value}[/bold]/{max_val}"
 
 
@@ -340,11 +379,11 @@ def _vow_row(vow: Vow) -> None:
     bar = "".join(bar_parts)
 
     rank_color = {
-        "troublesome": "green",
-        "dangerous": "yellow",
-        "formidable": "orange3",
-        "extreme": "red",
-        "epic": "bold red",
+        "troublesome": RANK_TROUBLESOME,
+        "dangerous": RANK_DANGEROUS,
+        "formidable": RANK_FORMIDABLE,
+        "extreme": RANK_EXTREME,
+        "epic": f"bold {RANK_EPIC}",
     }.get(vow.rank.value, "white")
 
     console.print(
@@ -359,7 +398,7 @@ def debility_status(char: Character) -> None:
     if active:
         names = ", ".join(d.capitalize() for d in active)
         console.print(
-            f"  [dim]Active debilities:[/dim] [bold red]{names}[/bold red]"
+            f"  [dim]Active debilities:[/dim] [bold {FEEDBACK_ERROR}]{names}[/bold {FEEDBACK_ERROR}]"
             f"  [dim](momentum max {char.momentum_max}, reset {char.momentum_reset})[/dim]"
         )
     else:
@@ -373,28 +412,31 @@ def session_header(session_num: int, title: str) -> None:
     console.print()
 
 
-def log_entry(entry: LogEntry) -> None:
+def log_entry(entry: LogEntry, show_label: bool = False) -> None:
+    label = f"[dim]({entry.kind.value.title()})[/dim] " if show_label else ""
     match entry.kind:
         case EntryKind.JOURNAL:
-            console.print(f"[white]{entry.text}[/white]")
+            console.print(f"{label}[{NARRATIVE_JOURNAL}]{escape(entry.text)}[/{NARRATIVE_JOURNAL}]")
         case EntryKind.MOVE:
-            console.print(f"[dim blue]▸ {entry.text}[/dim blue]")
+            console.print(f"[dim {MECHANIC_GUTTER}]▸ {entry.text}[/dim {MECHANIC_GUTTER}]")
         case EntryKind.ORACLE:
-            console.print(f"[bright_cyan]◈ {entry.text}[/bright_cyan]")
+            console.print(f"{label}[{ORACLE_GUTTER}]◈ {escape(entry.text)}[/{ORACLE_GUTTER}]")
         case EntryKind.MECHANICAL:
             console.print(f"[dim italic]{entry.text}[/dim italic]")
         case EntryKind.NOTE:
-            console.print(f"[yellow]📌 {entry.text}[/yellow]")
+            console.print(f"{label}[{NARRATIVE_NOTE}]📌 {escape(entry.text)}[/{NARRATIVE_NOTE}]")
 
 
 def recent_log(entries: list[LogEntry], n: int = 5) -> None:
-    """Show last n journal/note entries for context."""
-    recent = [e for e in entries if e.kind in (EntryKind.JOURNAL, EntryKind.NOTE)][-n:]
+    """Show last n journal, note, and oracle entries for context."""
+    recent = [
+        e for e in entries if e.kind in (EntryKind.JOURNAL, EntryKind.NOTE, EntryKind.ORACLE)
+    ][-n:]
     if not recent:
         return
     rule("Recent Log")
     for entry in recent:
-        log_entry(entry)
+        log_entry(entry, show_label=True)
     console.print()
 
 
@@ -416,7 +458,7 @@ def partner_activity(events: list) -> None:
         assert isinstance(event, Event)
         if event.player != current_player:
             current_player = event.player
-            console.print(f"\n  [bold dim]── {event.player} ──[/bold dim]")
+            console.print(f"\n  [bold {COOP_PLAYER}]── {event.player} ──[/bold {COOP_PLAYER}]")
 
         if event.type == "oracle_roll":
             tables = event.data.get("tables", [])
@@ -424,40 +466,48 @@ def partner_activity(events: list) -> None:
             results = event.data.get("results", [])
             note = event.data.get("note")
             if note:
-                console.print(f"  [bright_cyan]│[/bright_cyan]  [dim italic]{note}[/dim italic]")
+                console.print(
+                    f"  [{ORACLE_GUTTER}]│[/{ORACLE_GUTTER}]  [dim italic]{note}[/dim italic]"
+                )
             max_w = max((len(t) for t in tables), default=0)
             for table, roll, result in zip(tables, rolls, results, strict=False):
                 padded = table.upper().ljust(max_w)
                 console.print(
-                    f"  [bright_cyan]└[/bright_cyan]  🔮 [dim]{padded}[/dim]"
-                    f"  [dim]{roll:3d}[/dim]  [dim]→[/dim]  [bold cyan]{result}[/bold cyan]"
+                    f"  [{ORACLE_GUTTER}]└[/{ORACLE_GUTTER}]  🔮 [dim]{padded}[/dim]"
+                    f"  [dim]{roll:3d}[/dim]  [dim]→[/dim]  [{ORACLE_RESULT}]{result}[/{ORACLE_RESULT}]"
                 )
         elif event.type == "interpret":
             text = event.data.get("text", "")
             console.print(
-                f"  [magenta]└[/magenta]  💬 [dim]interpretation:[/dim]  [italic]{text}[/italic]"
+                f"  [{COOP_INTERPRET}]└[/{COOP_INTERPRET}]  💬 [dim]interpretation:[/dim]  [italic]{text}[/italic]"
             )
             console.print("  [dim]    Type /accept to adopt this interpretation.[/dim]")
         elif event.type == "propose_truth":
             cat = event.data.get("category", "?")
             summary = event.data.get("option_summary", "")
-            console.print(f"  [yellow]└[/yellow]  📜 [dim]truth proposal [{cat}]:[/dim]  {summary}")
+            console.print(
+                f"  [{COOP_TRUTH}]└[/{COOP_TRUTH}]  📜 [dim]truth proposal [{cat}]:[/dim]  {summary}"
+            )
             console.print(
                 "  [dim]    Use /truths review to see details, /truths accept to agree.[/dim]"
             )
         elif event.type == "accept_truth":
             cat = event.data.get("category", "?")
             summary = event.data.get("option_summary", "")
-            console.print(f"  [yellow]└[/yellow]  📜 [dim]truth accepted [{cat}]:[/dim]  {summary}")
+            console.print(
+                f"  [{COOP_TRUTH}]└[/{COOP_TRUTH}]  📜 [dim]truth accepted [{cat}]:[/dim]  {summary}"
+            )
         elif event.type == "shared_vow_created":
             rank = event.data.get("rank", "?")
             desc = event.data.get("description", "")
-            console.print(f"  [green]└[/green]  ⚔ [dim]shared vow sworn [{rank}]:[/dim]  {desc}")
+            console.print(
+                f"  [{COOP_VOW}]└[/{COOP_VOW}]  ⚔ [dim]shared vow sworn [{rank}]:[/dim]  {desc}"
+            )
         elif event.type == "shared_vow_progress":
             desc = event.data.get("description", "")
             score = event.data.get("progress_score", 0)
             console.print(
-                f"  [green]└[/green]  ⚔ [dim]shared vow progress:[/dim]  {desc}  "
+                f"  [{COOP_VOW}]└[/{COOP_VOW}]  ⚔ [dim]shared vow progress:[/dim]  {desc}  "
                 f"[dim]→[/dim]  [bold]{score}/10[/bold]"
             )
         else:
@@ -474,16 +524,16 @@ def autosaved() -> None:
 
 
 def error(text: str) -> None:
-    console.print(f"[bold red]✗ {text}[/bold red]")
+    console.print(f"[bold {FEEDBACK_ERROR}]✗ {text}[/bold {FEEDBACK_ERROR}]")
 
 
 def warn(text: str) -> None:
-    console.print(f"[yellow]⚠ {text}[/yellow]")
+    console.print(f"[{FEEDBACK_WARN}]⚠ {text}[/{FEEDBACK_WARN}]")
 
 
 def success(text: str) -> None:
-    console.print(f"[green]✓ {text}[/green]")
+    console.print(f"[{FEEDBACK_SUCCESS}]✓ {text}[/{FEEDBACK_SUCCESS}]")
 
 
 def info(text: str) -> None:
-    console.print(f"[dim]{text}[/dim]")
+    console.print(f"[{FEEDBACK_INFO}]{text}[/{FEEDBACK_INFO}]")

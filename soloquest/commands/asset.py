@@ -10,6 +10,7 @@ from rich.panel import Panel
 from soloquest.engine.assets import fuzzy_match_asset
 from soloquest.models.asset import Asset, CharacterAsset
 from soloquest.ui import display
+from soloquest.ui.theme import BORDER_ASSET, FEEDBACK_ERROR
 
 if TYPE_CHECKING:
     from soloquest.loop import GameState
@@ -228,7 +229,8 @@ def _display_char_asset_details(char_asset: CharacterAsset, asset_def: Asset) ->
     if char_asset.conditions:
         lines.append("")
         cond_str = "  ".join(
-            f"[bold red]{c.title()}[/bold red]" for c in sorted(char_asset.conditions)
+            f"[bold {FEEDBACK_ERROR}]{c.title()}[/bold {FEEDBACK_ERROR}]"
+            for c in sorted(char_asset.conditions)
         )
         lines.append(f"[bold]Conditions:[/bold]  {cond_str}")
 
@@ -246,7 +248,7 @@ def _display_char_asset_details(char_asset: CharacterAsset, asset_def: Asset) ->
         Panel(
             body,
             title=f"[bold]{asset_def.name.upper()}[/bold]",
-            border_style="bright_magenta",
+            border_style=BORDER_ASSET,
         )
     )
 
@@ -285,5 +287,5 @@ def _display_asset_details(asset: Asset) -> None:
 
     body = "\n".join(lines)
     display.console.print(
-        Panel(body, title=f"[bold]{asset.name.upper()}[/bold]", border_style="bright_magenta")
+        Panel(body, title=f"[bold]{asset.name.upper()}[/bold]", border_style=BORDER_ASSET)
     )

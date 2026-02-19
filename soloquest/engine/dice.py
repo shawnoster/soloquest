@@ -9,6 +9,7 @@ from typing import Protocol
 from rich.prompt import Prompt
 
 from soloquest.ui.console import console
+from soloquest.ui.theme import FEEDBACK_WARN
 
 
 class DiceMode(StrEnum):
@@ -58,9 +59,11 @@ class PhysicalDice:
                     value = int(raw.strip())
                     if low <= value <= high:
                         return value
-                    console.print(f"  [yellow]⚠ Enter a number between {low} and {high}.[/yellow]")
+                    console.print(
+                        f"  [{FEEDBACK_WARN}]⚠ Enter a number between {low} and {high}.[/{FEEDBACK_WARN}]"
+                    )
                 except ValueError:
-                    console.print("  [yellow]⚠ Please enter a number.[/yellow]")
+                    console.print(f"  [{FEEDBACK_WARN}]⚠ Please enter a number.[/{FEEDBACK_WARN}]")
             except (KeyboardInterrupt, EOFError):
                 console.print()
                 return None

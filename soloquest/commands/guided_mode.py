@@ -8,6 +8,7 @@ from prompt_toolkit.formatted_text import HTML
 from rich.prompt import Confirm
 
 from soloquest.ui import display
+from soloquest.ui.theme import FEEDBACK_SUCCESS, HINT_COMMAND, MECHANIC_GUTTER, ORACLE_GUTTER
 
 if TYPE_CHECKING:
     from soloquest.loop import GameState
@@ -20,15 +21,17 @@ def start_guided_mode(state: GameState) -> None:
 
     display.rule("Guided Mode Started")
     display.console.print()
-    display.console.print("  [bold green]Welcome to Guided Mode![/bold green]")
+    display.console.print(f"  [{FEEDBACK_SUCCESS}]Welcome to Guided Mode![/{FEEDBACK_SUCCESS}]")
     display.console.print()
     display.console.print("  I'll walk you through the game loop step by step.")
-    display.console.print("  Your current phase will show in the prompt: [cyan][ENVISION] >[/cyan]")
+    display.console.print(
+        f"  Your current phase will show in the prompt: [{HINT_COMMAND}][[ENVISION]] >[/{HINT_COMMAND}]"
+    )
     display.console.print()
     display.console.print("  [dim]Commands in guided mode:[/dim]")
-    display.console.print("    [cyan]/guide stop[/cyan] - Exit guided mode")
-    display.console.print("    [cyan]/next[/cyan] - Advance to next phase")
-    display.console.print("    [cyan]/help[/cyan] - Show available commands")
+    display.console.print(f"    [{HINT_COMMAND}]/guide stop[/{HINT_COMMAND}] - Exit guided mode")
+    display.console.print(f"    [{HINT_COMMAND}]/next[/{HINT_COMMAND}] - Advance to next phase")
+    display.console.print(f"    [{HINT_COMMAND}]/help[/{HINT_COMMAND}] - Show available commands")
     display.console.print()
     display.console.print("  " + "-" * 76)
     display.console.print()
@@ -113,7 +116,7 @@ def _show_phase_help(state: GameState) -> None:
     phase = state.guided_phase
 
     if phase == "envision":
-        display.console.print("  [bold cyan]PHASE: ENVISION[/bold cyan]")
+        display.console.print(f"  [bold {HINT_COMMAND}]PHASE: ENVISION[/bold {HINT_COMMAND}]")
         display.console.print()
         display.console.print("  [bold]What to do:[/bold]")
         display.console.print("    • Describe what your character is doing")
@@ -124,46 +127,54 @@ def _show_phase_help(state: GameState) -> None:
         display.console.print("  [dim]> I approach the derelict station cautiously...[/dim]")
         display.console.print()
         display.console.print(
-            "  [dim]When done, type [cyan]/next[/cyan] to move to ORACLE phase[/dim]"
+            f"  [dim]When done, type [{HINT_COMMAND}]/next[/{HINT_COMMAND}] to move to ORACLE phase[/dim]"
         )
         display.console.print()
 
     elif phase == "oracle":
-        display.console.print("  [bold magenta]PHASE: ORACLE[/bold magenta]")
+        display.console.print(f"  [bold {ORACLE_GUTTER}]PHASE: ORACLE[/bold {ORACLE_GUTTER}]")
         display.console.print()
         display.console.print("  [bold]What to do:[/bold]")
         display.console.print("    • Ask questions about uncertain details")
-        display.console.print("    • Use [cyan]/oracle [table][/cyan] to get answers")
+        display.console.print(
+            f"    • Use [{HINT_COMMAND}]/oracle [[table]][/{HINT_COMMAND}] to get answers"
+        )
         display.console.print("    • Common oracles: action theme, descriptor, character")
         display.console.print()
         display.console.print("  [dim]Example:[/dim]")
         display.console.print("  [dim]> /oracle action theme[/dim]")
         display.console.print()
         display.console.print(
-            "  [dim]When done, type [cyan]/next[/cyan] to move to MOVE phase[/dim]"
+            f"  [dim]When done, type [{HINT_COMMAND}]/next[/{HINT_COMMAND}] to move to MOVE phase[/dim]"
         )
         display.console.print()
-        display.console.print("  [dim]Or type [cyan]/next[/cyan] now to skip if no questions[/dim]")
+        display.console.print(
+            f"  [dim]Or type [{HINT_COMMAND}]/next[/{HINT_COMMAND}] now to skip if no questions[/dim]"
+        )
         display.console.print()
 
     elif phase == "move":
-        display.console.print("  [bold yellow]PHASE: MOVE[/bold yellow]")
+        display.console.print(f"  [bold {MECHANIC_GUTTER}]PHASE: MOVE[/bold {MECHANIC_GUTTER}]")
         display.console.print()
         display.console.print("  [bold]What to do:[/bold]")
         display.console.print("    • Make a move when taking risky action")
-        display.console.print("    • Use [cyan]/move [name][/cyan] to resolve")
+        display.console.print(
+            f"    • Use [{HINT_COMMAND}]/move [[name]][/{HINT_COMMAND}] to resolve"
+        )
         display.console.print("    • Common moves: face danger, strike, gather information")
         display.console.print()
         display.console.print("  [dim]Example:[/dim]")
         display.console.print("  [dim]> /move face danger[/dim]")
         display.console.print()
         display.console.print(
-            "  [dim]After your move, type [cyan]/next[/cyan] to move to OUTCOME phase[/dim]"
+            f"  [dim]After your move, type [{HINT_COMMAND}]/next[/{HINT_COMMAND}] to move to OUTCOME phase[/dim]"
         )
         display.console.print()
 
     elif phase == "outcome":
-        display.console.print("  [bold green]PHASE: OUTCOME[/bold green]")
+        display.console.print(
+            f"  [bold {FEEDBACK_SUCCESS}]PHASE: OUTCOME[/bold {FEEDBACK_SUCCESS}]"
+        )
         display.console.print()
         display.console.print("  [bold]What to do:[/bold]")
         display.console.print("    • Describe what happens based on your result")
@@ -175,7 +186,7 @@ def _show_phase_help(state: GameState) -> None:
         display.console.print("  [dim]> I succeed but alert the security systems...[/dim]")
         display.console.print()
         display.console.print(
-            "  [dim]When done, type [cyan]/next[/cyan] to return to ENVISION[/dim]"
+            f"  [dim]When done, type [{HINT_COMMAND}]/next[/{HINT_COMMAND}] to return to ENVISION[/dim]"
         )
         display.console.print()
 

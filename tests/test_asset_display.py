@@ -11,6 +11,7 @@ from soloquest.commands.asset import _display_asset_details, handle_asset
 from soloquest.engine.assets import load_assets
 from soloquest.models.asset import Asset, AssetAbility
 from soloquest.ui.display import render_game_text
+from soloquest.ui.theme import BORDER_ASSET
 
 DATA_DIR = Path(__file__).parent.parent / "soloquest" / "data"
 
@@ -44,7 +45,7 @@ class TestAssetDisplay:
 
             # Verify it's a Panel with correct styling
             assert hasattr(panel_arg, "border_style")
-            assert panel_arg.border_style == "bright_magenta"
+            assert panel_arg.border_style == BORDER_ASSET
             assert "TEST ASSET" in str(panel_arg.title)
 
     def test_display_asset_with_no_abilities(self):
