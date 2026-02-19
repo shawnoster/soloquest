@@ -192,15 +192,15 @@ def handle_oracle(state: GameState, args: list[str], flags: set[str]) -> None:
         )
 
     # Publish to the sync layer (no-op for LocalAdapter, written to JSONL for FileLogAdapter)
-    state.sync.publish(
-        Event(
-            player=player,
-            type="oracle_roll",
-            data={
-                "tables": [r.table_name for r in results],
-                "rolls": [r.roll for r in results],
-                "results": [r.result for r in results],
-                **({"note": note} if note else {}),
-            },
-        )
+    oracle_event = Event(
+        player=player,
+        type="oracle_roll",
+        data={
+            "tables": [r.table_name for r in results],
+            "rolls": [r.roll for r in results],
+            "results": [r.result for r in results],
+            **({"note": note} if note else {}),
+        },
     )
+    state.sync.publish(oracle_event)
+    state.last_oracle_event_id = oracle_event.id
