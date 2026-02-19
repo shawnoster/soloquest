@@ -20,6 +20,7 @@ from soloquest.commands.completion import CommandCompleter
 from soloquest.commands.debility import handle_debility
 from soloquest.commands.guide import handle_guide
 from soloquest.commands.guided_mode import advance_phase, stop_guided_mode
+from soloquest.commands.interpret import handle_accept, handle_interpret
 from soloquest.commands.move import handle_move
 from soloquest.commands.oracle import handle_oracle
 from soloquest.commands.registry import COMMAND_HELP, parse_command
@@ -92,6 +93,8 @@ class GameState:
     sync: SyncPort = field(default_factory=lambda: LocalAdapter("solo"), repr=False)
     campaign: CampaignState | None = field(default=None, repr=False)
     campaign_dir: Path | None = field(default=None, repr=False)
+    last_oracle_event_id: str | None = field(default=None, repr=False)
+    pending_partner_interpretation: object = field(default=None, repr=False)  # Event | None
 
 
 def load_dataforged_moves() -> dict:
@@ -316,6 +319,10 @@ def run_session(
                     display.console.clear()
                 case "help":
                     handle_help(state, cmd.args, cmd.flags)
+                case "interpret":
+                    handle_interpret(state, cmd.args, cmd.flags)
+                case "accept":
+                    handle_accept(state, cmd.args, cmd.flags)
                 case "sync":
                     _poll_and_display(state, explicit=True)
                     continue  # no autosave needed
@@ -374,6 +381,10 @@ def _poll_and_display(state: GameState, explicit: bool = False) -> None:
     events = state.sync.poll()
     if events:
         display.partner_activity(events)
+        # Track the latest partner interpretation for /accept
+        for event in events:
+            if event.type == "interpret":
+                state.pending_partner_interpretation = event
     elif explicit:
         display.info("  No new partner activity.")
 

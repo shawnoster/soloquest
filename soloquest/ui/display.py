@@ -432,6 +432,12 @@ def partner_activity(events: list) -> None:
                     f"  [bright_cyan]└[/bright_cyan]  🔮 [dim]{padded}[/dim]"
                     f"  [dim]{roll:3d}[/dim]  [dim]→[/dim]  [bold cyan]{result}[/bold cyan]"
                 )
+        elif event.type == "interpret":
+            text = event.data.get("text", "")
+            console.print(
+                f"  [magenta]└[/magenta]  💬 [dim]interpretation:[/dim]  [italic]{text}[/italic]"
+            )
+            console.print("  [dim]    Type /accept to adopt this interpretation.[/dim]")
         else:
             # Generic fallback for unrecognised event types
             console.print(f"  [dim]  {event.type}: {event.data}[/dim]")
