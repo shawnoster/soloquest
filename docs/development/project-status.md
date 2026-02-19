@@ -1,7 +1,7 @@
 # Project Status
 
-**Last Updated:** 2026-02-15
-**Current Version:** 1.4.0
+**Last Updated:** 2026-02-18
+**Current Version:** 2.11.3
 **Phase:** Post-POC, Active Development
 
 ---
@@ -28,16 +28,10 @@ Soloquest is a **functionally complete** CLI companion for playing Ironsworn: St
 
 ### Recent Releases
 
-**1.4.0** (2026-02-15)
-- Added justfile for cross-platform development
-- Fixed character display and fuzzy matching improvements
-- Added cancel/exit capability to all interactive prompts
-
-**1.3.0**
-- Enhanced interactive prompt handling
-
-**1.2.0**
-- Character and asset display improvements
+**2.11.3** (2026-02-18)
+- Moved guide prose to TOML data file
+- Applied ruff formatting, added AGENTS.md
+- Moved character creation tables to TOML data file
 
 See [CHANGELOG.md](../../CHANGELOG.md) for complete history.
 
@@ -45,7 +39,7 @@ See [CHANGELOG.md](../../CHANGELOG.md) for complete history.
 
 ## Test Coverage
 
-**160+ tests passing** with good coverage:
+**597 tests passing** with good coverage:
 
 | Module | Coverage | Notes |
 |--------|----------|-------|
@@ -57,7 +51,7 @@ See [CHANGELOG.md](../../CHANGELOG.md) for complete history.
 | `engine/dice.py` | 83% | Dice modes |
 | `state/save.py` | 67% | Save/load (partial) |
 | `commands/*` | Variable | Interactive, tested via integration |
-| Overall | ~27% | Expected due to interactive UI code |
+| Overall | ~67% | Expected due to interactive UI code |
 
 ---
 
@@ -96,17 +90,34 @@ See [ADR-001](../adr/001-repo-workflow-and-conventions.md) for architectural dec
 
 ## Active Development
 
-### Current Focus
+### Current Focus: Co-op Play ([#79](https://github.com/shawnoster/soloquest/issues/79))
 
-Check [GitHub Issues](https://github.com/yourusername/soloquest/issues) for active work.
+Designing two-player cooperative play using a hexagonal architecture (port/adapter pattern) so the sync mechanism is swappable without touching game logic. Single-player remains the default zero-friction experience.
 
-### Roadmap
+**Architecture:** `SyncPort` interface with adapters:
+- `LocalAdapter` — single-player (no-op, zero overhead)
+- `FileLogAdapter` — per-player JSONL event logs on shared filesystem
 
-See [GitHub Projects](https://github.com/yourusername/soloquest/projects) for planned features.
+**Key features:**
+- Shared campaign directory with per-player character saves
+- Append-only event log (narrative + mechanical actions)
+- Consensus protocol for truths and oracle interpretations
+- Shared vows with single progress track
 
-### Open Questions
+**Sub-issues (in dependency order):**
 
-- Asset ability tracking (in progress)
+| # | Issue | Status |
+|---|-------|--------|
+| [#80](https://github.com/shawnoster/soloquest/issues/80) | SyncPort interface + LocalAdapter | Planned |
+| [#81](https://github.com/shawnoster/soloquest/issues/81) | Event model + per-player JSONL log | Planned |
+| [#82](https://github.com/shawnoster/soloquest/issues/82) | CampaignState model + `/campaign` commands | Planned |
+| [#83](https://github.com/shawnoster/soloquest/issues/83) | Player attribution on LogEntry | Planned |
+| [#84](https://github.com/shawnoster/soloquest/issues/84) | Truth negotiation (propose/accept/counter) | Planned |
+| [#85](https://github.com/shawnoster/soloquest/issues/85) | Oracle interpretation (`/interpret` + `/accept`) | Planned |
+| [#86](https://github.com/shawnoster/soloquest/issues/86) | Shared vows with single progress track | Planned |
+
+### Other Open Questions
+
 - Connection/relationship system
 - Sector/location tracking
 - Custom oracle tables
@@ -121,7 +132,7 @@ These are **intentionally out of scope** for the current phase:
 - ❌ Full sector/star map generation
 - ❌ NPC relationship web
 - ❌ Campaign threat tracking
-- ❌ Co-op/guided mode
+- 🔄 Co-op play (in design — [#79](https://github.com/shawnoster/soloquest/issues/79))
 - ❌ Web or GUI frontend
 - ❌ Audio/sound hooks
 
@@ -141,8 +152,8 @@ The project welcomes contributions! See:
 
 ## Questions or Feedback?
 
-- **Bug reports:** [GitHub Issues](https://github.com/yourusername/soloquest/issues)
-- **Feature requests:** [GitHub Discussions](https://github.com/yourusername/soloquest/discussions)
+- **Bug reports:** [GitHub Issues](https://github.com/shawnoster/soloquest/issues)
+- **Feature requests:** [GitHub Issues](https://github.com/shawnoster/soloquest/issues)
 - **General questions:** [Ironsworn Discord](https://discord.gg/ironsworn)
 
 ---
@@ -155,3 +166,4 @@ Key historical milestones:
 - **2026-02-14:** POC completion (9 phases complete)
 - **2026-02-14:** Comprehensive automated testing added
 - **2026-02-15:** Documentation restructure and GitHub conventions alignment
+- **2026-02-18:** Co-op play design complete (hexagonal architecture, event log)

@@ -46,6 +46,7 @@ from soloquest.models.character import Character
 from soloquest.models.session import Session
 from soloquest.models.vow import Vow
 from soloquest.state.save import autosave
+from soloquest.sync import LocalAdapter, SyncPort
 from soloquest.ui import display
 
 DATA_DIR = Path(__file__).parent / "data"
@@ -85,6 +86,7 @@ class GameState:
     _unsaved_entries: int = field(default=0, repr=False)
     guided_mode: bool = field(default=False, repr=False)
     guided_phase: str = field(default="envision", repr=False)  # envision, oracle, move, outcome
+    sync: SyncPort = field(default_factory=lambda: LocalAdapter("solo"), repr=False)
 
 
 def load_dataforged_moves() -> dict:
