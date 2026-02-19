@@ -293,3 +293,72 @@ results = [
   [89, 95, "You are delayed or put in a disadvantageous position"],
   [96, 100, "Roll twice and apply both"]
 ]
+
+# ── Display configuration ───────────────────────────────────────────────────
+[[display.categories]]
+name = "Core"
+keys = ["action", "theme", "descriptor", "focus"]
+
+[[display.categories]]
+name = "Characters"
+keys = ["given_name", "family_name", "callsign", "role", "goal", "quirks", "disposition", "backstory_prompts", "identity"]
+
+[[display.categories]]
+name = "NPCs"
+keys = ["npc_role", "npc_disposition", "encountered_behavior", "initial_contact"]
+
+[[display.categories]]
+name = "Places"
+keys = ["location", "settlement", "settlement_name", "environment"]
+
+[[display.categories]]
+name = "Space"
+keys = ["space", "deep_space", "expanse", "terminus", "outlands", "planetside", "stellar_object"]
+
+[[display.categories]]
+name = "Planets"
+keys = ["planet_class", "first_look", "inner_first_look", "outer_first_look", "orbital"]
+
+[[display.categories]]
+name = "Starships"
+keys = ["starship", "starship_history", "starship_quirks", "fleet", "class"]
+
+[[display.categories]]
+name = "Factions"
+keys = ["affiliation", "authority", "dominion", "fringe_group", "guild", "influence", "leadership", "legacy", "projects", "rumors", "trouble"]
+
+[[display.categories]]
+name = "Events"
+keys = ["begin_a_session", "inciting_incident", "combat_action", "combat_event", "peril", "opportunity", "story_clue", "story_complication", "make_a_discovery", "confront_chaos", "sector_trouble"]
+
+[[display.categories]]
+name = "Yes / No"
+keys = ["almost_certain", "likely", "fifty_fifty", "unlikely", "small_chance"]
+
+[[display.inspirations]]
+label = "Start a new session"
+cmd = "/oracle begin_a_session"
+
+[[display.inspirations]]
+label = "Quick spark of inspiration"
+cmd = "/oracle action theme"
+
+[[display.inspirations]]
+label = "Describe a location"
+cmd = "/oracle descriptor location"
+
+[[display.inspirations]]
+label = "Create an NPC"
+cmd = "/oracle given_name role goal disposition quirks"
+
+[[display.inspirations]]
+label = "Name a settlement"
+cmd = "/oracle settlement_name settlement"
+
+[[display.inspirations]]
+label = "Meet trouble"
+cmd = "/oracle inciting_incident"
+
+[[display.inspirations]]
+label = "Discover something unexpected"
+cmd = "/oracle make_a_discovery"

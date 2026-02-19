@@ -29,6 +29,35 @@ class OracleTable:
         return "Unknown"
 
 
+@dataclass(frozen=True)
+class OracleCategory:
+    name: str
+    keys: list[str]
+
+
+@dataclass(frozen=True)
+class OracleInspiration:
+    label: str
+    cmd: str
+
+
+def load_oracle_display(data_dir: Path) -> tuple[list[OracleCategory], list[OracleInspiration]]:
+    """Load oracle display config (categories and inspirations) from oracles.toml."""
+    toml_path = data_dir / "oracles.toml"
+    if not toml_path.exists():
+        return [], []
+    with toml_path.open("rb") as f:
+        raw = tomllib.load(f)
+    display = raw.get("display", {})
+    categories = [
+        OracleCategory(name=c["name"], keys=c["keys"]) for c in display.get("categories", [])
+    ]
+    inspirations = [
+        OracleInspiration(label=i["label"], cmd=i["cmd"]) for i in display.get("inspirations", [])
+    ]
+    return categories, inspirations
+
+
 def load_dataforged_oracles(data_dir: Path) -> dict[str, OracleTable]:
     """Load oracle tables from dataforged JSON files."""
     path = data_dir / "dataforged" / "oracles.json"
@@ -95,6 +124,9 @@ def load_oracles(data_dir: Path) -> dict[str, OracleTable]:
             raw = tomllib.load(f)
 
         for key, data in raw.items():
+            # Skip non-oracle-table sections (e.g. [display])
+            if not isinstance(data, dict) or "results" not in data:
+                continue
             results = [(int(r[0]), int(r[1]), str(r[2])) for r in data["results"]]
             tables[key] = OracleTable(
                 key=key,
