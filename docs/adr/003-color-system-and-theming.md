@@ -147,28 +147,25 @@ as constants; the rest are documented here for completeness when adapting a new 
 
 ### Implementation
 
-Color constants live in `soloquest/ui/display.py` in the `# ── Palette ──` section.
-Each constant is a Rich markup color string — either a named color or a hex literal:
+Color constants live in `soloquest/ui/themes/` — one module per theme. Each theme
+module exports the same set of named constants with palette-specific values.
+
+The active theme is selected by a single import in `soloquest/ui/theme.py`:
 
 ```python
-# ── Palette — Ayu Dark ────────────────────────────────────────────────────────
-# Outcomes
-OUTCOME_STRONG  = "bold #aad94c"
-OUTCOME_WEAK    = "bold #e6b450"
-OUTCOME_MISS    = "bold #d95757"
-OUTCOME_MATCH   = "bold #59c2ff"
-
-# Oracle
-ORACLE_GUTTER   = "#39bae6"
-ORACLE_RESULT   = "bold #59c2ff"
-ORACLE_ROLL     = "dim"
-
-# ... etc.
+# soloquest/ui/theme.py — change this one line to swap themes
+from soloquest.ui.themes.github_dark import *   # current default
+# from soloquest.ui.themes.ayu_dark import *    # uncomment to switch
 ```
 
-To support a new theme (e.g., Ayu Light, Catppuccin, Nord), create a theme module that exports
-the same constant names with different values, and make `display.py` import from that module.
-The theme can be selected via `--theme` flag or a config setting.
+Call sites in `display.py` and command modules import from `soloquest.ui.theme`:
+
+```python
+from soloquest.ui.theme import OUTCOME_STRONG, FEEDBACK_ERROR, BORDER_ORACLE, ...
+```
+
+To add a new theme, create `soloquest/ui/themes/<theme_name>.py` exporting all the
+same constant names with new values.
 
 ---
 
@@ -181,7 +178,7 @@ The theme can be selected via `--theme` flag or a config setting.
 
 ## Consequences
 
-- One place to swap a full theme: the palette block in `display.py`.
+- One place to swap a full theme: the import line in `soloquest/ui/theme.py`.
 - New features get color guidance without needing to read all of `display.py`.
 - `display.py` call sites become self-documenting — `OUTCOME_STRONG` is clearer than `"bold green"`.
 - Future: a `--theme` flag or config key can select Light/Mirage variants of Ayu or other palettes entirely.

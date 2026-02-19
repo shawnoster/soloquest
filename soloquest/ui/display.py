@@ -5,6 +5,7 @@ from __future__ import annotations
 import re
 from typing import TYPE_CHECKING
 
+from rich.markup import escape
 from rich.panel import Panel
 from rich.rule import Rule
 from rich.table import Table
@@ -30,6 +31,7 @@ from soloquest.ui.theme import (
     MECHANIC_TRACK_HIGH,
     MECHANIC_TRACK_LOW,
     MECHANIC_TRACK_MID,
+    NARRATIVE_JOURNAL,
     NARRATIVE_NOTE,
     ORACLE_GUTTER,
     ORACLE_RESULT,
@@ -411,22 +413,22 @@ def session_header(session_num: int, title: str) -> None:
 
 
 def log_entry(entry: LogEntry, show_label: bool = False) -> None:
-    label = f"[dim][{entry.kind.value.title()}][/dim] " if show_label else ""
+    label = f"[dim]({entry.kind.value.title()})[/dim] " if show_label else ""
     match entry.kind:
         case EntryKind.JOURNAL:
-            console.print(f"{label}[white]{entry.text}[/white]")
+            console.print(f"{label}[{NARRATIVE_JOURNAL}]{escape(entry.text)}[/{NARRATIVE_JOURNAL}]")
         case EntryKind.MOVE:
             console.print(f"[dim {MECHANIC_GUTTER}]▸ {entry.text}[/dim {MECHANIC_GUTTER}]")
         case EntryKind.ORACLE:
-            console.print(f"{label}[{ORACLE_GUTTER}]◈ {entry.text}[/{ORACLE_GUTTER}]")
+            console.print(f"{label}[{ORACLE_GUTTER}]◈ {escape(entry.text)}[/{ORACLE_GUTTER}]")
         case EntryKind.MECHANICAL:
             console.print(f"[dim italic]{entry.text}[/dim italic]")
         case EntryKind.NOTE:
-            console.print(f"{label}[{NARRATIVE_NOTE}]📌 {entry.text}[/{NARRATIVE_NOTE}]")
+            console.print(f"{label}[{NARRATIVE_NOTE}]📌 {escape(entry.text)}[/{NARRATIVE_NOTE}]")
 
 
 def recent_log(entries: list[LogEntry], n: int = 5) -> None:
-    """Show last n journal/note entries for context."""
+    """Show last n journal, note, and oracle entries for context."""
     recent = [
         e for e in entries if e.kind in (EntryKind.JOURNAL, EntryKind.NOTE, EntryKind.ORACLE)
     ][-n:]

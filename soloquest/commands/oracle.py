@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from rich.markup import escape
+
 from soloquest.engine.dice import roll_oracle
 from soloquest.engine.oracles import OracleResult, fuzzy_match_oracle
 from soloquest.sync.models import Event
@@ -111,7 +113,7 @@ def _show_oracle_list(state: GameState) -> None:
         Panel(
             Group(grid, examples),
             title="[bold]Oracle Tables[/bold]",
-            subtitle="[dim]/oracle [table] [table...][/dim]",
+            subtitle="[dim]/oracle [[table]] [[table...]][/dim]",
             border_style=BORDER_ORACLE,
         )
     )
@@ -171,7 +173,7 @@ def handle_oracle(state: GameState, args: list[str], flags: set[str]) -> None:
 
     if note:
         display.console.print(
-            f"  [{ORACLE_GUTTER}]│[/{ORACLE_GUTTER}]  [dim italic]{note}[/dim italic]"
+            f"  [{ORACLE_GUTTER}]│[/{ORACLE_GUTTER}]  [dim italic]{escape(note)}[/dim italic]"
         )
         state.session.add_note(note, player=state.character.name)
 

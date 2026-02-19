@@ -6,6 +6,8 @@ import random
 import re
 from typing import TYPE_CHECKING
 
+from rich.markup import escape
+
 from soloquest.engine.dice import Die
 from soloquest.ui import display
 from soloquest.ui.theme import MECHANIC_GUTTER
@@ -67,7 +69,7 @@ def handle_roll(state: GameState, args: list[str], flags: set[str]) -> None:
 
     if note:
         display.console.print(
-            f"  [{MECHANIC_GUTTER}]│[/{MECHANIC_GUTTER}]  [dim italic]{note}[/dim italic]"
+            f"  [{MECHANIC_GUTTER}]│[/{MECHANIC_GUTTER}]  [dim italic]{escape(note)}[/dim italic]"
         )
     display.console.print(
         f"  [{MECHANIC_GUTTER}]└[/{MECHANIC_GUTTER}]  🎲 [dim]{count}d{sides}[/dim]  {result_str}"

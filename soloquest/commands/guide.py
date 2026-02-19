@@ -82,7 +82,7 @@ def _show_game_loop(state: GameState) -> None:
     display.console.print("  [bold]2. ASK THE ORACLE[/bold] when uncertain")
     display.console.print("     [dim]Get answers about the situation, location, NPCs[/dim]")
     display.console.print(
-        f"     [{HINT_COMMAND}]> /oracle [table] (e.g., /oracle action theme)[/{HINT_COMMAND}]"
+        f"     [{HINT_COMMAND}]> /oracle [[table]] (e.g., /oracle action theme)[/{HINT_COMMAND}]"
     )
     display.console.print()
     display.console.print("    |")
@@ -91,7 +91,7 @@ def _show_game_loop(state: GameState) -> None:
     display.console.print("  [bold]3. MAKE A MOVE[/bold] when action triggers it")
     display.console.print("     [dim]Roll dice to resolve risky actions[/dim]")
     display.console.print(
-        f"     [{HINT_COMMAND}]> /move [name] (e.g., /move face danger)[/{HINT_COMMAND}]"
+        f"     [{HINT_COMMAND}]> /move [[name]] (e.g., /move face danger)[/{HINT_COMMAND}]"
     )
     display.console.print()
     display.console.print("    |")
@@ -102,19 +102,19 @@ def _show_game_loop(state: GameState) -> None:
     display.console.print("  [bold]OUTCOMES:[/bold]")
     display.console.print()
     display.console.print(
-        f"    [{OUTCOME_STRONG}]STRONG HIT[/{OUTCOME_STRONG}] [{OUTCOME_STRONG}][OK OK][/{OUTCOME_STRONG}]"
+        f"    [{OUTCOME_STRONG}]STRONG HIT[/{OUTCOME_STRONG}] [{OUTCOME_STRONG}][[OK OK]][/{OUTCOME_STRONG}]"
     )
     display.console.print("      You succeeded and are in control")
     display.console.print("      > What do [bold]you[/bold] do next?")
     display.console.print()
     display.console.print(
-        f"    [{OUTCOME_WEAK}]WEAK HIT[/{OUTCOME_WEAK}] [{OUTCOME_WEAK}][OK NO][/{OUTCOME_WEAK}]"
+        f"    [{OUTCOME_WEAK}]WEAK HIT[/{OUTCOME_WEAK}] [{OUTCOME_WEAK}][[OK NO]][/{OUTCOME_WEAK}]"
     )
     display.console.print("      You succeeded with a lesser result or cost")
     display.console.print("      > What [bold]happens[/bold] next?")
     display.console.print()
     display.console.print(
-        f"    [{OUTCOME_MISS}]MISS[/{OUTCOME_MISS}] [{OUTCOME_MISS}][NO NO][/{OUTCOME_MISS}]"
+        f"    [{OUTCOME_MISS}]MISS[/{OUTCOME_MISS}] [{OUTCOME_MISS}][[NO NO]][/{OUTCOME_MISS}]"
     )
     display.console.print("      You failed or face a dramatic turn of events")
     display.console.print("      > What [bold]happens[/bold] next?")
@@ -155,7 +155,7 @@ def _show_contextual_suggestions(state: GameState) -> None:
     if not active_vows:
         display.console.print(f"    • [{FEEDBACK_WARN}]You have no active vows[/{FEEDBACK_WARN}]")
         display.console.print(
-            f"      Consider: [{HINT_COMMAND}]/vow [rank] [description][/{HINT_COMMAND}]"
+            f"      Consider: [{HINT_COMMAND}]/vow [[rank]] [[description]][/{HINT_COMMAND}]"
         )
     else:
         display.console.print(f"    • You have {len(active_vows)} active vow(s)")

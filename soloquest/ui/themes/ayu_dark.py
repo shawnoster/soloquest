@@ -21,6 +21,7 @@ ORACLE_RESULT = "bold #59c2ff"
 
 # Narrative
 NARRATIVE_NOTE = "#e6c08a"
+NARRATIVE_JOURNAL = "#bfbdb6"  # Ayu Editor Foreground — journal text
 
 # Mechanics
 MECHANIC_GUTTER = "#ffb454"

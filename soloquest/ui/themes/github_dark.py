@@ -35,6 +35,7 @@ ORACLE_RESULT = "bold #58a6ff"  # blue — result text
 
 # Narrative
 NARRATIVE_NOTE = "#e3b341"  # yellow — scene notes / 📌
+NARRATIVE_JOURNAL = "#c9d1d9"  # GitHub editor foreground — journal text
 
 # Mechanics
 MECHANIC_GUTTER = "#d29922"  # orange — move connector └

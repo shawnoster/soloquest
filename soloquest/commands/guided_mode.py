@@ -25,7 +25,7 @@ def start_guided_mode(state: GameState) -> None:
     display.console.print()
     display.console.print("  I'll walk you through the game loop step by step.")
     display.console.print(
-        f"  Your current phase will show in the prompt: [{HINT_COMMAND}][ENVISION] >[/{HINT_COMMAND}]"
+        f"  Your current phase will show in the prompt: [{HINT_COMMAND}][[ENVISION]] >[/{HINT_COMMAND}]"
     )
     display.console.print()
     display.console.print("  [dim]Commands in guided mode:[/dim]")
@@ -137,7 +137,7 @@ def _show_phase_help(state: GameState) -> None:
         display.console.print("  [bold]What to do:[/bold]")
         display.console.print("    • Ask questions about uncertain details")
         display.console.print(
-            f"    • Use [{HINT_COMMAND}]/oracle [table][/{HINT_COMMAND}] to get answers"
+            f"    • Use [{HINT_COMMAND}]/oracle [[table]][/{HINT_COMMAND}] to get answers"
         )
         display.console.print("    • Common oracles: action theme, descriptor, character")
         display.console.print()
@@ -158,7 +158,9 @@ def _show_phase_help(state: GameState) -> None:
         display.console.print()
         display.console.print("  [bold]What to do:[/bold]")
         display.console.print("    • Make a move when taking risky action")
-        display.console.print(f"    • Use [{HINT_COMMAND}]/move [name][/{HINT_COMMAND}] to resolve")
+        display.console.print(
+            f"    • Use [{HINT_COMMAND}]/move [[name]][/{HINT_COMMAND}] to resolve"
+        )
         display.console.print("    • Common moves: face danger, strike, gather information")
         display.console.print()
         display.console.print("  [dim]Example:[/dim]")
