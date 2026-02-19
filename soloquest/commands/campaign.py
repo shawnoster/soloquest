@@ -2,24 +2,31 @@
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 from rich.panel import Panel
 from rich.prompt import Prompt
 from rich.table import Table
 
+from soloquest.commands.new_character import run_new_character_flow
+from soloquest.engine.dice import make_dice_provider
 from soloquest.state.campaign import (
     campaign_path,
     create_campaign,
     join_campaign,
     list_campaigns,
     load_campaign,
+    player_save_path,
 )
-from soloquest.sync import FileLogAdapter
+from soloquest.state.save import save_game
+from soloquest.sync import FileLogAdapter, LocalAdapter
 from soloquest.ui import display
 
 if TYPE_CHECKING:
     from soloquest.loop import GameState
+
+_DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 
 
 def handle_campaign(state: GameState, args: list[str], flags: set[str]) -> None:
@@ -27,6 +34,7 @@ def handle_campaign(state: GameState, args: list[str], flags: set[str]) -> None:
 
     Usage:
         /campaign            — show campaign status (or prompt to create/join)
+        /campaign start      — begin your adventure (solo, create co-op, or join)
         /campaign create     — create a new campaign
         /campaign join       — join an existing campaign
         /campaign status     — show current campaign info and players
@@ -34,7 +42,9 @@ def handle_campaign(state: GameState, args: list[str], flags: set[str]) -> None:
     """
     sub = args[0].lower() if args else ""
 
-    if sub == "create":
+    if sub == "start":
+        _handle_start(state)
+    elif sub == "create":
         _handle_create(state)
     elif sub == "join":
         _handle_join(state)
@@ -52,6 +62,144 @@ def handle_campaign(state: GameState, args: list[str], flags: set[str]) -> None:
 # ---------------------------------------------------------------------------
 # Subcommand handlers
 # ---------------------------------------------------------------------------
+
+
+def _handle_start(state: GameState) -> None:
+    """Unified adventure start wizard: solo, create co-op, or join co-op."""
+    display.rule("Begin Your Adventure")
+    display.console.print()
+    display.console.print("  [bold]1)[/bold] Solo Adventure")
+    display.console.print("  [bold]2)[/bold] Create Co-op Campaign")
+    display.console.print("  [bold]3)[/bold] Join Campaign")
+    display.console.print()
+
+    choice = Prompt.ask("  Choose", choices=["1", "2", "3"], default="1")
+
+    if choice == "1":
+        _handle_start_solo(state)
+    elif choice == "2":
+        _handle_start_create_coop(state)
+    elif choice == "3":
+        _handle_start_join_coop(state)
+
+
+def _handle_start_solo(state: GameState) -> None:
+    """Solo adventure: truths + character creation → save."""
+    result = run_new_character_flow(_DATA_DIR, state.truth_categories, include_truths=True)
+    if result is None:
+        display.warn("Campaign setup cancelled.")
+        return
+
+    character, vows, dice_mode = result
+    state.character = character
+    state.vows = vows
+    state.dice_mode = dice_mode
+    state.dice = make_dice_provider(dice_mode)
+    state.session_count = 0
+
+    save_game(character, vows, 0, dice_mode)
+    display.success(f"Adventure begun as {character.name}!")
+
+
+def _handle_start_create_coop(state: GameState) -> None:
+    """Create co-op campaign: campaign name + truths + char creation → save in players/."""
+    name = Prompt.ask("Campaign name")
+    if not name.strip():
+        display.warn("Campaign name cannot be empty.")
+        return
+
+    result = run_new_character_flow(_DATA_DIR, state.truth_categories, include_truths=True)
+    if result is None:
+        display.warn("Campaign setup cancelled.")
+        return
+
+    character, vows, dice_mode = result
+
+    try:
+        campaign, campaign_dir = create_campaign(name.strip(), character.name)
+    except ValueError as e:
+        display.error(str(e))
+        return
+
+    state.character = character
+    state.vows = vows
+    state.dice_mode = dice_mode
+    state.dice = make_dice_provider(dice_mode)
+    state.session_count = 0
+    state.campaign = campaign
+    state.campaign_dir = campaign_dir
+    state.sync = FileLogAdapter(campaign_dir, character.name)
+
+    save_path = player_save_path(campaign_dir, character.name)
+    save_game(character, vows, 0, dice_mode, save_path=save_path)
+    display.success(f"Campaign '{campaign.name}' created! You are playing as {character.name}.")
+    display.info(f"  Share the campaign directory with other players: {campaign_dir}")
+
+
+def _handle_start_join_coop(state: GameState) -> None:
+    """Join existing campaign: pick campaign → char creation (no truths) → save in players/."""
+    campaigns = list_campaigns()
+    if not campaigns:
+        display.warn("No campaigns found. Use option 2 to create one first.")
+        return
+
+    table = Table(show_header=True, header_style="bold cyan")
+    table.add_column("#", style="dim", width=4)
+    table.add_column("Slug")
+    table.add_column("Players")
+
+    for i, slug in enumerate(campaigns, 1):
+        try:
+            c = load_campaign(campaign_path(slug))
+            players = ", ".join(c.players.keys()) or "(none)"
+            table.add_row(str(i), slug, players)
+        except Exception:
+            table.add_row(str(i), slug, "[dim](unreadable)[/dim]")
+
+    display.console.print(table)
+
+    choice = Prompt.ask("Enter campaign number or slug")
+    if not choice.strip():
+        return
+
+    slug: str | None = None
+    if choice.isdigit():
+        idx = int(choice) - 1
+        if 0 <= idx < len(campaigns):
+            slug = campaigns[idx]
+    else:
+        slug = choice.strip() if choice.strip() in campaigns else None
+
+    if slug is None:
+        display.error(f"Campaign '{choice}' not found.")
+        return
+
+    result = run_new_character_flow(_DATA_DIR, state.truth_categories, include_truths=False)
+    if result is None:
+        display.warn("Character creation cancelled.")
+        return
+
+    character, vows, dice_mode = result
+    target_dir = campaign_path(slug)
+
+    try:
+        campaign = join_campaign(target_dir, character.name)
+    except Exception as e:
+        display.error(str(e))
+        return
+
+    state.character = character
+    state.vows = vows
+    state.dice_mode = dice_mode
+    state.dice = make_dice_provider(dice_mode)
+    state.session_count = 0
+    state.campaign = campaign
+    state.campaign_dir = target_dir
+    state.sync = FileLogAdapter(target_dir, character.name)
+
+    save_path = player_save_path(target_dir, character.name)
+    save_game(character, vows, 0, dice_mode, save_path=save_path)
+    display.success(f"Joined campaign '{campaign.name}' as '{character.name}'!")
 
 
 def _handle_create(state: GameState) -> None:
@@ -187,8 +335,6 @@ def _handle_leave(state: GameState) -> None:
     state.campaign = None
     state.campaign_dir = None
 
-    from soloquest.sync import LocalAdapter
-
     state.sync = LocalAdapter(state.character.name)
 
     display.info(f"Left campaign '{name}'. Playing in solo mode.")
@@ -198,6 +344,7 @@ def _show_no_campaign_help() -> None:
     content = (
         "[bold]Co-op Campaign Mode[/bold]\n\n"
         "You are currently playing solo. Start or join a campaign to play with others.\n\n"
+        "  [cyan]/campaign start[/cyan]   — begin your adventure (solo, create co-op, or join)\n"
         "  [cyan]/campaign create[/cyan]  — create a new campaign (you become the first player)\n"
         "  [cyan]/campaign join[/cyan]    — join an existing campaign\n\n"
         "Campaign files are shared via a common directory (Dropbox, Syncthing, etc.).\n"

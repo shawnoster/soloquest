@@ -244,14 +244,19 @@ def _prompt_stats() -> Stats | None:
 def run_new_character_flow(
     data_dir: Path,
     truth_categories: dict,
+    include_truths: bool = True,
 ) -> tuple[Character, list[Vow], DiceMode] | None:
-    """Run the full new-game flow: Truths → character wizard.
+    """Run the full new-game flow: (optionally Truths →) character wizard.
 
     Returns (character, vows, dice_mode) or None if cancelled.
+    Set include_truths=False for co-op joiners who skip world setup.
     """
-    truths = run_truths_wizard(truth_categories)
-    if truths is None:
-        return None  # cancelled during truths
+    if include_truths:
+        truths = run_truths_wizard(truth_categories)
+        if truths is None:
+            return None  # cancelled during truths
+    else:
+        truths = []
 
     result = run_creation_wizard(data_dir)
     if result is None:

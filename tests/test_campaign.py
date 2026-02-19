@@ -115,13 +115,14 @@ class TestJoinCampaign:
         campaign = join_campaign(campaign_dir, "dax")
         assert "dax" in campaign.players
 
-    def test_duplicate_player_raises(self, tmp_path, monkeypatch):
+    def test_duplicate_player_is_idempotent(self, tmp_path, monkeypatch):
         monkeypatch.setattr(
             "soloquest.state.campaign.campaigns_dir", lambda: tmp_path / "campaigns"
         )
         _, campaign_dir = create_campaign("Iron Veil", "kira")
-        with pytest.raises(ValueError, match="already a member"):
-            join_campaign(campaign_dir, "kira")
+        # Second join for the same player returns the campaign unchanged
+        campaign = join_campaign(campaign_dir, "kira")
+        assert "kira" in campaign.players
 
 
 class TestListCampaigns:
@@ -269,3 +270,164 @@ class TestAutosaveRouting:
         mock_save.assert_called_once()
         _, kwargs = mock_save.call_args
         assert kwargs["save_path"] is None
+
+
+# ---------------------------------------------------------------------------
+# /campaign start subcommand
+# ---------------------------------------------------------------------------
+
+
+def _make_state(tmp_path):
+    """Build a minimal GameState for testing _handle_start."""
+    from soloquest.engine.dice import DiceMode, DigitalDice
+    from soloquest.loop import GameState
+    from soloquest.models.character import Character
+
+    return GameState(
+        character=Character("Wanderer"),
+        vows=[],
+        session=MagicMock(),
+        session_count=0,
+        dice_mode=DiceMode.DIGITAL,
+        dice=DigitalDice(),
+        moves={},
+        oracles={},
+        assets={},
+        truth_categories={},
+    )
+
+
+class TestHandleStart:
+    def test_solo_updates_state(self, tmp_path, monkeypatch):
+        """Solo path replaces character and saves."""
+        from soloquest.commands.campaign import _handle_start_solo
+        from soloquest.engine.dice import DiceMode
+        from soloquest.models.character import Character
+        from soloquest.models.vow import Vow, VowRank
+
+        state = _make_state(tmp_path)
+
+        new_char = Character("Kira")
+        new_vows = [Vow(description="Test vow", rank=VowRank.EPIC)]
+
+        with (
+            patch(
+                "soloquest.commands.campaign.run_new_character_flow",
+                return_value=(new_char, new_vows, DiceMode.DIGITAL),
+            ),
+            patch("soloquest.commands.campaign.save_game") as mock_save,
+        ):
+            _handle_start_solo(state)
+
+        assert state.character is new_char
+        assert state.vows is new_vows
+        assert state.session_count == 0
+        mock_save.assert_called_once()
+
+    def test_solo_cancelled_leaves_state_unchanged(self, tmp_path):
+        """Solo path cancelled — state not mutated."""
+        from soloquest.commands.campaign import _handle_start_solo
+
+        state = _make_state(tmp_path)
+        original_name = state.character.name
+
+        with patch(
+            "soloquest.commands.campaign.run_new_character_flow",
+            return_value=None,
+        ):
+            _handle_start_solo(state)
+
+        assert state.character.name == original_name
+
+    def test_create_coop_updates_state(self, tmp_path, monkeypatch):
+        """Create co-op path wires campaign into state and saves to players/."""
+        from soloquest.commands.campaign import _handle_start_create_coop
+        from soloquest.engine.dice import DiceMode
+        from soloquest.models.character import Character
+        from soloquest.models.vow import Vow, VowRank
+
+        monkeypatch.setattr(
+            "soloquest.state.campaign.campaigns_dir", lambda: tmp_path / "campaigns"
+        )
+        state = _make_state(tmp_path)
+
+        new_char = Character("Kira")
+        new_vows = [Vow(description="Find the signal", rank=VowRank.EPIC)]
+
+        with (
+            patch(
+                "soloquest.commands.campaign.run_new_character_flow",
+                return_value=(new_char, new_vows, DiceMode.DIGITAL),
+            ),
+            patch("rich.prompt.Prompt.ask", return_value="Iron Veil"),
+            patch("soloquest.commands.campaign.save_game") as mock_save,
+        ):
+            _handle_start_create_coop(state)
+
+        assert state.character is new_char
+        assert state.campaign is not None
+        assert state.campaign.name == "Iron Veil"
+        assert state.campaign_dir is not None
+        assert state.sync is not None
+        assert state.session_count == 0
+        mock_save.assert_called_once()
+
+    def test_join_coop_updates_state(self, tmp_path, monkeypatch):
+        """Join co-op path wires campaign into state and saves to players/."""
+        from soloquest.commands.campaign import _handle_start_join_coop
+        from soloquest.engine.dice import DiceMode
+        from soloquest.models.character import Character
+        from soloquest.models.vow import Vow, VowRank
+
+        monkeypatch.setattr(
+            "soloquest.state.campaign.campaigns_dir", lambda: tmp_path / "campaigns"
+        )
+        # Pre-create a campaign so list_campaigns returns it
+        create_campaign("Iron Veil", "existing-player")
+
+        state = _make_state(tmp_path)
+        new_char = Character("Dax")
+        new_vows = [Vow(description="Seek truth", rank=VowRank.TROUBLESOME)]
+
+        with (
+            patch(
+                "soloquest.commands.campaign.run_new_character_flow",
+                return_value=(new_char, new_vows, DiceMode.DIGITAL),
+            ),
+            patch("rich.prompt.Prompt.ask", return_value="1"),
+            patch("soloquest.commands.campaign.save_game") as mock_save,
+        ):
+            _handle_start_join_coop(state)
+
+        assert state.character is new_char
+        assert state.campaign is not None
+        assert state.campaign_dir is not None
+        assert state.session_count == 0
+        mock_save.assert_called_once()
+
+    def test_join_coop_skips_truths(self, tmp_path, monkeypatch):
+        """Join co-op calls run_new_character_flow with include_truths=False."""
+        from soloquest.commands.campaign import _handle_start_join_coop
+        from soloquest.engine.dice import DiceMode
+        from soloquest.models.character import Character
+
+        monkeypatch.setattr(
+            "soloquest.state.campaign.campaigns_dir", lambda: tmp_path / "campaigns"
+        )
+        create_campaign("Iron Veil", "existing-player")
+        state = _make_state(tmp_path)
+        new_char = Character("Dax")
+
+        with (
+            patch(
+                "soloquest.commands.campaign.run_new_character_flow",
+                return_value=(new_char, [], DiceMode.DIGITAL),
+            ) as mock_flow,
+            patch("rich.prompt.Prompt.ask", return_value="1"),
+            patch("soloquest.commands.campaign.save_game"),
+        ):
+            _handle_start_join_coop(state)
+
+        mock_flow.assert_called_once()
+        _, kwargs = mock_flow.call_args
+        assert kwargs.get("include_truths") is False or mock_flow.call_args[0][2] is False

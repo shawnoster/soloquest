@@ -48,7 +48,7 @@ from soloquest.models.character import Character
 from soloquest.models.session import Session
 from soloquest.models.vow import Vow
 from soloquest.state.save import autosave
-from soloquest.sync import LocalAdapter, SyncPort
+from soloquest.sync import FileLogAdapter, LocalAdapter, SyncPort
 from soloquest.ui import display
 
 DATA_DIR = Path(__file__).parent / "data"
@@ -68,6 +68,7 @@ AUTOSAVE_AFTER = {
     "forsake",
     "truths",
     "asset",
+    "campaign",
 }
 
 
@@ -162,6 +163,8 @@ def run_session(
     session_count: int,
     dice_mode: DiceMode,
     session: Session | None = None,
+    campaign=None,
+    campaign_dir: Path | None = None,
 ) -> None:
     # If no session provided, create a new one
     if session is None:
@@ -177,6 +180,12 @@ def run_session(
     truth_categories = load_truth_categories(DATA_DIR)
     dice = make_dice_provider(dice_mode)
 
+    sync: SyncPort = (
+        FileLogAdapter(campaign_dir, character.name)
+        if campaign_dir
+        else LocalAdapter(character.name)
+    )
+
     state = GameState(
         character=character,
         vows=vows,
@@ -188,6 +197,9 @@ def run_session(
         oracles=oracles,
         assets=assets,
         truth_categories=truth_categories,
+        sync=sync,
+        campaign=campaign,
+        campaign_dir=campaign_dir,
     )
 
     is_new_session = session.number == session_count and len(session.entries) == 0
