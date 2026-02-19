@@ -121,11 +121,11 @@ def join_campaign(campaign_dir: Path, player_id: str) -> CampaignState:
     """Add a player to an existing campaign.
 
     Returns the updated CampaignState.
-    Raises ValueError if player is already a member.
+    Idempotent: if player is already a member, returns the campaign as-is.
     """
     campaign = load_campaign(campaign_dir)
     if player_id in campaign.players:
-        raise ValueError(f"'{player_id}' is already a member of '{campaign.name}'")
+        return campaign
     campaign.players[player_id] = PlayerInfo(joined=datetime.now(UTC).isoformat())
     save_campaign(campaign, campaign_dir)
     return campaign
