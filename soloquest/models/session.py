@@ -20,13 +20,17 @@ class LogEntry:
     kind: EntryKind
     text: str
     timestamp: datetime = field(default_factory=datetime.now)
+    player: str | None = None  # None = solo; player name in co-op sessions
 
     def to_dict(self) -> dict:
-        return {
+        d: dict = {
             "kind": self.kind.value,
             "text": self.text,
             "timestamp": self.timestamp.isoformat(),
         }
+        if self.player is not None:
+            d["player"] = self.player
+        return d
 
     @classmethod
     def from_dict(cls, data: dict) -> LogEntry:
@@ -34,6 +38,7 @@ class LogEntry:
             kind=EntryKind(data["kind"]),
             text=data["text"],
             timestamp=datetime.fromisoformat(data["timestamp"]),
+            player=data.get("player"),
         )
 
 
@@ -44,20 +49,20 @@ class Session:
     started_at: datetime = field(default_factory=datetime.now)
     entries: list[LogEntry] = field(default_factory=list)
 
-    def add_journal(self, text: str) -> None:
-        self.entries.append(LogEntry(kind=EntryKind.JOURNAL, text=text.strip()))
+    def add_journal(self, text: str, player: str | None = None) -> None:
+        self.entries.append(LogEntry(kind=EntryKind.JOURNAL, text=text.strip(), player=player))
 
-    def add_move(self, text: str) -> None:
-        self.entries.append(LogEntry(kind=EntryKind.MOVE, text=text.strip()))
+    def add_move(self, text: str, player: str | None = None) -> None:
+        self.entries.append(LogEntry(kind=EntryKind.MOVE, text=text.strip(), player=player))
 
-    def add_oracle(self, text: str) -> None:
-        self.entries.append(LogEntry(kind=EntryKind.ORACLE, text=text.strip()))
+    def add_oracle(self, text: str, player: str | None = None) -> None:
+        self.entries.append(LogEntry(kind=EntryKind.ORACLE, text=text.strip(), player=player))
 
-    def add_mechanical(self, text: str) -> None:
-        self.entries.append(LogEntry(kind=EntryKind.MECHANICAL, text=text.strip()))
+    def add_mechanical(self, text: str, player: str | None = None) -> None:
+        self.entries.append(LogEntry(kind=EntryKind.MECHANICAL, text=text.strip(), player=player))
 
-    def add_note(self, text: str) -> None:
-        self.entries.append(LogEntry(kind=EntryKind.NOTE, text=text.strip()))
+    def add_note(self, text: str, player: str | None = None) -> None:
+        self.entries.append(LogEntry(kind=EntryKind.NOTE, text=text.strip(), player=player))
 
     def to_dict(self) -> dict:
         return {
