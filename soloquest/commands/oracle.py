@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
+from functools import cache
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 from rich.markup import escape
 
 from soloquest.engine.dice import roll_oracle
-from soloquest.engine.oracles import OracleResult, fuzzy_match_oracle
+from soloquest.engine.oracles import OracleResult, fuzzy_match_oracle, load_oracle_display
 from soloquest.sync.models import Event
 from soloquest.ui import display
 from soloquest.ui.theme import BORDER_ORACLE, ORACLE_GUTTER
@@ -16,74 +18,13 @@ if TYPE_CHECKING:
     from soloquest.loop import GameState
 
 
-_ORACLE_CATEGORIES: list[tuple[str, list[str]]] = [
-    ("Core", ["action", "theme", "descriptor", "focus"]),
-    (
-        "Characters",
-        [
-            "given_name",
-            "family_name",
-            "callsign",
-            "role",
-            "goal",
-            "quirks",
-            "disposition",
-            "backstory_prompts",
-            "identity",
-        ],
-    ),
-    ("NPCs", ["npc_role", "npc_disposition", "encountered_behavior", "initial_contact"]),
-    ("Places", ["location", "settlement", "settlement_name", "environment"]),
-    (
-        "Space",
-        ["space", "deep_space", "expanse", "terminus", "outlands", "planetside", "stellar_object"],
-    ),
-    ("Planets", ["planet_class", "first_look", "inner_first_look", "outer_first_look", "orbital"]),
-    ("Starships", ["starship", "starship_history", "starship_quirks", "fleet", "class"]),
-    (
-        "Factions",
-        [
-            "affiliation",
-            "authority",
-            "dominion",
-            "fringe_group",
-            "guild",
-            "influence",
-            "leadership",
-            "legacy",
-            "projects",
-            "rumors",
-            "trouble",
-        ],
-    ),
-    (
-        "Events",
-        [
-            "begin_a_session",
-            "inciting_incident",
-            "combat_action",
-            "combat_event",
-            "peril",
-            "opportunity",
-            "story_clue",
-            "story_complication",
-            "make_a_discovery",
-            "confront_chaos",
-            "sector_trouble",
-        ],
-    ),
-    ("Yes / No", ["almost_certain", "likely", "fifty_fifty", "unlikely", "small_chance"]),
-]
+_DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 
-_ORACLE_INSPIRATIONS: list[tuple[str, str]] = [
-    ("Start a new session", "/oracle begin_a_session"),
-    ("Quick spark of inspiration", "/oracle action theme"),
-    ("Describe a location", "/oracle descriptor location"),
-    ("Create an NPC", "/oracle given_name role goal disposition quirks"),
-    ("Name a settlement", "/oracle settlement_name settlement"),
-    ("Meet trouble", "/oracle inciting_incident"),
-    ("Discover something unexpected", "/oracle make_a_discovery"),
-]
+
+@cache
+def _get_oracle_display() -> tuple[list, list]:
+    """Lazy-load and cache oracle display config."""
+    return load_oracle_display(_DATA_DIR)
 
 
 def _show_oracle_list(state: GameState) -> None:
@@ -92,22 +33,24 @@ def _show_oracle_list(state: GameState) -> None:
     from rich.table import Table
     from rich.text import Text
 
+    _ORACLE_CATEGORIES, _ORACLE_INSPIRATIONS = _get_oracle_display()
+
     # Build the grouped oracle table
     grid = Table.grid(padding=(0, 2))
     grid.add_column(style="bold cyan", no_wrap=True)  # category
     grid.add_column(style="dim")  # keys
 
-    for category, keys in _ORACLE_CATEGORIES:
+    for cat in _ORACLE_CATEGORIES:
         # Only show keys that actually exist in the loaded tables
-        available = [k for k in keys if k in state.oracles]
+        available = [k for k in cat.keys if k in state.oracles]
         if available:
-            grid.add_row(category, "  ".join(available))
+            grid.add_row(cat.name, "  ".join(available))
 
     # Build inspiration examples
     examples = Text("\nInspiration combos:\n", style="bold")
-    for label, cmd in _ORACLE_INSPIRATIONS:
-        examples.append(f"  {label:<32}", style="dim")
-        examples.append(f"{cmd}\n", style="cyan")
+    for insp in _ORACLE_INSPIRATIONS:
+        examples.append(f"  {insp.label:<32}", style="dim")
+        examples.append(f"{insp.cmd}\n", style="cyan")
 
     display.console.print(
         Panel(

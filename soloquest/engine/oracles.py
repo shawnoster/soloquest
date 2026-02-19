@@ -3,9 +3,67 @@
 from __future__ import annotations
 
 import json
+import logging
 import tomllib
 from dataclasses import dataclass
 from pathlib import Path
+
+logger = logging.getLogger(__name__)
+
+
+@dataclass(frozen=True)
+class OracleCategory:
+    name: str
+    keys: tuple[str, ...]
+
+
+@dataclass(frozen=True)
+class OracleInspiration:
+    label: str
+    cmd: str
+
+
+def _load_category(data: dict) -> OracleCategory | None:
+    name = data.get("name")
+    keys = data.get("keys")
+    if not isinstance(name, str):
+        logger.warning("Skipping category with missing/invalid 'name': %s", data)
+        return None
+    if not isinstance(keys, list) or not all(isinstance(k, str) for k in keys):
+        logger.warning("Skipping category with missing/invalid 'keys': %s", data)
+        return None
+    return OracleCategory(name=name, keys=tuple(keys))
+
+
+def _load_inspiration(data: dict) -> OracleInspiration | None:
+    label = data.get("label")
+    cmd = data.get("cmd")
+    if not isinstance(label, str):
+        logger.warning("Skipping inspiration with missing/invalid 'label': %s", data)
+        return None
+    if not isinstance(cmd, str):
+        logger.warning("Skipping inspiration with missing/invalid 'cmd': %s", data)
+        return None
+    return OracleInspiration(label=label, cmd=cmd)
+
+
+def load_oracle_display(data_dir: Path) -> tuple[list[OracleCategory], list[OracleInspiration]]:
+    """Load oracle display config (categories and inspirations) from oracles.toml."""
+    toml_path = data_dir / "oracles.toml"
+    if not toml_path.exists():
+        return [], []
+    with toml_path.open("rb") as f:
+        raw = tomllib.load(f)
+    display = raw.get("display", {})
+    categories = [
+        c for c in (_load_category(cat) for cat in display.get("categories", [])) if c is not None
+    ]
+    inspirations = [
+        i
+        for i in (_load_inspiration(ins) for ins in display.get("inspirations", []))
+        if i is not None
+    ]
+    return categories, inspirations
 
 
 @dataclass(frozen=True)
@@ -20,7 +78,7 @@ class OracleTable:
     key: str
     name: str
     die: str
-    results: list[tuple[int, int, str]]  # (low, high, text)
+    results: list[tuple[int, int, str]]
 
     def lookup(self, roll: int) -> str:
         for low, high, text in self.results:
@@ -95,6 +153,9 @@ def load_oracles(data_dir: Path) -> dict[str, OracleTable]:
             raw = tomllib.load(f)
 
         for key, data in raw.items():
+            # Skip non-oracle-table sections (e.g. [display])
+            if not isinstance(data, dict) or "results" not in data:
+                continue
             results = [(int(r[0]), int(r[1]), str(r[2])) for r in data["results"]]
             tables[key] = OracleTable(
                 key=key,
