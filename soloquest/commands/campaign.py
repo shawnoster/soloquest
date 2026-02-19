@@ -324,6 +324,20 @@ def _handle_status(state: GameState) -> None:
 
     display.console.print(table)
 
+    # Show pending truth proposals if any
+    pending = state.campaign.pending_truth_proposals
+    if pending:
+        display.console.print()
+        display.console.print("  [bold yellow]Pending Truth Proposals:[/bold yellow]")
+        for cat, proposal in pending.items():
+            display.console.print(
+                f"  [dim]•[/dim] [cyan]{cat}[/cyan]  "
+                f"[dim]by {proposal.proposer}[/dim]  {proposal.option_summary}"
+            )
+        display.console.print(
+            "  [dim]Use /truths accept [category] to agree, or /truths counter to propose an alternative.[/dim]"
+        )
+
 
 def _handle_leave(state: GameState) -> None:
     """Leave the current campaign and return to solo mode."""

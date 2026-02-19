@@ -97,7 +97,7 @@ COMMAND_HELP: dict[str, str] = {
     "interpret": "/interpret [text] — propose an interpretation of the last oracle roll",
     "accept": "/accept — accept a pending partner interpretation (co-op)",
     "guide": "/guide [step|start|stop] — show gameplay loop or enter guided mode (try: /guide start)",
-    "truths": "/truths [start|show] — choose campaign truths or view current truths",
+    "truths": "/truths [start|show|propose|review|accept|counter] — choose campaign truths",
     "next": "/next — advance to next phase (guided mode only)",
     "move": "/move [name] (alias: /m) — resolve a move (e.g. /move strike)",
     "oracle": "/oracle [table] (alias: /o) — consult an oracle (e.g. /oracle action theme)  --table to view full table",
