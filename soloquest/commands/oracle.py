@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING
 
 from soloquest.engine.dice import roll_oracle
 from soloquest.engine.oracles import OracleResult, fuzzy_match_oracle
+from soloquest.sync.models import Event
 from soloquest.ui import display
 
 if TYPE_CHECKING:
@@ -169,7 +170,7 @@ def handle_oracle(state: GameState, args: list[str], flags: set[str]) -> None:
 
     if note:
         display.console.print(f"  [bright_cyan]│[/bright_cyan]  [dim italic]{note}[/dim italic]")
-        state.session.add_note(note)
+        state.session.add_note(note, player=state.character.name)
 
     # Display all results in a single panel if multiple tables
     if len(results) == 1:
@@ -178,6 +179,28 @@ def handle_oracle(state: GameState, args: list[str], flags: set[str]) -> None:
     elif len(results) > 1:
         display.oracle_result_panel_combined(results)
 
-    # Log each result separately
+    if not results:
+        return
+
+    player = state.character.name
+
+    # Log each result to the session (with player attribution)
     for r in results:
-        state.session.add_oracle(f"Oracle [{r.table_name}] roll {r.roll} → {r.result}")
+        state.session.add_oracle(
+            f"Oracle [{r.table_name}] roll {r.roll} → {r.result}",
+            player=player,
+        )
+
+    # Publish to the sync layer (no-op for LocalAdapter, written to JSONL for FileLogAdapter)
+    state.sync.publish(
+        Event(
+            player=player,
+            type="oracle_roll",
+            data={
+                "tables": [r.table_name for r in results],
+                "rolls": [r.roll for r in results],
+                "results": [r.result for r in results],
+                **({"note": note} if note else {}),
+            },
+        )
+    )

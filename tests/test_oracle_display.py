@@ -102,46 +102,50 @@ class TestOracleCommand:
     def setup_method(self):
         self.oracles = load_oracles(DATA_DIR)
 
+    def _make_state(self):
+        from soloquest.loop import GameState
+        from soloquest.models.session import Session
+        from soloquest.sync import LocalAdapter
+
+        state = MagicMock(spec=GameState)
+        state.oracles = self.oracles
+        state.dice = MagicMock()
+        state.session = Session(number=1)
+        state.sync = LocalAdapter("TestPlayer")
+        state.character = MagicMock()
+        state.character.name = "TestPlayer"
+        return state
+
     def test_oracle_with_no_args_shows_list(self):
         """Calling /oracle with no args should show the oracle table list."""
-        from soloquest.loop import GameState
-
-        mock_state = MagicMock(spec=GameState)
-        mock_state.oracles = self.oracles
-        mock_state.dice = MagicMock()
+        state = self._make_state()
 
         with patch("soloquest.commands.oracle.display.console") as mock_console:
-            handle_oracle(mock_state, args=[], flags=set())
+            handle_oracle(state, args=[], flags=set())
 
             # Should have printed the oracle list panel
             mock_console.print.assert_called_once()
 
     def test_oracle_with_single_table(self):
         """Calling /oracle action should roll on action table."""
-        from soloquest.loop import GameState
+        from soloquest.models.session import EntryKind
 
-        mock_state = MagicMock(spec=GameState)
-        mock_state.oracles = self.oracles
-        mock_state.dice = MagicMock()
-        mock_state.session = MagicMock()
+        state = self._make_state()
 
         with (
             patch("soloquest.commands.oracle.roll_oracle", return_value=42),
             patch("soloquest.commands.oracle.display.oracle_result_panel"),
         ):
-            handle_oracle(mock_state, args=["action"], flags=set())
+            handle_oracle(state, args=["action"], flags=set())
 
-            # Should have logged the result
-            assert mock_state.session.add_oracle.called
+        oracle_entries = [e for e in state.session.entries if e.kind == EntryKind.ORACLE]
+        assert len(oracle_entries) == 1
 
     def test_oracle_with_multiple_tables(self):
         """Calling /oracle action theme should roll both tables."""
-        from soloquest.loop import GameState
+        from soloquest.models.session import EntryKind
 
-        mock_state = MagicMock(spec=GameState)
-        mock_state.oracles = self.oracles
-        mock_state.dice = MagicMock()
-        mock_state.session = MagicMock()
+        state = self._make_state()
 
         with (
             patch("soloquest.commands.oracle.roll_oracle", return_value=42),
@@ -149,23 +153,20 @@ class TestOracleCommand:
                 "soloquest.commands.oracle.display.oracle_result_panel_combined"
             ) as mock_combined,
         ):
-            handle_oracle(mock_state, args=["action", "theme"], flags=set())
+            handle_oracle(state, args=["action", "theme"], flags=set())
 
-            # Should have displayed combined results
-            mock_combined.assert_called_once()
-            # Should have rolled both tables
-            assert mock_state.session.add_oracle.call_count >= 2
+        # Should have displayed combined results
+        mock_combined.assert_called_once()
+        # Should have logged two oracle entries
+        oracle_entries = [e for e in state.session.entries if e.kind == EntryKind.ORACLE]
+        assert len(oracle_entries) == 2
 
     def test_oracle_with_nonexistent_table(self):
         """Calling /oracle with non-existent table should show warning."""
-        from soloquest.loop import GameState
-
-        mock_state = MagicMock(spec=GameState)
-        mock_state.oracles = self.oracles
-        mock_state.dice = MagicMock()
+        state = self._make_state()
 
         with patch("soloquest.commands.oracle.display.warn") as mock_warn:
-            handle_oracle(mock_state, args=["nonexistent_table"], flags=set())
+            handle_oracle(state, args=["nonexistent_table"], flags=set())
 
             # Should have shown warning
             mock_warn.assert_called()
@@ -174,38 +175,28 @@ class TestOracleCommand:
 
     def test_oracle_with_ambiguous_name(self):
         """Calling /oracle with ambiguous name should handle gracefully."""
-        from soloquest.loop import GameState
-
-        mock_state = MagicMock(spec=GameState)
-        mock_state.oracles = self.oracles
-        mock_state.dice = MagicMock()
-        mock_state.session = MagicMock()
+        state = self._make_state()
 
         with (
             patch("soloquest.commands.oracle.roll_oracle", return_value=50),
             patch("soloquest.commands.oracle.display"),
         ):
             # "planet" might match multiple tables
-            handle_oracle(mock_state, args=["planet"], flags=set())
+            handle_oracle(state, args=["planet"], flags=set())
 
             # Should have warned about multiple matches or used first match
             # Either way, should not crash
 
     def test_oracle_trailing_note_displayed_before_results(self):
         """Note is shown as dim italic before oracle results."""
-        from soloquest.loop import GameState
-
-        mock_state = MagicMock(spec=GameState)
-        mock_state.oracles = self.oracles
-        mock_state.dice = MagicMock()
-        mock_state.session = MagicMock()
+        state = self._make_state()
 
         with (
             patch("soloquest.commands.oracle.roll_oracle", return_value=42),
             patch("soloquest.commands.oracle.display.oracle_result_panel") as mock_panel,
             patch("soloquest.commands.oracle.display.console") as mock_console,
         ):
-            handle_oracle(mock_state, args=["action", "why", "did", "he", "lie"], flags=set())
+            handle_oracle(state, args=["action", "why", "did", "he", "lie"], flags=set())
 
             calls = [c[0][0] for c in mock_console.print.call_args_list]
             assert any("why did he lie" in c for c in calls)
@@ -218,24 +209,20 @@ class TestOracleCommand:
 
     def test_oracle_trailing_note_logged_once_as_note_entry(self):
         """Note is logged once as a 'note' entry, not appended to each oracle entry."""
-        from soloquest.loop import GameState
-        from soloquest.models.session import EntryKind, Session
+        from soloquest.models.session import EntryKind
 
-        mock_state = MagicMock(spec=GameState)
-        mock_state.oracles = self.oracles
-        mock_state.dice = MagicMock()
-        mock_state.session = Session(number=1)
+        state = self._make_state()
 
         with (
             patch("soloquest.commands.oracle.roll_oracle", return_value=42),
             patch("soloquest.commands.oracle.display.oracle_result_panel"),
             patch("soloquest.commands.oracle.display.console"),
         ):
-            handle_oracle(mock_state, args=["action", "why", "did", "he", "lie"], flags=set())
+            handle_oracle(state, args=["action", "why", "did", "he", "lie"], flags=set())
 
         # Should have 1 note entry + 1 oracle entry
-        note_entries = [e for e in mock_state.session.entries if e.kind == EntryKind.NOTE]
-        oracle_entries = [e for e in mock_state.session.entries if e.kind == EntryKind.ORACLE]
+        note_entries = [e for e in state.session.entries if e.kind == EntryKind.NOTE]
+        oracle_entries = [e for e in state.session.entries if e.kind == EntryKind.ORACLE]
         assert len(note_entries) == 1
         assert "why did he lie" in note_entries[0].text
         assert len(oracle_entries) == 1
@@ -244,36 +231,143 @@ class TestOracleCommand:
 
     def test_oracle_unmatched_word_before_any_table_still_warns(self):
         """An unmatched arg with no prior results shows a warning, not a note."""
-        from soloquest.loop import GameState
-
-        mock_state = MagicMock(spec=GameState)
-        mock_state.oracles = self.oracles
-        mock_state.dice = MagicMock()
+        state = self._make_state()
 
         with patch("soloquest.commands.oracle.display.warn") as mock_warn:
-            handle_oracle(mock_state, args=["notatable"], flags=set())
+            handle_oracle(state, args=["notatable"], flags=set())
 
             mock_warn.assert_called()
             assert "not found" in mock_warn.call_args[0][0].lower()
 
     def test_oracle_no_note_no_dim_italic(self):
         """Without a trailing note, no dim italic line is printed."""
-        from soloquest.loop import GameState
-
-        mock_state = MagicMock(spec=GameState)
-        mock_state.oracles = self.oracles
-        mock_state.dice = MagicMock()
-        mock_state.session = MagicMock()
+        state = self._make_state()
 
         with (
             patch("soloquest.commands.oracle.roll_oracle", return_value=42),
             patch("soloquest.commands.oracle.display.oracle_result_panel"),
             patch("soloquest.commands.oracle.display.console") as mock_console,
         ):
-            handle_oracle(mock_state, args=["action"], flags=set())
+            handle_oracle(state, args=["action"], flags=set())
 
             calls = [c[0][0] for c in mock_console.print.call_args_list]
             assert not any("dim italic" in c for c in calls)
+
+
+class TestOracleSyncPublishing:
+    """Oracle rolls are published to the sync layer in co-op sessions."""
+
+    def setup_method(self):
+        self.oracles = load_oracles(DATA_DIR)
+
+    def _make_state(self):
+        from soloquest.loop import GameState
+        from soloquest.models.session import Session
+        from soloquest.sync import LocalAdapter
+
+        state = MagicMock(spec=GameState)
+        state.oracles = self.oracles
+        state.dice = MagicMock()
+        state.session = Session(number=1)
+        state.sync = LocalAdapter("Kira")
+        state.character = MagicMock()
+        state.character.name = "Kira"
+        return state
+
+    def test_publish_called_once_for_single_table(self):
+        state = self._make_state()
+        with (
+            patch("soloquest.commands.oracle.roll_oracle", return_value=42),
+            patch("soloquest.commands.oracle.display.oracle_result_panel"),
+            patch.object(state.sync, "publish") as mock_publish,
+        ):
+            handle_oracle(state, args=["action"], flags=set())
+
+        mock_publish.assert_called_once()
+        event = mock_publish.call_args[0][0]
+        assert event.type == "oracle_roll"
+        assert event.player == "Kira"
+
+    def test_publish_event_contains_tables_rolls_results(self):
+        state = self._make_state()
+        with (
+            patch("soloquest.commands.oracle.roll_oracle", return_value=55),
+            patch("soloquest.commands.oracle.display.oracle_result_panel"),
+            patch.object(state.sync, "publish") as mock_publish,
+        ):
+            handle_oracle(state, args=["action"], flags=set())
+
+        event = mock_publish.call_args[0][0]
+        assert "Action" in event.data["tables"]
+        assert 55 in event.data["rolls"]
+        assert len(event.data["results"]) == 1
+
+    def test_publish_called_once_for_multiple_tables(self):
+        """Multiple tables in one command produce one event, not one per table."""
+        state = self._make_state()
+        with (
+            patch("soloquest.commands.oracle.roll_oracle", return_value=42),
+            patch("soloquest.commands.oracle.display.oracle_result_panel_combined"),
+            patch.object(state.sync, "publish") as mock_publish,
+        ):
+            handle_oracle(state, args=["action", "theme"], flags=set())
+
+        mock_publish.assert_called_once()
+        event = mock_publish.call_args[0][0]
+        assert len(event.data["tables"]) == 2
+        assert len(event.data["rolls"]) == 2
+        assert len(event.data["results"]) == 2
+
+    def test_publish_not_called_for_no_results(self):
+        """Unrecognised table → no results → no publish."""
+        state = self._make_state()
+        with (
+            patch("soloquest.commands.oracle.display.warn"),
+            patch.object(state.sync, "publish") as mock_publish,
+        ):
+            handle_oracle(state, args=["zzz_nonexistent"], flags=set())
+
+        mock_publish.assert_not_called()
+
+    def test_note_included_in_event_data_when_present(self):
+        state = self._make_state()
+        with (
+            patch("soloquest.commands.oracle.roll_oracle", return_value=42),
+            patch("soloquest.commands.oracle.display.oracle_result_panel"),
+            patch("soloquest.commands.oracle.display.console"),
+            patch.object(state.sync, "publish") as mock_publish,
+        ):
+            handle_oracle(state, args=["action", "why", "did", "he", "lie"], flags=set())
+
+        event = mock_publish.call_args[0][0]
+        assert event.data.get("note") == "why did he lie"
+
+    def test_note_absent_from_event_data_when_none(self):
+        state = self._make_state()
+        with (
+            patch("soloquest.commands.oracle.roll_oracle", return_value=42),
+            patch("soloquest.commands.oracle.display.oracle_result_panel"),
+            patch.object(state.sync, "publish") as mock_publish,
+        ):
+            handle_oracle(state, args=["action"], flags=set())
+
+        event = mock_publish.call_args[0][0]
+        assert "note" not in event.data
+
+    def test_session_entries_carry_player_attribution(self):
+        """LogEntry records in the session carry the player name."""
+        from soloquest.models.session import EntryKind
+
+        state = self._make_state()
+        with (
+            patch("soloquest.commands.oracle.roll_oracle", return_value=42),
+            patch("soloquest.commands.oracle.display.oracle_result_panel"),
+        ):
+            handle_oracle(state, args=["action"], flags=set())
+
+        oracle_entries = [e for e in state.session.entries if e.kind == EntryKind.ORACLE]
+        assert len(oracle_entries) == 1
+        assert oracle_entries[0].player == "Kira"
 
 
 class TestOracleTableEdgeCases:

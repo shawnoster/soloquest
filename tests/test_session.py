@@ -17,6 +17,33 @@ class TestLogEntry:
         entry = LogEntry(kind=EntryKind.MECHANICAL, text="Health -1 (now 4/5)")
         assert entry.kind == EntryKind.MECHANICAL
 
+    def test_player_defaults_to_none(self):
+        entry = LogEntry(kind=EntryKind.JOURNAL, text="Solo entry")
+        assert entry.player is None
+
+    def test_player_set_explicitly(self):
+        entry = LogEntry(kind=EntryKind.ORACLE, text="Roll 42 → Destroy", player="Kira")
+        assert entry.player == "Kira"
+
+    def test_player_omitted_from_dict_when_none(self):
+        entry = LogEntry(kind=EntryKind.JOURNAL, text="Solo")
+        assert "player" not in entry.to_dict()
+
+    def test_player_included_in_dict_when_set(self):
+        entry = LogEntry(kind=EntryKind.ORACLE, text="Roll 42 → Destroy", player="Kira")
+        assert entry.to_dict()["player"] == "Kira"
+
+    def test_round_trip_preserves_player(self):
+        entry = LogEntry(kind=EntryKind.MOVE, text="Strike", player="Dax")
+        restored = LogEntry.from_dict(entry.to_dict())
+        assert restored.player == "Dax"
+
+    def test_round_trip_backward_compat_no_player_key(self):
+        """Old saves without 'player' key deserialise to player=None."""
+        data = {"kind": "journal", "text": "Old entry", "timestamp": "2026-01-01T00:00:00"}
+        entry = LogEntry.from_dict(data)
+        assert entry.player is None
+
 
 class TestSession:
     def setup_method(self):
