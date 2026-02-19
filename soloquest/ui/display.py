@@ -373,28 +373,31 @@ def session_header(session_num: int, title: str) -> None:
     console.print()
 
 
-def log_entry(entry: LogEntry) -> None:
+def log_entry(entry: LogEntry, show_label: bool = False) -> None:
+    label = f"[dim][{entry.kind.value.title()}][/dim] " if show_label else ""
     match entry.kind:
         case EntryKind.JOURNAL:
-            console.print(f"[white]{entry.text}[/white]")
+            console.print(f"{label}[white]{entry.text}[/white]")
         case EntryKind.MOVE:
             console.print(f"[dim blue]▸ {entry.text}[/dim blue]")
         case EntryKind.ORACLE:
-            console.print(f"[bright_cyan]◈ {entry.text}[/bright_cyan]")
+            console.print(f"{label}[bright_cyan]◈ {entry.text}[/bright_cyan]")
         case EntryKind.MECHANICAL:
             console.print(f"[dim italic]{entry.text}[/dim italic]")
         case EntryKind.NOTE:
-            console.print(f"[yellow]📌 {entry.text}[/yellow]")
+            console.print(f"{label}[yellow]📌 {entry.text}[/yellow]")
 
 
 def recent_log(entries: list[LogEntry], n: int = 5) -> None:
     """Show last n journal/note entries for context."""
-    recent = [e for e in entries if e.kind in (EntryKind.JOURNAL, EntryKind.NOTE)][-n:]
+    recent = [
+        e for e in entries if e.kind in (EntryKind.JOURNAL, EntryKind.NOTE, EntryKind.ORACLE)
+    ][-n:]
     if not recent:
         return
     rule("Recent Log")
     for entry in recent:
-        log_entry(entry)
+        log_entry(entry, show_label=True)
     console.print()
 
 
