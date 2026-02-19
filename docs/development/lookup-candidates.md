@@ -4,32 +4,13 @@ This document identifies areas where hardcoded text in Python source files
 should be moved to TOML data files, following the pattern established by:
 - PR #76: `character_creation.toml` (character creation oracle tables)
 - PR #78: `guide.toml` (guide step prose)
+- PR #114: `commands.toml` (command help strings and completion descriptions)
 
 ---
 
-## 1. `COMMAND_HELP` in `registry.py` → `commands.toml`
+## ~~1. `COMMAND_HELP` in `registry.py` → `commands.toml`~~ ✅ Done (PR #114)
 
-**Location:** `soloquest/commands/registry.py:94-125`
-
-Thirty command descriptions are hardcoded in a Python dict. These are
-user-facing strings that describe each command's usage and purpose—exactly
-the kind of content that should live outside source code.
-
-**Proposed file:** `soloquest/data/commands.toml`
-
-```toml
-[campaign]
-help = "/campaign [start|create|join|status|leave] — manage campaigns (/campaign start to begin)"
-
-[move]
-help = "/move [name] (alias: /m) — resolve a move (e.g. /move strike)"
-
-# ... one entry per command
-```
-
-**Why:** Command descriptions are content, not logic. Moving them enables
-non-developer contributions, simplifies testing, and keeps `registry.py`
-focused on routing logic rather than display strings.
+All command help strings moved to `soloquest/data/commands.toml`.
 
 ---
 
@@ -181,50 +162,21 @@ customization and keeps `guide.py` focused on logic.
 
 ---
 
-## 5. Completion descriptions in `completion.py` → `commands.toml`
+## ~~5. Completion descriptions in `completion.py` → `commands.toml`~~ ✅ Done (PR #114)
 
-**Location:** `soloquest/commands/completion.py:192-214`
-
-Two inline dicts with hardcoded descriptions power tab-completion hints:
-
-- `_complete_guide_args`: 6 guide subcommand descriptions
-- `_complete_truths_args`: 2 truths subcommand descriptions
-
-These are display strings shown in the prompt_toolkit completion dropdown
-and should live alongside other command strings.
-
-**Proposed addition to:** `soloquest/data/commands.toml`
-
-```toml
-[guide.subcommands]
-start = "Enter guided mode (step-by-step wizard)"
-stop = "Exit guided mode"
-envision = "Learn about envisioning and describing your story"
-oracle = "Learn about asking the oracle"
-move = "Learn about making moves"
-outcome = "Learn about interpreting outcomes"
-
-[truths.subcommands]
-start = "Start or restart the Choose Your Truths wizard"
-show = "Display your current campaign truths"
-```
-
-**Why:** These completion descriptions are the same kind of user-facing text
-as `COMMAND_HELP`. Collocating them in `commands.toml` makes it easy to find
-and update all command-related strings in one place.
+Guide and truths subcommand descriptions moved to `soloquest/data/commands.toml`
+under `[guide.subcommands]` and `[truths.subcommands]`.
 
 ---
 
 ## Priority Order
 
-| Priority | Area | File | Target |
-|---|---|---|---|
-| High | `COMMAND_HELP` dict | `registry.py:94` | new `commands.toml` |
-| High | Oracle categories & inspirations | `oracle.py:19` | extend `oracles.toml` |
-| Medium | Game loop flowchart overview | `guide.py:63` | extend `guide.toml` |
-| Medium | Contextual suggestions | `guide.py:147` | extend `guide.toml` |
-| Low | Completion descriptions | `completion.py:192` | new `commands.toml` |
+| Priority | Area | File | Target | Status |
+|---|---|---|---|---|
+| ~~High~~ | ~~`COMMAND_HELP` dict~~ | ~~`registry.py`~~ | ~~`commands.toml`~~ | ✅ PR #114 |
+| High | Oracle categories & inspirations | `oracle.py:19` | extend `oracles.toml` | Remaining |
+| Medium | Game loop flowchart overview | `guide.py:63` | extend `guide.toml` | Remaining |
+| Medium | Contextual suggestions | `guide.py:147` | extend `guide.toml` | Remaining |
+| ~~Low~~ | ~~Completion descriptions~~ | ~~`completion.py`~~ | ~~`commands.toml`~~ | ✅ PR #114 |
 
-The `commands.toml` work (items 1 and 5) can be done together since they
-share the same target file. Similarly, items 3 and 4 both extend `guide.toml`
-and fit naturally in a single PR.
+Items 3 and 4 both extend `guide.toml` and fit naturally in a single PR.

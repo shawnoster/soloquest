@@ -25,7 +25,6 @@ _COMMANDS = _load_commands()
 BARE_COMMANDS = {
     "char",
     "log",
-    "burn",
     "end",
     "newsession",
     "forsake",
