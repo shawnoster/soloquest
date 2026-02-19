@@ -7,7 +7,12 @@ from typing import TYPE_CHECKING
 from prompt_toolkit.completion import Completer, Completion
 from prompt_toolkit.document import Document
 
-from soloquest.commands.registry import COMMAND_ALIASES, COMMAND_HELP
+from soloquest.commands.registry import (
+    COMMAND_ALIASES,
+    COMMAND_HELP,
+    GUIDE_SUBCOMMANDS,
+    TRUTHS_SUBCOMMANDS,
+)
 
 if TYPE_CHECKING:
     from soloquest.engine.oracles import OracleTable
@@ -191,24 +196,8 @@ class CommandCompleter(Completer):
 
     def _complete_guide_args(self, current_arg: str) -> list[Completion]:
         """Complete guide arguments (commands and steps)."""
-        return self._complete_options(
-            current_arg,
-            {
-                "start": "Enter guided mode (step-by-step wizard)",
-                "stop": "Exit guided mode",
-                "envision": "Learn about envisioning and describing your story",
-                "oracle": "Learn about asking the oracle",
-                "move": "Learn about making moves",
-                "outcome": "Learn about interpreting outcomes",
-            },
-        )
+        return self._complete_options(current_arg, GUIDE_SUBCOMMANDS)
 
     def _complete_truths_args(self, current_arg: str) -> list[Completion]:
         """Complete truths subcommands."""
-        return self._complete_options(
-            current_arg,
-            {
-                "start": "Start or restart the Choose Your Truths wizard",
-                "show": "Display your current campaign truths",
-            },
-        )
+        return self._complete_options(current_arg, TRUTHS_SUBCOMMANDS)
