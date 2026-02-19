@@ -6,7 +6,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from prompt_toolkit import PromptSession
-from prompt_toolkit.history import InMemoryHistory
+from prompt_toolkit.history import FileHistory
 
 from soloquest.commands.asset import handle_asset
 from soloquest.commands.campaign import handle_campaign
@@ -230,7 +230,12 @@ def run_session(
 
     display.console.print()
 
-    history = InMemoryHistory()
+    # Use FileHistory for persistent command history across sessions
+    from soloquest.config import config
+
+    history_path = config.adventures_dir / ".soloquest_history"
+    config.adventures_dir.mkdir(parents=True, exist_ok=True)
+    history = FileHistory(str(history_path))
     completer = CommandCompleter(oracles=state.oracles, moves=state.moves, assets=state.assets)
     prompt_session: PromptSession = PromptSession(
         history=history,
