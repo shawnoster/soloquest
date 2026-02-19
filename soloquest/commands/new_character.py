@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import random
+import tomllib
 from pathlib import Path
 
 from prompt_toolkit import PromptSession
@@ -27,87 +28,28 @@ def _init_asset_tracks(char_asset: CharacterAsset, assets: dict[str, Asset]) -> 
             if track_name not in char_asset.track_values:
                 char_asset.track_values[track_name] = max_val
 
-# ── Oracle tables (used only during character creation) ────────────────────────
-# Format: list of (min_roll, max_roll, text)
 
-BACKSTORY_TABLE: list[tuple[int, int, str]] = [
-    (1, 7, "You fled from a conflict that took everything from you."),
-    (8, 13, "You left a life of privilege to forge your own path."),
-    (14, 20, "You were exiled from your homeworld for a crime—real or fabricated."),
-    (21, 28, "You set out to find a person lost in the Forge."),
-    (29, 35, "You seek revenge against an enemy who wronged you."),
-    (36, 42, "You were cast out of a guild or faction you once served faithfully."),
-    (43, 50, "A revelation shattered your faith in the life you led before."),
-    (51, 57, "You made a promise to a dying friend and cannot rest until it is kept."),
-    (58, 64, "An incident you caused destroyed the lives of others; now you make amends."),
-    (65, 71, "You are a survivor of a catastrophe that should have claimed you too."),
-    (72, 78, "You chased an obsession that consumed your old life."),
-    (79, 84, "You were a soldier in a war that is now over, without a place to return to."),
-    (85, 90, "A stranger's act of kindness saved your life; you now strive to pay it forward."),
-    (91, 95, "You carry a secret that forced you to leave everything behind."),
-    (96, 100, "You heard the call of the Forge and answered without hesitation."),
-]
+# ── Oracle tables (loaded from TOML data file) ────────────────────────────────
 
-STARSHIP_HISTORY_TABLE: list[tuple[int, int, str]] = [
-    (1, 8, "You stripped it from a derelict hulk drifting in the void."),
-    (9, 17, "You won it in a high-stakes wager—the previous owner is still bitter."),
-    (18, 28, "You inherited it from a mentor who no longer needed it."),
-    (29, 39, "You acquired it as payment for a job that went sideways."),
-    (40, 49, "You built it yourself, piece by piece over many years."),
-    (50, 59, "You stole it from someone who deserved to lose it."),
-    (60, 69, "You commandeered it during a crisis and never gave it back."),
-    (70, 79, "It was assigned to you by a faction you once served."),
-    (80, 89, "You bought it for cheap—the seller didn't mention the complications."),
-    (90, 95, "You rescued it (and its crew) from a dire situation."),
-    (96, 100, "It came with a history best left unspoken."),
-]
+_DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 
-STARSHIP_QUIRK_TABLE: list[tuple[int, int, str]] = [
-    (1, 5, "The ship whispers—strange sounds from somewhere in the hull."),
-    (6, 10, "Its AI has a habit of offering unsolicited opinions."),
-    (11, 15, "The drives flare an unusual color when pushed hard."),
-    (16, 20, "One compartment is always locked, and no one remembers why."),
-    (21, 25, "Old battle scars run across the hull; the crew calls them trophies."),
-    (26, 30, "It runs best when someone is telling it encouraging words."),
-    (31, 35, "The previous owner's personal effects are still aboard."),
-    (36, 40, "Navigation occasionally routes through places it shouldn't know."),
-    (41, 46, "The life support smells faintly of something no one can identify."),
-    (47, 52, "It has a reputation—crews either want to fly it or want it destroyed."),
-    (53, 58, "A minor religious icon was welded to the bridge by a former crew member."),
-    (59, 63, "The ship has survived three incidents that should have killed everyone aboard."),
-    (64, 68, "Its systems prefer organic-feeling commands over cold efficiency."),
-    (69, 73, "There's a manifest discrepancy that never fully resolves itself."),
-    (74, 78, "The hull is marked with a symbol that provokes strong reactions in some ports."),
-    (79, 83, "An emergency beacon fires at random intervals for no identifiable reason."),
-    (84, 88, "The crew quarters are far more comfortable than the ship's class suggests."),
-    (89, 93, "It accelerates just a fraction faster than specs say it should."),
-    (94, 97, "Strange readings appear on sensors in certain regions of the Forge."),
-    (98, 100, "It has a name etched into its hull in a language nobody can read."),
-]
 
-BACKGROUND_PATHS_TABLE: list[tuple[int, int, str, str]] = [
-    # (min, max, background description, suggested paths)
-    (1, 5, "Soldier / Mercenary", "Archer or Blademaster + Gunslinger"),
-    (6, 10, "Spy / Infiltrator", "Infiltrator + Shade"),
-    (11, 15, "Pilot / Ace", "Ace + Navigator"),
-    (16, 20, "Healer / Medic", "Empath + Healer"),
-    (21, 25, "Scientist / Scholar", "Lore Hunter + Sleuth"),
-    (26, 30, "Engineer / Tinkerer", "Armored + Tech"),
-    (31, 35, "Outlaw / Criminal", "Fugitive + Scoundrel"),
-    (36, 40, "Diplomat / Negotiator", "Diplomat + Empath"),
-    (41, 45, "Hunter / Tracker", "Slayer + Naturalist"),
-    (46, 50, "Leader / Commander", "Bannersworn + Loyalist"),
-    (51, 55, "Mystic / Seer", "Devotant + Seer"),
-    (56, 60, "Explorer / Wanderer", "Explorer + Navigator"),
-    (61, 65, "Merchant / Trader", "Trader + Scoundrel"),
-    (66, 70, "Worker / Laborer", "Crew Commander + Scavenger"),
-    (71, 75, "Medic / Field Surgeon", "Healer + Devotant"),
-    (76, 80, "Artist / Performer", "Brawler + Slayer"),
-    (81, 85, "Enforcer / Bounty Hunter", "Bounty Hunter + Slayer"),
-    (86, 90, "Rebel / Freedom Fighter", "Bannersworn + Infiltrator"),
-    (91, 95, "Survivor / Castaway", "Outcast + Naturalist"),
-    (96, 100, "Undefined / Freeform", "Choose any two paths"),
-]
+def _load_creation_tables() -> dict[str, list[tuple]]:
+    """Load character creation oracle tables from TOML."""
+    toml_path = _DATA_DIR / "character_creation.toml"
+    with open(toml_path, "rb") as f:
+        raw = tomllib.load(f)
+    tables: dict[str, list[tuple]] = {}
+    for key, section in raw.items():
+        tables[key] = [tuple(row) for row in section["results"]]
+    return tables
+
+
+_TABLES = _load_creation_tables()
+BACKSTORY_TABLE: list[tuple[int, int, str]] = _TABLES["backstory"]
+STARSHIP_HISTORY_TABLE: list[tuple[int, int, str]] = _TABLES["starship_history"]
+STARSHIP_QUIRK_TABLE: list[tuple[int, int, str]] = _TABLES["starship_quirk"]
+BACKGROUND_PATHS_TABLE: list[tuple[int, int, str, str]] = _TABLES["background_paths"]
 
 
 def _roll_table(table: list[tuple]) -> tuple:
