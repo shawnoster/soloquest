@@ -360,8 +360,8 @@ class TestGetTruthChoice:
         """Test entering a custom truth."""
         # Mock Prompt.ask to return "c" first (for choice), then the custom text
         with patch("soloquest.commands.truths.Prompt.ask") as mock_ask, \
-             patch("soloquest.commands.truths._prompt_note", return_value="Custom note") as mock_note, \
-             patch("soloquest.commands.truths.display") as mock_display:
+             patch("soloquest.commands.truths._prompt_note", return_value="Custom note"), \
+             patch("soloquest.commands.truths.display"):
             mock_ask.side_effect = ["c", "My custom truth"]
             
             result = _get_truth_choice(self.category)
