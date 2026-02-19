@@ -41,9 +41,14 @@ def save_game(
     session_count: int,
     dice_mode: DiceMode,
     session: Session | None = None,
+    save_path: Path | None = None,
 ) -> Path:
-    _saves_dir().mkdir(parents=True, exist_ok=True)
-    path = saves_path(character.name)
+    if save_path is None:
+        _saves_dir().mkdir(parents=True, exist_ok=True)
+        path = saves_path(character.name)
+    else:
+        save_path.parent.mkdir(parents=True, exist_ok=True)
+        path = save_path
 
     # Create backup if save file exists
     if path.exists():
@@ -73,10 +78,11 @@ def autosave(
     session_count: int,
     dice_mode: DiceMode,
     session: Session | None = None,
+    save_path: Path | None = None,
 ) -> None:
     """Silent autosave — same as save_game but swallows errors gracefully."""
     with contextlib.suppress(Exception):
-        save_game(character, vows, session_count, dice_mode, session)
+        save_game(character, vows, session_count, dice_mode, session, save_path=save_path)
 
 
 def load_game(

@@ -9,6 +9,7 @@ from prompt_toolkit import PromptSession
 from prompt_toolkit.history import InMemoryHistory
 
 from soloquest.commands.asset import handle_asset
+from soloquest.commands.campaign import handle_campaign
 from soloquest.commands.character import (
     handle_char,
     handle_momentum,
@@ -42,6 +43,7 @@ from soloquest.engine.dice import (
 )
 from soloquest.engine.oracles import OracleTable, load_oracles
 from soloquest.engine.truths import TruthCategory, load_truth_categories
+from soloquest.models.campaign import CampaignState
 from soloquest.models.character import Character
 from soloquest.models.session import Session
 from soloquest.models.vow import Vow
@@ -87,6 +89,8 @@ class GameState:
     guided_mode: bool = field(default=False, repr=False)
     guided_phase: str = field(default="envision", repr=False)  # envision, oracle, move, outcome
     sync: SyncPort = field(default_factory=lambda: LocalAdapter("solo"), repr=False)
+    campaign: CampaignState | None = field(default=None, repr=False)
+    campaign_dir: Path | None = field(default=None, repr=False)
 
 
 def load_dataforged_moves() -> dict:
@@ -256,6 +260,8 @@ def run_session(
                     advance_phase(state)
                 case "guide":
                     handle_guide(state, cmd.args, cmd.flags)
+                case "campaign":
+                    handle_campaign(state, cmd.args, cmd.flags)
                 case "truths":
                     handle_truths(state, cmd.args, cmd.flags)
                 case "move":
@@ -318,9 +324,7 @@ def run_session(
 
             # Autosave after mechanical commands
             if cmd.name in AUTOSAVE_AFTER:
-                autosave(
-                    state.character, state.vows, state.session_count, state.dice_mode, state.session
-                )
+                _autosave_state(state)
                 state._unsaved_entries = 0
 
         except ValueError as e:
@@ -337,10 +341,27 @@ def run_session(
             display.warn("  Game state preserved. Continue playing.")
 
 
+def _autosave_state(state: GameState) -> None:
+    """Autosave using campaign-aware save path."""
+    from soloquest.state.campaign import player_save_path
+
+    save_path = None
+    if state.campaign_dir is not None:
+        save_path = player_save_path(state.campaign_dir, state.character.name)
+
+    autosave(
+        state.character,
+        state.vows,
+        state.session_count,
+        state.dice_mode,
+        state.session,
+        save_path=save_path,
+    )
+
+
 def _handle_interrupt(state: GameState) -> None:
     """Ctrl+C handler — autosave session and character state."""
-    # Always autosave the current session
-    autosave(state.character, state.vows, state.session_count, state.dice_mode, state.session)
+    _autosave_state(state)
     display.info(
         "Session saved. Resume with 'soloquest' or start a new session with '/newsession'."
     )
@@ -348,8 +369,7 @@ def _handle_interrupt(state: GameState) -> None:
 
 def _confirm_quit(state: GameState) -> None:
     """Quit and autosave session."""
-    # Always autosave the current session
-    autosave(state.character, state.vows, state.session_count, state.dice_mode, state.session)
+    _autosave_state(state)
     display.info(
         "Session saved. Resume with 'soloquest' or start a new session with '/newsession'."
     )

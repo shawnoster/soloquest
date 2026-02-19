@@ -24,6 +24,7 @@ BARE_COMMANDS = {
     "guide",
     "next",
     "truths",
+    "campaign",
 }
 
 # Command aliases — short forms for common commands
@@ -91,6 +92,7 @@ def fuzzy_match_command(name: str, known: list[str]) -> str | None:
 
 
 COMMAND_HELP: dict[str, str] = {
+    "campaign": "/campaign [create|join|status|leave] — manage co-op campaigns",
     "guide": "/guide [step|start|stop] — show gameplay loop or enter guided mode (try: /guide start)",
     "truths": "/truths [start|show] — choose campaign truths or view current truths",
     "next": "/next — advance to next phase (guided mode only)",
