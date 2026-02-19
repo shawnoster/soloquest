@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import tomllib
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 from rich.panel import Panel
@@ -11,6 +13,16 @@ from soloquest.ui import display
 
 if TYPE_CHECKING:
     from soloquest.loop import GameState
+
+_DATA_DIR = Path(__file__).resolve().parent.parent / "data"
+
+
+def _load_guide_prose() -> dict[str, dict[str, str]]:
+    with open(_DATA_DIR / "guide.toml", "rb") as f:
+        return tomllib.load(f)
+
+
+_GUIDE = _load_guide_prose()
 
 
 def handle_guide(state: GameState, args: list[str], flags: set[str]) -> None:
@@ -154,168 +166,27 @@ def _show_step_detail(step: str, state: GameState) -> None:
         _show_outcome_help(state)
 
 
-def _show_envision_help(state: GameState) -> None:
-    """Show detailed help for the Envision step."""
-    display.rule("Step 1: Envision the Current Situation")
+def _show_step_help(step: str, state: GameState, **format_kwargs: int) -> None:
+    """Show detailed help for a gameplay step, loaded from guide.toml."""
+    section = _GUIDE[step]
+    display.rule(section["title"])
     display.console.print()
-
-    content = """[bold]ENVISION[/bold] means describing the fiction — what's happening in your story.
-
-[bold cyan]What to do:[/bold cyan]
-  • Describe what your character sees, hears, and experiences
-  • Write about what your character is doing or attempting
-  • Add details about the environment, NPCs, or situation
-  • Follow up on the results of your last move
-
-[bold cyan]How to do it:[/bold cyan]
-  • Just type — no command prefix needed
-  • Your words become your journal entries
-  • Write as much or as little as you want
-
-[bold cyan]Example:[/bold cyan]
-  > I push through the airlock into the derelict station.
-  > Emergency lights flicker. The air smells of rust and decay.
-  > I need to find the main computer core to recover the data.
-
-[bold yellow]Tips:[/bold yellow]
-  • Fiction comes first — always describe before rolling
-  • When uncertain about details, use [cyan]/oracle[/cyan] to answer questions
-  • When you take risky action, use [cyan]/move[/cyan] to resolve it
-"""
-
+    content = section["content"].format(**format_kwargs)
     display.console.print(Panel(content, border_style="cyan", padding=(1, 2)))
     display.console.print()
+
+
+def _show_envision_help(state: GameState) -> None:
+    _show_step_help("envision", state)
 
 
 def _show_oracle_help(state: GameState) -> None:
-    """Show detailed help for the Oracle step."""
-    display.rule("Step 2: Ask the Oracle")
-    display.console.print()
-
-    content = f"""[bold]ASK THE ORACLE[/bold] when you need answers about the world.
-
-[bold cyan]When to use:[/bold cyan]
-  • You're uncertain about a detail in the fiction
-  • You need to know what happens next
-  • You want inspiration for NPCs, locations, or events
-  • You need a yes/no answer to a question
-
-[bold cyan]How to do it:[/bold cyan]
-  [cyan]/oracle [table names][/cyan]
-
-[bold cyan]Common oracles:[/bold cyan]
-  • [cyan]/oracle action theme[/cyan] — Creative prompt pair
-  • [cyan]/oracle descriptor[/cyan] — Single descriptive word
-  • [cyan]/oracle character name[/cyan] — NPC name
-  • [cyan]/oracle character role[/cyan] — NPC role/profession
-  • [cyan]/oracle location[/cyan] — Location descriptor
-  • [cyan]/oracle yes no[/cyan] — Yes/no question (use odds like: likely, unlikely)
-
-[bold cyan]Available oracle tables:[/bold cyan] {len(state.oracles)}
-  Type [cyan]/help oracles[/cyan] to see all tables
-
-[bold yellow]Tips:[/bold yellow]
-  • Ask specific questions, let the oracle answer
-  • Combine results creatively (e.g., "Violent" + "Refuge")
-  • Trust your first interpretation
-  • You can roll multiple oracles at once
-"""
-
-    display.console.print(Panel(content, border_style="cyan", padding=(1, 2)))
-    display.console.print()
+    _show_step_help("oracle", state, oracle_count=len(state.oracles))
 
 
 def _show_move_help(state: GameState) -> None:
-    """Show detailed help for the Move step."""
-    display.rule("Step 3: Make a Move")
-    display.console.print()
-
-    content = f"""[bold]MAKE A MOVE[/bold] when your action or the situation triggers it.
-
-[bold cyan]When to use:[/bold cyan]
-  • You attempt something risky or uncertain
-  • The fiction naturally triggers a move
-  • You take action that could fail
-
-[bold cyan]How to do it:[/bold cyan]
-  [cyan]/move [name][/cyan]
-
-  Example: [cyan]/move face danger[/cyan]
-
-[bold cyan]Common moves:[/bold cyan]
-  • [cyan]/move face danger[/cyan] — Overcome obstacle with skill/stat
-  • [cyan]/move gather information[/cyan] — Investigate or research
-  • [cyan]/move secure an advantage[/cyan] — Prepare or gain position
-  • [cyan]/move strike[/cyan] — Attack in combat
-  • [cyan]/move clash[/cyan] — Fight back in combat
-  • [cyan]/move make camp[/cyan] — Rest and recover
-
-[bold cyan]Available moves:[/bold cyan] {len(state.moves)}
-  Type [cyan]/help moves[/cyan] to see all moves
-
-[bold cyan]How moves work:[/bold cyan]
-  1. Choose your stat (Edge, Heart, Iron, Shadow, Wits)
-  2. Roll action die (d6) + stat + any bonuses
-  3. Compare to two challenge dice (d10s)
-  4. Outcome determines what happens next
-
-[bold yellow]Tips:[/bold yellow]
-  • Read the move text carefully
-  • Choose the most relevant stat for the situation
-  • Don't roll unless the move triggers
-  • Follow the outcome text for results
-"""
-
-    display.console.print(Panel(content, border_style="cyan", padding=(1, 2)))
-    display.console.print()
+    _show_step_help("move", state, move_count=len(state.moves))
 
 
 def _show_outcome_help(state: GameState) -> None:
-    """Show detailed help for understanding outcomes."""
-    display.rule("Step 4: Interpret Outcomes")
-    display.console.print()
-
-    content = """[bold]OUTCOMES[/bold] determine what happens after you make a move.
-
-[bold blue]STRONG HIT[/bold blue] [blue]✓✓[/blue]
-  • Your action score beats BOTH challenge dice
-  • You succeeded and are in control
-  • You get what you wanted
-  • [bold]You[/bold] decide what happens next
-  • Often gain +1 momentum
-
-[bold magenta]WEAK HIT[/bold magenta] [magenta]✓✗[/magenta]
-  • Your action score beats ONE challenge die
-  • You succeeded, but with a cost or complication
-  • You get what you wanted, but...
-  • The [bold]situation[/bold] complicates
-  • Follow the move's weak hit text
-
-[bold red]MISS[/bold red] [red]✗✗[/red]
-  • Your action score beats NEITHER challenge die
-  • You failed or face a dramatic turn
-  • Things get worse
-  • Pay the Price (lose resources, face danger)
-  • The [bold]fiction[/bold] determines what happens
-
-[bold yellow]MATCH[/bold yellow] (Challenge dice are equal)
-  • Something unexpected happens
-  • Twist, opportunity, or complication
-  • Works with any outcome type
-  • Add dramatic flair to the result
-
-[bold cyan]After an outcome:[/bold cyan]
-  1. Read the move's outcome text
-  2. Describe what happens in the fiction
-  3. Adjust any tracks ([cyan]/health, /momentum, /supply[/cyan], etc.)
-  4. Return to Step 1: Envision what happens next
-
-[bold yellow]Tips:[/bold yellow]
-  • Always describe the outcome in the fiction first
-  • Mechanical effects follow fictional description
-  • Weak hits and misses drive the story forward
-  • Momentum burn ([cyan]/burn[/cyan]) can upgrade outcomes
-"""
-
-    display.console.print(Panel(content, border_style="cyan", padding=(1, 2)))
-    display.console.print()
+    _show_step_help("outcome", state)
