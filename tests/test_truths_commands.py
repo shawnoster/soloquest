@@ -356,14 +356,12 @@ class TestGetTruthChoice:
         assert result.option_summary == "[To be determined]"
         mock_display.info.assert_called_once()
 
-    @patch("soloquest.commands.truths.Prompt.ask", return_value="c")
-    @patch("soloquest.commands.truths.Prompt.ask", return_value="My custom truth")
-    @patch("soloquest.commands.truths._prompt_note", return_value="Custom note")
-    @patch("soloquest.commands.truths.display")
-    def test_get_truth_choice_custom(self, mock_display, mock_note, mock_prompt):
+    def test_get_truth_choice_custom(self):
         """Test entering a custom truth."""
-        # Need to mock Prompt.ask to return "c" first, then the custom text
-        with patch("soloquest.commands.truths.Prompt.ask") as mock_ask:
+        # Mock Prompt.ask to return "c" first (for choice), then the custom text
+        with patch("soloquest.commands.truths.Prompt.ask") as mock_ask, \
+             patch("soloquest.commands.truths._prompt_note", return_value="Custom note") as mock_note, \
+             patch("soloquest.commands.truths.display") as mock_display:
             mock_ask.side_effect = ["c", "My custom truth"]
             
             result = _get_truth_choice(self.category)
@@ -374,19 +372,20 @@ class TestGetTruthChoice:
             assert result.custom_text == "My custom truth"
             assert result.note == "Custom note"
 
-    @patch("soloquest.commands.truths.Prompt.ask")
     @patch("soloquest.commands.truths._prompt_note", return_value="")
     @patch("soloquest.commands.truths.display")
-    def test_get_truth_choice_custom_empty_retry(self, mock_display, mock_note, mock_prompt):
+    def test_get_truth_choice_custom_empty_retry(self, mock_display, mock_note):
         """Test entering empty custom truth retries."""
-        # First return "c" for custom, then empty string, then valid custom text
-        mock_prompt.side_effect = ["c", "", "Valid custom text"]
-        
-        result = _get_truth_choice(self.category)
-        
-        assert result is not None
-        assert result.custom_text == "Valid custom text"
-        mock_display.error.assert_called_once()
+        # First return "c" for custom, then empty string triggers error,
+        # then "c" again, then valid custom text
+        with patch("soloquest.commands.truths.Prompt.ask") as mock_ask:
+            mock_ask.side_effect = ["c", "", "c", "Valid custom text"]
+            
+            result = _get_truth_choice(self.category)
+            
+            assert result is not None
+            assert result.custom_text == "Valid custom text"
+            mock_display.error.assert_called_once()
 
     @patch("soloquest.commands.truths.Prompt.ask", return_value="r")
     @patch("soloquest.commands.truths.random.randint", return_value=50)
