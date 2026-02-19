@@ -14,10 +14,19 @@ VOW_RANKS = [r.value for r in VowRank]
 
 
 def handle_vow(state: GameState, args: list[str], flags: set[str]) -> None:
-    """Create a new vow: /vow [rank] [description]"""
+    """Create a new vow: /vow [rank] [description]
+
+    With --shared flag, creates a campaign-level vow visible to all players:
+        /vow --shared [rank] [description]
+    """
+    # Detect --shared flag
+    is_shared = "shared" in flags
+
     if len(args) < 2:
         display.error("Usage: /vow [rank] [description]")
         display.info(f"Ranks: {', '.join(VOW_RANKS)}")
+        if state.campaign is not None:
+            display.info("  Add --shared to create a campaign-level vow visible to all players.")
         return
 
     rank_raw = args[0].lower()
@@ -30,6 +39,10 @@ def handle_vow(state: GameState, args: list[str], flags: set[str]) -> None:
     rank = VowRank(rank_matches[0])
     description = " ".join(args[1:])
 
+    if is_shared:
+        _handle_vow_shared(state, rank, description)
+        return
+
     vow = Vow(description=description, rank=rank)
     state.vows.append(vow)
 
@@ -37,9 +50,42 @@ def handle_vow(state: GameState, args: list[str], flags: set[str]) -> None:
     state.session.add_mechanical(f"Vow sworn [{rank.value}]: {description}")
 
 
+def _handle_vow_shared(state: GameState, rank: VowRank, description: str) -> None:
+    """Create a shared campaign vow."""
+    from soloquest.sync.models import Event
+
+    if state.campaign is None:
+        display.warn("Shared vows require an active campaign. Use /campaign start first.")
+        return
+
+    vow = Vow(description=description, rank=rank, shared=True)
+    state.campaign.shared_vows.append(vow)
+
+    # Persist to campaign.toml
+    if state.campaign_dir is not None:
+        from soloquest.state.campaign import save_campaign
+
+        save_campaign(state.campaign, state.campaign_dir)
+
+    state.sync.publish(
+        Event(
+            player=state.character.name,
+            type="shared_vow_created",
+            data={"rank": rank.value, "description": description},
+        )
+    )
+
+    display.success(f"Shared vow sworn [{rank.value}]: {description}")
+    state.session.add_mechanical(f"Shared vow sworn [{rank.value}]: {description}")
+
+
 def handle_progress(state: GameState, args: list[str], flags: set[str]) -> None:
-    """Mark progress on a vow: /progress [partial vow name]"""
-    active = [v for v in state.vows if not v.fulfilled]
+    """Mark progress on a vow: /progress [partial vow name]
+
+    Searches both personal and shared campaign vows.
+    """
+    shared = list(state.campaign.shared_vows) if state.campaign is not None else []
+    active = [v for v in state.vows if not v.fulfilled] + [v for v in shared if not v.fulfilled]
     if not active:
         display.error("No active vows.")
         return
@@ -67,6 +113,24 @@ def handle_progress(state: GameState, args: list[str], flags: set[str]) -> None:
     state.session.add_mechanical(
         f"Progress [{vow.rank.value}] on '{vow.description}': {vow.progress_score}/10"
     )
+
+    # If this is a shared vow, persist and publish the update
+    if vow.shared and state.campaign is not None and state.campaign_dir is not None:
+        from soloquest.state.campaign import save_campaign
+        from soloquest.sync.models import Event
+
+        save_campaign(state.campaign, state.campaign_dir)
+        state.sync.publish(
+            Event(
+                player=state.character.name,
+                type="shared_vow_progress",
+                data={
+                    "description": vow.description,
+                    "progress_score": vow.progress_score,
+                    "ticks": vow.ticks,
+                },
+            )
+        )
 
 
 def handle_fulfill(state: GameState, args: list[str], flags: set[str]) -> None:
