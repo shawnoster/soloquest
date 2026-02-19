@@ -316,6 +316,9 @@ def run_session(
                     display.console.clear()
                 case "help":
                     handle_help(state, cmd.args, cmd.flags)
+                case "sync":
+                    _poll_and_display(state, explicit=True)
+                    continue  # no autosave needed
                 case "quit" | "q" | "exit":
                     if state.guided_mode:
                         stop_guided_mode(state)
@@ -339,6 +342,9 @@ def run_session(
                 _autosave_state(state)
                 state._unsaved_entries = 0
 
+            # Poll for partner activity after each command (co-op only)
+            _poll_and_display(state)
+
         except ValueError as e:
             display.error(f"Invalid value: {e}")
             display.info("  Type /help for usage information.")
@@ -351,6 +357,25 @@ def run_session(
         except Exception as e:
             display.error(f"Unexpected error: {e}")
             display.warn("  Game state preserved. Continue playing.")
+
+
+def _poll_and_display(state: GameState, explicit: bool = False) -> None:
+    """Poll for partner events and display any that arrive.
+
+    Only active in co-op mode (campaign is not None). In solo mode this is
+    a no-op because LocalAdapter.poll() always returns [].
+
+    Args:
+        explicit: True when called from /sync command — show a message even
+                  if there are no new events.
+    """
+    if state.campaign is None and not explicit:
+        return
+    events = state.sync.poll()
+    if events:
+        display.partner_activity(events)
+    elif explicit:
+        display.info("  No new partner activity.")
 
 
 def _autosave_state(state: GameState) -> None:

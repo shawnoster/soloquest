@@ -402,6 +402,44 @@ def mechanical_update(text: str) -> None:
     console.print(f"[dim]  ↳ {text}[/dim]")
 
 
+def partner_activity(events: list) -> None:
+    """Display events polled from partner players in co-op mode.
+
+    Groups consecutive events from the same player under a shared header.
+    Only renders events with known types; unknown types fall back to a plain line.
+    """
+    from soloquest.sync.models import Event
+
+    # Group into runs of same-player events
+    current_player: str | None = None
+    for event in events:
+        assert isinstance(event, Event)
+        if event.player != current_player:
+            current_player = event.player
+            console.print(f"\n  [bold dim]── {event.player} ──[/bold dim]")
+
+        if event.type == "oracle_roll":
+            tables = event.data.get("tables", [])
+            rolls = event.data.get("rolls", [])
+            results = event.data.get("results", [])
+            note = event.data.get("note")
+            if note:
+                console.print(f"  [bright_cyan]│[/bright_cyan]  [dim italic]{note}[/dim italic]")
+            max_w = max((len(t) for t in tables), default=0)
+            for table, roll, result in zip(tables, rolls, results, strict=False):
+                padded = table.upper().ljust(max_w)
+                console.print(
+                    f"  [bright_cyan]└[/bright_cyan]  🔮 [dim]{padded}[/dim]"
+                    f"  [dim]{roll:3d}[/dim]  [dim]→[/dim]  [bold cyan]{result}[/bold cyan]"
+                )
+        else:
+            # Generic fallback for unrecognised event types
+            console.print(f"  [dim]  {event.type}: {event.data}[/dim]")
+
+    if events:
+        console.print()
+
+
 def autosaved() -> None:
     """Subtle autosave indicator."""
     console.print("[dim]  ↳ autosaved[/dim]")
