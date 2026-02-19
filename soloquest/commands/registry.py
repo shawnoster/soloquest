@@ -93,6 +93,7 @@ def fuzzy_match_command(name: str, known: list[str]) -> str | None:
 
 COMMAND_HELP: dict[str, str] = {
     "campaign": "/campaign [start|create|join|status|leave] — manage campaigns (/campaign start to begin)",
+    "sync": "/sync — check for new activity from co-op partners",
     "guide": "/guide [step|start|stop] — show gameplay loop or enter guided mode (try: /guide start)",
     "truths": "/truths [start|show] — choose campaign truths or view current truths",
     "next": "/next — advance to next phase (guided mode only)",
