@@ -579,7 +579,7 @@ wheels = [
 
 [[package]]
 name = "soloquest"
-version = "2.11.2"
+version = "2.20.0"
 source = { editable = "." }
 dependencies = [
     { name = "prompt-toolkit" },
