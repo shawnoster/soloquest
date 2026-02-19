@@ -15,6 +15,7 @@ from rich.prompt import Confirm, Prompt
 from soloquest.engine.truths import get_ordered_categories
 from soloquest.models.truths import ChosenTruth, TruthCategory, TruthOption
 from soloquest.ui import display
+from soloquest.ui.theme import BORDER_REFERENCE, COOP_TRUTH, HINT_COMMAND, ORACLE_RESULT
 
 if TYPE_CHECKING:
     from soloquest.loop import GameState
@@ -188,7 +189,7 @@ takes place.
 
 [dim]Press Enter to continue...[/dim]
 """
-    display.console.print(Panel(intro, border_style="cyan", padding=(1, 2)))
+    display.console.print(Panel(intro, border_style=BORDER_REFERENCE, padding=(1, 2)))
     with contextlib.suppress(KeyboardInterrupt, EOFError):
         prompt("")
     display.console.print()
@@ -212,7 +213,7 @@ def _get_subchoice(subchoices: list[str]) -> str:
                 # Parse roll ranges from subchoices to determine the roll
                 roll = random.randint(1, 100)
                 display.console.print()
-                display.console.print(f"  [cyan]Rolled: {roll}[/cyan]")
+                display.console.print(f"  [{ORACLE_RESULT}]Rolled: {roll}[/{ORACLE_RESULT}]")
 
                 # Find matching subchoice by roll range
                 for subchoice_text in subchoices:
@@ -302,7 +303,7 @@ def _get_truth_choice(category: TruthCategory) -> ChosenTruth | None:
                 option = category.get_option_by_roll(roll)
                 if option:
                     display.console.print()
-                    display.console.print(f"  [cyan]Rolled: {roll}[/cyan]")
+                    display.console.print(f"  [{ORACLE_RESULT}]Rolled: {roll}[/{ORACLE_RESULT}]")
                     display.console.print(f"  [bold]Result:[/bold] {option.summary}")
                     display.console.print()
                     subchoice = _show_option_details(option)
@@ -408,7 +409,9 @@ def _show_truths(state: GameState) -> None:
 
     display.console.print()
     display.console.print("  [dim]Commands:[/dim]")
-    display.console.print("    [cyan]/truths start[/cyan] - Restart truth selection")
+    display.console.print(
+        f"    [{HINT_COMMAND}]/truths start[/{HINT_COMMAND}] - Restart truth selection"
+    )
     display.console.print()
 
 
@@ -530,7 +533,7 @@ def _handle_truth_review(state: GameState) -> None:
     display.console.print()
     for cat, proposal in pending.items():
         display.console.print(
-            f"  [bold cyan]{cat}[/bold cyan]  [dim]proposed by {proposal.proposer}[/dim]"
+            f"  [bold {COOP_TRUTH}]{cat}[/bold {COOP_TRUTH}]  [dim]proposed by {proposal.proposer}[/dim]"
         )
         display.console.print(f"    {proposal.option_summary}")
         if proposal.custom_text:

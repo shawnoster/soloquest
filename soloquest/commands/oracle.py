@@ -8,6 +8,7 @@ from soloquest.engine.dice import roll_oracle
 from soloquest.engine.oracles import OracleResult, fuzzy_match_oracle
 from soloquest.sync.models import Event
 from soloquest.ui import display
+from soloquest.ui.theme import BORDER_ORACLE, ORACLE_GUTTER
 
 if TYPE_CHECKING:
     from soloquest.loop import GameState
@@ -111,7 +112,7 @@ def _show_oracle_list(state: GameState) -> None:
             Group(grid, examples),
             title="[bold]Oracle Tables[/bold]",
             subtitle="[dim]/oracle [table] [table...][/dim]",
-            border_style="cyan",
+            border_style=BORDER_ORACLE,
         )
     )
 
@@ -169,7 +170,9 @@ def handle_oracle(state: GameState, args: list[str], flags: set[str]) -> None:
     note = " ".join(note_parts)
 
     if note:
-        display.console.print(f"  [bright_cyan]│[/bright_cyan]  [dim italic]{note}[/dim italic]")
+        display.console.print(
+            f"  [{ORACLE_GUTTER}]│[/{ORACLE_GUTTER}]  [dim italic]{note}[/dim italic]"
+        )
         state.session.add_note(note, player=state.character.name)
 
     # Display all results in a single panel if multiple tables

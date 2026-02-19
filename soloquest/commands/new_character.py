@@ -18,6 +18,7 @@ from soloquest.models.asset import Asset, CharacterAsset
 from soloquest.models.character import Character, Stats
 from soloquest.models.vow import Vow, VowRank
 from soloquest.ui import display
+from soloquest.ui.theme import BORDER_ACTION, BORDER_ORACLE, RANK_EPIC
 
 
 def _init_asset_tracks(char_asset: CharacterAsset, assets: dict[str, Asset]) -> None:
@@ -144,7 +145,7 @@ def _prompt_paths(available_assets: dict[str, Asset]) -> list[CharacterAsset] | 
             Panel(
                 f"[dim]{roll}[/dim]  →  [bold]{background}[/bold]\n[dim]Suggested paths: {suggestion}[/dim]",
                 title="[bold]BACKGROUND PATHS[/bold]",
-                border_style="bright_cyan",
+                border_style=BORDER_ORACLE,
             )
         )
     elif raw.isdigit():
@@ -155,7 +156,7 @@ def _prompt_paths(available_assets: dict[str, Asset]) -> list[CharacterAsset] | 
                 Panel(
                     f"[bold]{background}[/bold]\n[dim]Suggested paths: {suggestion}[/dim]",
                     title="[bold]BACKGROUND PATHS[/bold]",
-                    border_style="bright_cyan",
+                    border_style=BORDER_ORACLE,
                 )
             )
 
@@ -454,10 +455,12 @@ def run_creation_wizard(data_dir: Path) -> tuple[Character, list[Vow], DiceMode]
             lines.append("")
             lines.append("Gear: " + ", ".join(gear))
         lines.append("")
-        lines.append(f"Vow ([bold red]Epic[/bold red]): {bg_vow_text}")
+        lines.append(f"Vow ([bold {RANK_EPIC}]Epic[/bold {RANK_EPIC}]): {bg_vow_text}")
 
         display.console.print(
-            Panel("\n".join(lines), title="[bold]CHARACTER SUMMARY[/bold]", border_style="blue")
+            Panel(
+                "\n".join(lines), title="[bold]CHARACTER SUMMARY[/bold]", border_style=BORDER_ACTION
+            )
         )
 
         if not Confirm.ask("  Begin your journey?", default=True):

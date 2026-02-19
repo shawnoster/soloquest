@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING
 
 from soloquest.sync.models import Event
 from soloquest.ui import display
+from soloquest.ui.theme import COOP_INTERPRET
 
 if TYPE_CHECKING:
     from soloquest.loop import GameState
@@ -31,7 +32,7 @@ def handle_interpret(state: GameState, args: list[str], flags: set[str]) -> None
     # Log interpretation to session immediately (both solo and co-op)
     state.session.add_note(f"[Interpretation] {text}", player=player)
     display.console.print(
-        f"  [magenta]└[/magenta]  💬 [dim]interpretation logged:[/dim]  [italic]{text}[/italic]"
+        f"  [{COOP_INTERPRET}]└[/{COOP_INTERPRET}]  💬 [dim]interpretation logged:[/dim]  [italic]{text}[/italic]"
     )
 
     # In co-op, publish as an interpret event so partners can see it

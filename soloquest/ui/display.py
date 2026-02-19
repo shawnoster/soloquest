@@ -14,60 +14,41 @@ from soloquest.models.character import DEBILITY_NAMES, TRACK_MAX, Character
 from soloquest.models.session import EntryKind, LogEntry
 from soloquest.models.vow import Vow
 from soloquest.ui.console import console
+from soloquest.ui.theme import (
+    BORDER_ACTION,
+    BORDER_ORACLE,
+    COOP_INTERPRET,
+    COOP_PLAYER,
+    COOP_TRUTH,
+    COOP_VOW,
+    FEEDBACK_ERROR,
+    FEEDBACK_INFO,
+    FEEDBACK_SUCCESS,
+    FEEDBACK_WARN,
+    MECHANIC_GUTTER,
+    MECHANIC_STAT,
+    MECHANIC_TRACK_HIGH,
+    MECHANIC_TRACK_LOW,
+    MECHANIC_TRACK_MID,
+    NARRATIVE_NOTE,
+    ORACLE_GUTTER,
+    ORACLE_RESULT,
+    OUTCOME_MATCH,
+    OUTCOME_MISS,
+    OUTCOME_STRONG,
+    OUTCOME_WEAK,
+    RANK_DANGEROUS,
+    RANK_EPIC,
+    RANK_EXTREME,
+    RANK_FORMIDABLE,
+    RANK_TROUBLESOME,
+    STRUCTURE_RULE,
+)
 
 if TYPE_CHECKING:
     from soloquest.models.asset import Asset, CharacterAsset
 
-# ── Palette — Ayu Dark ────────────────────────────────────────────────────────
-# See docs/adr/003-color-system-and-theming.md for the full semantic color spec.
-
-# Outcomes
-OUTCOME_STRONG = "bold #aad94c"
-OUTCOME_WEAK = "bold #e6b450"
-OUTCOME_MISS = "bold #d95757"
-OUTCOME_MATCH = "bold #59c2ff"
-
-# Oracle
-ORACLE_GUTTER = "#39bae6"
-ORACLE_RESULT = "bold #59c2ff"
-
-# Narrative
-NARRATIVE_NOTE = "#e6c08a"
-
-# Mechanics
-MECHANIC_GUTTER = "#ffb454"
-MECHANIC_STAT = "#73b8ff"
-MECHANIC_TRACK_HIGH = "#aad94c"
-MECHANIC_TRACK_MID = "#e6b450"
-MECHANIC_TRACK_LOW = "#d95757"
-
-# Feedback
-FEEDBACK_ERROR = "#d95757"
-FEEDBACK_WARN = "#ff8f40"
-FEEDBACK_SUCCESS = "#aad94c"
-FEEDBACK_INFO = "#5a6378"
-
-# Structure
-BORDER_ACTION = "#39bae6"
-BORDER_ORACLE = "#39bae6"
-BORDER_ASSET = "#d2a6ff"
-BORDER_REFERENCE = "#39bae6"
-STRUCTURE_RULE = "#5a6378"
-
-# Co-op / Social
-COOP_INTERPRET = "#d2a6ff"
-COOP_TRUTH = "#e6b450"
-COOP_VOW = "#aad94c"
-COOP_PLAYER = "#5a6673"
-
-# Vow ranks
-RANK_TROUBLESOME = "#aad94c"
-RANK_DANGEROUS = "#e6b450"
-RANK_FORMIDABLE = "#ff8f40"
-RANK_EXTREME = "#d95757"
-RANK_EPIC = "#f07178"
-
-# Legacy aliases (keep until all call sites are updated)
+# Legacy aliases preserved for external uses
 STRONG = OUTCOME_STRONG
 WEAK = OUTCOME_WEAK
 MISS_COLOR = OUTCOME_MISS

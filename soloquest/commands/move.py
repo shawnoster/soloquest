@@ -16,6 +16,7 @@ from soloquest.engine.moves import (
     would_momentum_improve,
 )
 from soloquest.ui import display
+from soloquest.ui.theme import BORDER_ORACLE
 
 if TYPE_CHECKING:
     from soloquest.loop import GameState
@@ -505,7 +506,7 @@ def _handle_ask_the_oracle(state: GameState, flags: set[str], move: dict | None 
             content,
             title="[bold]Ask the Oracle[/bold]",
             subtitle=f"[dim]{category_display}[/dim]",
-            border_style="cyan",
+            border_style=BORDER_ORACLE,
         )
     )
 
@@ -637,7 +638,7 @@ def _handle_narrative_move(move_name: str, move: dict, state: GameState) -> None
             content,
             title=f"[bold]{move_name}[/bold]",
             subtitle=f"[dim]{category_display}[/dim]",
-            border_style="cyan",
+            border_style=BORDER_ORACLE,
         )
     )
 
