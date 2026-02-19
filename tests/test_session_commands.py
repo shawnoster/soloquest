@@ -1,8 +1,14 @@
 """Tests for session command handlers."""
 
-from unittest.mock import MagicMock, call, patch
+from unittest.mock import MagicMock, patch
 
-from soloquest.commands.session import handle_end, handle_help, handle_log, handle_newsession, handle_note
+from soloquest.commands.session import (
+    handle_end,
+    handle_help,
+    handle_log,
+    handle_newsession,
+    handle_note,
+)
 from soloquest.engine.dice import DiceMode
 from soloquest.models.character import Character, Stats
 from soloquest.models.session import EntryKind, LogEntry, Session
@@ -400,7 +406,10 @@ class TestHandleHelp:
         }
 
     @patch("soloquest.commands.session.display")
-    @patch("soloquest.commands.registry.COMMAND_HELP", {"move": "move — resolve a move", "oracle": "oracle — consult oracle"})
+    @patch(
+        "soloquest.commands.registry.COMMAND_HELP",
+        {"move": "move — resolve a move", "oracle": "oracle — consult oracle"},
+    )
     def test_help_with_no_args_shows_command_list(self, mock_display):
         """handle_help with no args should show all commands."""
         handle_help(self.state, [], set())
