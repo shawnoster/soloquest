@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from functools import cache
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -18,7 +19,12 @@ if TYPE_CHECKING:
 
 
 _DATA_DIR = Path(__file__).resolve().parent.parent / "data"
-_ORACLE_CATEGORIES, _ORACLE_INSPIRATIONS = load_oracle_display(_DATA_DIR)
+
+
+@cache
+def _get_oracle_display() -> tuple[list, list]:
+    """Lazy-load and cache oracle display config."""
+    return load_oracle_display(_DATA_DIR)
 
 
 def _show_oracle_list(state: GameState) -> None:
@@ -26,6 +32,8 @@ def _show_oracle_list(state: GameState) -> None:
     from rich.panel import Panel
     from rich.table import Table
     from rich.text import Text
+
+    _ORACLE_CATEGORIES, _ORACLE_INSPIRATIONS = _get_oracle_display()
 
     # Build the grouped oracle table
     grid = Table.grid(padding=(0, 2))
