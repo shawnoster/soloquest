@@ -52,6 +52,7 @@ from soloquest.models.vow import Vow
 from soloquest.state.save import autosave
 from soloquest.sync import FileLogAdapter, LocalAdapter, SyncPort
 from soloquest.ui import display
+from soloquest.ui.strings import get_string
 
 DATA_DIR = Path(__file__).parent / "data"
 
@@ -210,22 +211,22 @@ def run_session(
     is_new_session = session.number == session_count and len(session.entries) == 0
     resume_label = "" if is_new_session else " (Resumed)"
     display.session_header(session.number, resume_label)
-    display.info("  Type to journal. /guide for gameplay loop, /help for commands.")
+    display.info(get_string("session_header.help_text"))
 
     # Show context when resuming (not first session)
     if session.number > 1 and is_new_session:
         display.console.print()
-        display.rule("Continuing Your Journey")
+        display.rule(get_string("session_header.continuing_journey"))
 
         # Show active vows
         active_vows = [v for v in vows if not v.fulfilled]
         if active_vows:
-            display.console.print("  [bold]Active Vows:[/bold]")
+            display.console.print(get_string("session_header.active_vows_label"))
             for vow in active_vows[:3]:  # Show up to 3 vows
                 boxes = "█" * vow.boxes_filled + "░" * (10 - vow.boxes_filled)
                 display.console.print(f"    [dim]• {vow.description} [{vow.rank}] {boxes}[/dim]")
         else:
-            display.console.print("  [dim]No active vows[/dim]")
+            display.console.print(get_string("session_header.no_active_vows"))
 
         display.rule()
 
@@ -344,13 +345,10 @@ def run_session(
                     known = list(COMMAND_HELP.keys())
                     close = [k for k in known if k.startswith(cmd.name)]
                     if close:
-                        display.warn(
-                            f"Unknown command '/{cmd.name}'. Did you mean: "
-                            + ", ".join(f"/{c}" for c in close)
-                            + "?"
-                        )
+                        suggestions = ", ".join(f"/{c}" for c in close)
+                        display.warn(get_string("loop.did_you_mean", cmd=cmd.name, suggestions=suggestions))
                     else:
-                        display.error(f"Unknown command '/{cmd.name}'. Type /help for commands.")
+                        display.error(get_string("loop.unknown_command", cmd=cmd.name))
                     continue  # skip autosave on unknown commands
 
             # Autosave after mechanical commands
@@ -362,17 +360,17 @@ def run_session(
             _poll_and_display(state)
 
         except ValueError as e:
-            display.error(f"Invalid value: {e}")
-            display.info("  Type /help for usage information.")
+            display.error(get_string("loop.invalid_value", error=e))
+            display.info(get_string("loop.help_info"))
         except KeyError as e:
-            display.error(f"Missing data: {e}")
-            display.warn("  Your save file may be corrupted.")
+            display.error(get_string("loop.missing_data", error=e))
+            display.warn(get_string("loop.corrupted_save_warn"))
         except AttributeError as e:
-            display.error(f"Invalid attribute: {e}")
-            display.info("  This is a bug. Please report it.")
+            display.error(get_string("loop.invalid_attribute", error=e))
+            display.info(get_string("loop.bug_report"))
         except Exception as e:
-            display.error(f"Unexpected error: {e}")
-            display.warn("  Game state preserved. Continue playing.")
+            display.error(get_string("loop.unexpected_error", error=e))
+            display.warn(get_string("loop.state_preserved"))
 
 
 def _poll_and_display(state: GameState, explicit: bool = False) -> None:
@@ -398,7 +396,7 @@ def _poll_and_display(state: GameState, explicit: bool = False) -> None:
                 # A partner accepted a truth we proposed — apply it to our character too
                 _apply_accepted_truth_to_character(state, event)
     elif explicit:
-        display.info("  No new partner activity.")
+        display.info(get_string("loop.no_partner_activity"))
 
 
 def _apply_accepted_truth_to_character(state: GameState, event: object) -> None:
@@ -443,15 +441,11 @@ def _autosave_state(state: GameState) -> None:
 def _handle_interrupt(state: GameState) -> None:
     """Ctrl+C handler — autosave session and character state."""
     _autosave_state(state)
-    display.info(
-        "Session saved. Resume with 'soloquest' or start a new session with '/newsession'."
-    )
+    display.info(get_string("quit.session_saved"))
 
 
 def _confirm_quit(state: GameState) -> None:
     """Quit and autosave session."""
     _autosave_state(state)
-    display.info(
-        "Session saved. Resume with 'soloquest' or start a new session with '/newsession'."
-    )
+    display.info(get_string("quit.session_saved"))
     state.running = False
