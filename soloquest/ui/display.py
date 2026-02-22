@@ -5,6 +5,7 @@ from __future__ import annotations
 import re
 from typing import TYPE_CHECKING
 
+from rich.markdown import Markdown
 from rich.markup import escape
 from rich.panel import Panel
 from rich.rule import Rule
@@ -416,7 +417,10 @@ def log_entry(entry: LogEntry, show_label: bool = False) -> None:
     label = f"[dim]({entry.kind.value.title()})[/dim] " if show_label else ""
     match entry.kind:
         case EntryKind.JOURNAL:
-            console.print(f"{label}[{NARRATIVE_JOURNAL}]{escape(entry.text)}[/{NARRATIVE_JOURNAL}]")
+            # Render markdown formatting (italic, bold, quotes) for journal entries
+            if label:
+                console.print(label, end="")
+            console.print(Markdown(entry.text, style=NARRATIVE_JOURNAL))
         case EntryKind.MOVE:
             console.print(f"[dim {MECHANIC_GUTTER}]▸ {entry.text}[/dim {MECHANIC_GUTTER}]")
         case EntryKind.ORACLE:
