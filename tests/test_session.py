@@ -59,6 +59,21 @@ class TestSession:
         self.session.add_journal("  leading and trailing  ")
         assert self.session.entries[0].text == "leading and trailing"
 
+    def test_add_multiline_journal_entry(self):
+        """Test that multi-line journal entries with newlines are stored correctly."""
+        multiline_text = "First paragraph.\n\nSecond paragraph.\n\nThird paragraph."
+        self.session.add_journal(multiline_text)
+        assert len(self.session.entries) == 1
+        assert self.session.entries[0].kind == EntryKind.JOURNAL
+        # The text should be stripped but preserve internal newlines
+        assert self.session.entries[0].text == multiline_text.strip()
+
+    def test_multiline_journal_preserves_single_newlines(self):
+        """Test that single newlines within paragraphs are preserved."""
+        multiline_text = "Line one\nLine two\nLine three"
+        self.session.add_journal(multiline_text)
+        assert self.session.entries[0].text == multiline_text.strip()
+
     def test_add_move_entry(self):
         self.session.add_move("**Strike** | Iron 3 | 5+3 = 8 vs [4,7] → STRONG HIT")
         assert self.session.entries[0].kind == EntryKind.MOVE
