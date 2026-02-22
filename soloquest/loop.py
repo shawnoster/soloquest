@@ -225,11 +225,12 @@ def _get_multiline_journal_entry(prompt_session: PromptSession, first_line: str)
             if not lines:
                 return None
                 
-            # Join lines, treating paragraph breaks specially
+            # Join lines, converting markers to paragraph breaks
             result = []
             for line in lines:
                 if line == "\n":
-                    result.append("\n\n")  # Paragraph break
+                    # Add paragraph break (double newline)
+                    result.append("")  # This creates a blank line when joined
                 else:
                     result.append(line)
             
