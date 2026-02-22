@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from contextlib import suppress
 from typing import TYPE_CHECKING
 
 from rich.prompt import Prompt
@@ -45,7 +46,11 @@ def handle_note(state: GameState, args: list[str], flags: set[str]) -> None:
 
 
 def handle_edit(state: GameState, args: list[str], flags: set[str]) -> None:
-    """Open external editor to write a journal entry."""
+    """Open external editor to write a journal entry.
+    
+    Args are reserved for future use (e.g., specifying editor or template).
+    Flags are reserved for future use.
+    """
     import os
     import subprocess
     import tempfile
@@ -94,8 +99,6 @@ def handle_edit(state: GameState, args: list[str], flags: set[str]) -> None:
 
     finally:
         # Clean up temp file
-        from contextlib import suppress
-
         with suppress(OSError):
             os.unlink(tmp_path)
 
