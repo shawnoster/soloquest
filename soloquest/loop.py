@@ -181,6 +181,9 @@ def _get_multiline_journal_entry(prompt_session: PromptSession, first_line: str)
     from prompt_toolkit.formatted_text import HTML
     from prompt_toolkit.key_binding import KeyBindings
     
+    # Sentinel value to mark paragraph breaks
+    PARAGRAPH_BREAK = "<<<PARAGRAPH_BREAK>>>"
+    
     lines = [first_line]
     display.info("Multi-line mode: Press Enter twice for paragraph, Ctrl+D to finish, Ctrl+C to cancel")
     
@@ -207,9 +210,9 @@ def _get_multiline_journal_entry(prompt_session: PromptSession, first_line: str)
             if not line:
                 # Check if previous line was also empty (double enter)
                 if lines and lines[-1] == "":
-                    # Remove the previous empty line and add paragraph break
+                    # Remove the previous empty line and add paragraph break marker
                     lines.pop()
-                    lines.append("\n")  # Paragraph break
+                    lines.append(PARAGRAPH_BREAK)
                 else:
                     # First empty line - could be paragraph break
                     lines.append("")
@@ -218,19 +221,19 @@ def _get_multiline_journal_entry(prompt_session: PromptSession, first_line: str)
                 
         except EOFError:
             # Ctrl+D pressed - finish entry
-            # Clean up trailing empty lines
-            while lines and lines[-1] in ("", "\n"):
+            # Clean up trailing empty lines (but preserve paragraph breaks)
+            while lines and lines[-1] == "":
                 lines.pop()
             
             if not lines:
                 return None
                 
-            # Join lines, converting markers to paragraph breaks
+            # Convert paragraph break markers to double newlines
             result = []
             for line in lines:
-                if line == "\n":
-                    # Add paragraph break (double newline)
-                    result.append("")  # This creates a blank line when joined
+                if line == PARAGRAPH_BREAK:
+                    # Add paragraph break (double newline = empty line between paragraphs)
+                    result.append("")
                 else:
                     result.append(line)
             
