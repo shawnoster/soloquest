@@ -133,7 +133,5 @@ class TestLogMove:
         assert len(self.state.session.entries) == 1
         entry = self.state.session.entries[0]
         assert "adds" not in entry.text
-        assert "d6(6)+iron(3)" in entry.text or "d6(6)" in entry.text and "iron(3)" in entry.text
-
-
+        assert "d6(6)+iron(3)" in entry.text or ("d6(6)" in entry.text and "iron(3)" in entry.text)
 
