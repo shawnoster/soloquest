@@ -26,7 +26,6 @@ def _load_strings() -> dict[str, Any]:
     return _strings_cache
 
 
-@lru_cache(maxsize=256)
 def get_string(key: str, **kwargs: Any) -> str:
     """Get a string by dotted key path with optional formatting.
 
@@ -40,6 +39,10 @@ def get_string(key: str, **kwargs: Any) -> str:
     Example:
         >>> get_string("oracle.not_found", query="action")
         "Oracle table not found: 'action'"
+    
+    Note:
+        This function is not cached due to the variable format arguments.
+        The underlying string data is cached via _load_strings().
     """
     strings = _load_strings()
     parts = key.split(".")
@@ -55,6 +58,7 @@ def get_string(key: str, **kwargs: Any) -> str:
     return value.format(**kwargs) if kwargs else value
 
 
+@lru_cache(maxsize=128)
 def get_strings_section(section: str) -> dict[str, Any]:
     """Get an entire section of strings.
 

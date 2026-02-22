@@ -141,7 +141,7 @@ def handle_oracle(state: GameState, args: list[str], flags: set[str]) -> None:
     # Publish to the sync layer (no-op for LocalAdapter, written to JSONL for FileLogAdapter)
     oracle_event = Event(
         player=player,
-        type=get_string("oracle.event_type"),
+        type="oracle_roll",  # Machine-readable identifier - must remain constant
         data={
             "tables": [r.table_name for r in results],
             "rolls": [r.roll for r in results],

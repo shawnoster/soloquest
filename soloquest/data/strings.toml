@@ -31,6 +31,7 @@ envision_optional = "All fields optional — press Enter to skip."
 starting_assets = """You begin with:
   • Two path assets that reflect your background
   • A command vehicle (STARSHIP) auto-granted"""
+# Format variables: {health}, {spirit}, {supply}, {momentum}
 starting_meters = """Health   {health}  (Your readiness)
 Spirit   {spirit}  (Your courage)
 Supply   {supply}  (Your provisions)
@@ -79,7 +80,6 @@ not_found = "Oracle table not found: '{query}'"
 multiple_matches = "Multiple matches for '{query}': {names}"
 inspiration_header = "\nInspiration combos:\n"
 log_format = "Oracle [{table}] roll {roll} → {result}"
-event_type = "oracle_roll"
 
 # ── Roll Commands ─────────────────────────────────────────────────────────────
 
