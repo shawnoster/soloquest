@@ -1,8 +1,8 @@
 """Tests for action roll logging to session."""
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
-from soloquest.commands.move import _log_move, handle_move
+from soloquest.commands.move import _log_move
 from soloquest.engine.moves import MoveResult, OutcomeTier
 from soloquest.models.character import Character, Stats
 from soloquest.models.session import Session
