@@ -12,6 +12,7 @@ from soloquest.engine.dice import roll_oracle
 from soloquest.engine.oracles import OracleResult, fuzzy_match_oracle, load_oracle_display
 from soloquest.sync.models import Event
 from soloquest.ui import display
+from soloquest.ui.strings import get_string
 from soloquest.ui.theme import BORDER_ORACLE, ORACLE_GUTTER
 
 if TYPE_CHECKING:
@@ -47,7 +48,7 @@ def _show_oracle_list(state: GameState) -> None:
             grid.add_row(cat.name, "  ".join(available))
 
     # Build inspiration examples
-    examples = Text("\nInspiration combos:\n", style="bold")
+    examples = Text(get_string("oracle.inspiration_header"), style="bold")
     for insp in _ORACLE_INSPIRATIONS:
         examples.append(f"  {insp.label:<32}", style="dim")
         examples.append(f"{insp.cmd}\n", style="cyan")
@@ -55,8 +56,8 @@ def _show_oracle_list(state: GameState) -> None:
     display.console.print(
         Panel(
             Group(grid, examples),
-            title="[bold]Oracle Tables[/bold]",
-            subtitle="[dim]/oracle [[table]] [[table...]][/dim]",
+            title=get_string("oracle.panel_title"),
+            subtitle=get_string("oracle.panel_subtitle"),
             border_style=BORDER_ORACLE,
         )
     )
@@ -71,7 +72,7 @@ def handle_oracle(state: GameState, args: list[str], flags: set[str]) -> None:
         for query in args:
             matches = fuzzy_match_oracle(query, state.oracles)
             if not matches:
-                display.warn(f"Oracle table not found: '{query}'")
+                display.warn(get_string("oracle.not_found", query=query))
                 continue
             display.oracle_table_view(matches[0])
         return
@@ -95,19 +96,19 @@ def handle_oracle(state: GameState, args: list[str], flags: set[str]) -> None:
                 note_started = True
                 note_parts.append(query)
             else:
-                display.warn(f"Oracle table not found: '{query}'")
+                display.warn(get_string("oracle.not_found", query=query))
             continue
 
         if len(matches) > 1:
             names = ", ".join(m.name for m in matches)
-            display.warn(f"Multiple matches for '{query}': {names}")
+            display.warn(get_string("oracle.multiple_matches", query=query, names=names))
             # Use the first one anyway
             matches = matches[:1]
 
         table = matches[0]
         roll = roll_oracle(state.dice)
         if roll is None:
-            display.info("  Oracle roll cancelled.")
+            display.info(get_string("oracle.cancelled"))
             return
         result_text = table.lookup(roll)
         results.append(OracleResult(table_name=table.name, roll=roll, result=result_text))
@@ -134,15 +135,13 @@ def handle_oracle(state: GameState, args: list[str], flags: set[str]) -> None:
 
     # Log each result to the session (with player attribution)
     for r in results:
-        state.session.add_oracle(
-            f"Oracle [{r.table_name}] roll {r.roll} → {r.result}",
-            player=player,
-        )
+        log_text = get_string("oracle.log_format", table=r.table_name, roll=r.roll, result=r.result)
+        state.session.add_oracle(log_text, player=player)
 
     # Publish to the sync layer (no-op for LocalAdapter, written to JSONL for FileLogAdapter)
     oracle_event = Event(
         player=player,
-        type="oracle_roll",
+        type=get_string("oracle.event_type"),
         data={
             "tables": [r.table_name for r in results],
             "rolls": [r.roll for r in results],

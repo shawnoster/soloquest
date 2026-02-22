@@ -10,6 +10,7 @@ from rich.markup import escape
 
 from soloquest.engine.dice import Die
 from soloquest.ui import display
+from soloquest.ui.strings import get_string
 from soloquest.ui.theme import MECHANIC_GUTTER
 
 if TYPE_CHECKING:
@@ -29,9 +30,7 @@ NAMED_DICE = {
 def handle_roll(state: GameState, args: list[str], flags: set[str]) -> None:
     """/roll [dice] [note] — e.g. /roll d6  /roll 2d10  /roll d100 inciting incident"""
     if not args:
-        display.error(
-            "Usage: /roll [dice] [note]  (e.g. /roll d6, /roll 2d10, /roll d100 inciting incident)"
-        )
+        display.error(get_string("roll.usage"))
         return
 
     expr = args[0].lower().strip()
@@ -39,17 +38,17 @@ def handle_roll(state: GameState, args: list[str], flags: set[str]) -> None:
 
     m = DICE_PATTERN.match(expr)
     if not m:
-        display.error(f"Can't parse dice expression '{expr}'. Try: d6, 2d10, d100")
+        display.error(get_string("roll.parse_error", expr=expr))
         return
 
     count = int(m.group(1)) if m.group(1) else 1
     sides = int(m.group(2))
 
     if count < 1 or count > 20:
-        display.error("Roll between 1 and 20 dice at once.")
+        display.error(get_string("roll.dice_count_error"))
         return
     if sides < 2:
-        display.error("Dice must have at least 2 sides.")
+        display.error(get_string("roll.sides_error"))
         return
 
     # Use the game's dice provider if it's a known die type; else digital fallback
@@ -75,7 +74,9 @@ def handle_roll(state: GameState, args: list[str], flags: set[str]) -> None:
         f"  [{MECHANIC_GUTTER}]└[/{MECHANIC_GUTTER}]  🎲 [dim]{count}d{sides}[/dim]  {result_str}"
     )
 
-    log_text = f"Roll {count}d{sides}: {rolls_str}" + (f" = {total}" if count > 1 else "")
+    log_text = get_string("roll.log_format", count=count, sides=sides, rolls=rolls_str)
+    if count > 1:
+        log_text += f" = {total}"
     if note:
         log_text += f" — {note}"
     state.session.add_mechanical(log_text)

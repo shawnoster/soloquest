@@ -8,6 +8,7 @@ from pathlib import Path
 from soloquest.models.session import Session
 from soloquest.state.save import list_saves, load_most_recent
 from soloquest.ui import display
+from soloquest.ui.strings import get_string
 
 
 def parse_args() -> argparse.Namespace:
@@ -68,7 +69,7 @@ def main() -> None:
         most_recent = load_most_recent()
         if most_recent is None:
             display.splash()
-            display.error("  Save file corrupted. Use --new to start fresh.")
+            display.error(get_string("startup.corrupted_save"))
             return
         character, vows, session_count, dice_mode, session = most_recent
         display.splash(character, vows)
@@ -81,10 +82,8 @@ def main() -> None:
         character = Character("Wanderer")
         vows, session_count, dice_mode, session = [], 0, DiceMode.DIGITAL, None
         display.splash()
-        display.console.print(
-            "  [dim]No save found. Type [bold]/campaign start[/bold] to begin your adventure,[/dim]"
-        )
-        display.console.print("  [dim]or roll some oracles first with [bold]/oracle[/bold].[/dim]")
+        display.console.print(get_string("startup.no_save_line1"))
+        display.console.print(get_string("startup.no_save_line2"))
         display.console.print()
 
     # Start the session
