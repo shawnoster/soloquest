@@ -1,8 +1,9 @@
 """Tests for session command handlers."""
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, mock_open, patch
 
 from soloquest.commands.session import (
+    handle_edit,
     handle_end,
     handle_help,
     handle_log,
@@ -461,3 +462,175 @@ class TestHandleHelp:
         mock_display.error.assert_called_once()
         call_args = mock_display.error.call_args[0][0]
         assert "unknown" in call_args.lower() or "Unknown" in call_args
+
+
+class TestHandleEdit:
+    """Tests for /edit command."""
+
+    def setup_method(self):
+        self.state = MagicMock()
+        self.state.character = Character(
+            name="Test Character", stats=Stats(edge=2, heart=1, iron=3, shadow=2, wits=3)
+        )
+        self.state.session = Session(number=1)
+        self.state._unsaved_entries = 0
+
+    @patch("soloquest.commands.session.display")
+    @patch.dict("os.environ", {}, clear=True)
+    def test_edit_without_editor_env_shows_error(self, mock_display):
+        """handle_edit without EDITOR env var should show error."""
+        handle_edit(self.state, [], set())
+
+        mock_display.error.assert_called_once()
+        call_args = mock_display.error.call_args[0][0]
+        assert "EDITOR" in call_args or "editor" in call_args
+
+    @patch("soloquest.commands.session.display")
+    @patch("subprocess.run")
+    @patch("tempfile.NamedTemporaryFile")
+    @patch("builtins.open", new_callable=mock_open, read_data="# Comment\n\nTest journal entry")
+    @patch("os.unlink")
+    @patch.dict("os.environ", {"EDITOR": "vim"})
+    def test_edit_success_adds_journal_entry(
+        self, mock_unlink, mock_file, mock_tempfile, mock_run, mock_display
+    ):
+        """handle_edit should open editor and add content as journal entry."""
+        # Setup temp file mock
+        mock_temp = MagicMock()
+        mock_temp.name = "/tmp/test.md"
+        mock_tempfile.return_value.__enter__.return_value = mock_temp
+
+        # Setup subprocess mock (editor exits successfully)
+        mock_run.return_value.returncode = 0
+
+        handle_edit(self.state, [], set())
+
+        # Should call subprocess with editor
+        mock_run.assert_called_once()
+        call_args = mock_run.call_args[0][0]
+        assert call_args[0] == "vim"
+        assert call_args[1] == "/tmp/test.md"
+
+        # Should add journal entry
+        assert len(self.state.session.entries) == 1
+        entry = self.state.session.entries[0]
+        assert entry.kind == EntryKind.JOURNAL
+        assert entry.text == "Test journal entry"
+
+        # Should increment unsaved entries
+        assert self.state._unsaved_entries == 1
+
+        # Should show success message
+        mock_display.success.assert_called_once()
+
+        # Should clean up temp file
+        mock_unlink.assert_called_once_with("/tmp/test.md")
+
+    @patch("soloquest.commands.session.display")
+    @patch("subprocess.run")
+    @patch("tempfile.NamedTemporaryFile")
+    @patch("builtins.open", new_callable=mock_open, read_data="")
+    @patch("os.unlink")
+    @patch.dict("os.environ", {"EDITOR": "nano"})
+    def test_edit_empty_content_cancels(
+        self, mock_unlink, mock_file, mock_tempfile, mock_run, mock_display
+    ):
+        """handle_edit with empty content should cancel gracefully."""
+        mock_temp = MagicMock()
+        mock_temp.name = "/tmp/test.md"
+        mock_tempfile.return_value.__enter__.return_value = mock_temp
+        mock_run.return_value.returncode = 0
+
+        handle_edit(self.state, [], set())
+
+        # Should not add journal entry
+        assert len(self.state.session.entries) == 0
+        assert self.state._unsaved_entries == 0
+
+        # Should show warning
+        mock_display.warn.assert_called_once()
+        call_args = mock_display.warn.call_args[0][0]
+        assert "cancelled" in call_args.lower() or "No content" in call_args
+
+    @patch("soloquest.commands.session.display")
+    @patch("subprocess.run")
+    @patch("tempfile.NamedTemporaryFile")
+    @patch("os.unlink")
+    @patch.dict("os.environ", {"EDITOR": "vim"})
+    def test_edit_editor_error_shows_message(
+        self, mock_unlink, mock_tempfile, mock_run, mock_display
+    ):
+        """handle_edit should handle editor errors gracefully."""
+        mock_temp = MagicMock()
+        mock_temp.name = "/tmp/test.md"
+        mock_tempfile.return_value.__enter__.return_value = mock_temp
+
+        # Editor exits with error
+        mock_run.return_value.returncode = 1
+
+        handle_edit(self.state, [], set())
+
+        # Should show error message
+        mock_display.error.assert_called_once()
+        call_args = mock_display.error.call_args[0][0]
+        assert "error" in call_args.lower() or "exited" in call_args.lower()
+
+        # Should not add journal entry
+        assert len(self.state.session.entries) == 0
+
+    @patch("soloquest.commands.session.display")
+    @patch("subprocess.run")
+    @patch("tempfile.NamedTemporaryFile")
+    @patch(
+        "builtins.open",
+        new_callable=mock_open,
+        read_data="# Comment\n# Another comment\n\nActual content here\nMultiple lines",
+    )
+    @patch("os.unlink")
+    @patch.dict("os.environ", {"EDITOR": "code"})
+    def test_edit_filters_comment_lines(
+        self, mock_unlink, mock_file, mock_tempfile, mock_run, mock_display
+    ):
+        """handle_edit should filter out comment lines starting with #."""
+        mock_temp = MagicMock()
+        mock_temp.name = "/tmp/test.md"
+        mock_tempfile.return_value.__enter__.return_value = mock_temp
+        mock_run.return_value.returncode = 0
+
+        handle_edit(self.state, [], set())
+
+        # Should add journal entry without comment lines
+        assert len(self.state.session.entries) == 1
+        entry = self.state.session.entries[0]
+        assert entry.kind == EntryKind.JOURNAL
+        # Comments should be filtered, but blank lines and content remain
+        assert "Comment" not in entry.text
+        assert "Actual content here" in entry.text
+        assert "Multiple lines" in entry.text
+
+    @patch("soloquest.commands.session.display")
+    @patch("subprocess.run")
+    @patch("tempfile.NamedTemporaryFile")
+    @patch(
+        "builtins.open",
+        new_callable=mock_open,
+        read_data="A" * 150,  # Long content
+    )
+    @patch("os.unlink")
+    @patch.dict("os.environ", {"EDITOR": "vim"})
+    def test_edit_shows_preview_for_long_content(
+        self, mock_unlink, mock_file, mock_tempfile, mock_run, mock_display
+    ):
+        """handle_edit should show preview with ellipsis for long content."""
+        mock_temp = MagicMock()
+        mock_temp.name = "/tmp/test.md"
+        mock_tempfile.return_value.__enter__.return_value = mock_temp
+        mock_run.return_value.returncode = 0
+
+        handle_edit(self.state, [], set())
+
+        # Should show success with preview
+        mock_display.success.assert_called_once()
+        call_args = mock_display.success.call_args[0][0]
+        assert "..." in call_args  # Should have ellipsis for truncation
+

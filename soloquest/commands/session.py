@@ -44,6 +44,62 @@ def handle_note(state: GameState, args: list[str], flags: set[str]) -> None:
     display.success(f"Note added: {text}")
 
 
+def handle_edit(state: GameState, args: list[str], flags: set[str]) -> None:
+    """Open external editor to write a journal entry."""
+    import os
+    import subprocess
+    import tempfile
+
+    # Check for EDITOR environment variable
+    editor = os.environ.get("EDITOR")
+    if not editor:
+        display.error("No editor configured. Set $EDITOR environment variable.")
+        display.info("  Example: export EDITOR=vim")
+        return
+
+    # Create temporary file for editing
+    with tempfile.NamedTemporaryFile(mode="w+", suffix=".md", delete=False) as tmp_file:
+        tmp_path = tmp_file.name
+        # Add helpful instruction at top
+        tmp_file.write("# Write your journal entry below (lines starting with # will be ignored)\n\n")
+
+    try:
+        # Open editor
+        display.info(f"Opening {editor}...")
+        result = subprocess.run([editor, tmp_path], check=False)
+
+        if result.returncode != 0:
+            display.error(f"Editor exited with error code {result.returncode}")
+            return
+
+        # Read content from file
+        with open(tmp_path, encoding="utf-8") as f:
+            content = f.read()
+
+        # Remove comment lines and strip whitespace
+        lines = [line for line in content.split("\n") if not line.strip().startswith("#")]
+        text = "\n".join(lines).strip()
+
+        if not text:
+            display.warn("No content written. Journal entry cancelled.")
+            return
+
+        # Add to session journal
+        state.session.add_journal(text)
+        state._unsaved_entries += 1
+
+        # Show preview of what was added
+        preview = text[:100] + "..." if len(text) > 100 else text
+        display.success(f"Journal entry added: {preview}")
+
+    finally:
+        # Clean up temp file
+        from contextlib import suppress
+
+        with suppress(OSError):
+            os.unlink(tmp_path)
+
+
 def handle_newsession(state: GameState, args: list[str], flags: set[str]) -> None:
     """Start a new session — export current session journal, then start fresh."""
     from rich.prompt import Confirm
