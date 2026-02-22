@@ -36,6 +36,7 @@ BARE_COMMANDS = {
     "next",
     "truths",
     "campaign",
+    "edit",
 }
 
 # Command aliases — short forms for common commands

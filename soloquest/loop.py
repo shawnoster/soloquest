@@ -26,6 +26,7 @@ from soloquest.commands.oracle import handle_oracle
 from soloquest.commands.registry import COMMAND_HELP, parse_command
 from soloquest.commands.roll import handle_roll
 from soloquest.commands.session import (
+    handle_edit,
     handle_end,
     handle_help,
     handle_log,
@@ -303,6 +304,8 @@ def run_session(
                     handle_log(state, cmd.args, cmd.flags)
                 case "note":
                     handle_note(state, cmd.args, cmd.flags)
+                case "edit":
+                    handle_edit(state, cmd.args, cmd.flags)
                 case "health" | "spirit" | "supply":
                     handle_track(state, cmd.name, cmd.args)
                 case "momentum":
