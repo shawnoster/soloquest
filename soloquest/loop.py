@@ -163,6 +163,84 @@ def load_move_data() -> dict:
     return moves
 
 
+def _get_multiline_journal_entry(prompt_session: PromptSession, first_line: str) -> str | None:
+    """Capture multi-line journal entry using paragraph blocks.
+    
+    - Press Enter twice to add a new paragraph
+    - Single Enter adds line break within paragraph
+    - Ctrl+D to finish and submit
+    - Ctrl+C to cancel
+    
+    Args:
+        prompt_session: The prompt session to use
+        first_line: The first line already entered
+        
+    Returns:
+        The complete journal entry, or None if cancelled
+    """
+    from prompt_toolkit.formatted_text import HTML
+    from prompt_toolkit.key_binding import KeyBindings
+    
+    lines = [first_line]
+    display.info("Multi-line mode: Press Enter twice for paragraph, Ctrl+D to finish, Ctrl+C to cancel")
+    
+    # Create custom key bindings for multi-line input
+    bindings = KeyBindings()
+    
+    @bindings.add('c-d')
+    def _(event):
+        """Accept input on Ctrl+D."""
+        event.current_buffer.validate_and_handle()
+    
+    while True:
+        try:
+            # Prompt for next line with continuation indicator
+            line = prompt_session.prompt(
+                HTML("<ansibrightblue>▌</ansibrightblue> "),
+                key_bindings=bindings,
+                multiline=False,  # We handle multi-line logic ourselves
+            )
+            
+            line = line.strip()
+            
+            # Empty line means paragraph break or continuation
+            if not line:
+                # Check if previous line was also empty (double enter)
+                if lines and lines[-1] == "":
+                    # Remove the previous empty line and add paragraph break
+                    lines.pop()
+                    lines.append("\n")  # Paragraph break
+                else:
+                    # First empty line - could be paragraph break
+                    lines.append("")
+            else:
+                lines.append(line)
+                
+        except EOFError:
+            # Ctrl+D pressed - finish entry
+            # Clean up trailing empty lines
+            while lines and lines[-1] in ("", "\n"):
+                lines.pop()
+            
+            if not lines:
+                return None
+                
+            # Join lines, treating paragraph breaks specially
+            result = []
+            for line in lines:
+                if line == "\n":
+                    result.append("\n\n")  # Paragraph break
+                else:
+                    result.append(line)
+            
+            return "\n".join(result)
+            
+        except KeyboardInterrupt:
+            # Ctrl+C pressed - cancel
+            display.info("Journal entry cancelled")
+            return None
+
+
 def run_session(
     character: Character,
     vows: list[Vow],
@@ -271,9 +349,12 @@ def run_session(
         cmd = parse_command(line)
 
         if cmd is None:
-            # Plain text → journal entry
-            state.session.add_journal(line)
-            state._unsaved_entries += 1
+            # Plain text → potential journal entry
+            # Enter multi-line mode to allow paragraph blocks
+            full_entry = _get_multiline_journal_entry(prompt_session, line)
+            if full_entry is not None:
+                state.session.add_journal(full_entry)
+                state._unsaved_entries += 1
             continue
 
         # Dispatch with error handling
