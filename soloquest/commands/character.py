@@ -31,22 +31,20 @@ def handle_char(state: GameState, args: list[str], flags: set[str]) -> None:
 
 
 def _handle_char_new(state: GameState) -> None:
-    display.warn("This will create a new character. Your current save is kept as a backup.")
+    display.info("Create a new character alongside the current one.")
     try:
-        if not Confirm.ask("  Start over?", default=False):
+        if not Confirm.ask("  Continue?", default=False):
             return
     except (KeyboardInterrupt, EOFError):
         return
 
     data_dir = Path(__file__).parent.parent / "data"
-    result = run_new_character_flow(data_dir, state.truth_categories)
+    result = run_new_character_flow(data_dir, state.truth_categories, include_truths=False)
     if result is None:
         display.info("New character creation cancelled.")
         return
 
     character, vows, dice_mode = result
-    # Update state in-place (session_count=0/session=None matches main.py new-game path;
-    # run_session will increment and create the first session on entry)
     state.character = character
     state.vows = vows
     state.session_count = 0
@@ -54,7 +52,7 @@ def _handle_char_new(state: GameState) -> None:
     state.dice_mode = dice_mode
     state.dice = make_dice_provider(dice_mode)
     save_game(character, vows, 0, dice_mode)
-    display.success(f"New character created: {character.name}. Your journey begins!")
+    display.success(f"Character created: {character.name}. Switching to them now.")
 
 
 def handle_track(state: GameState, track: str, args: list[str]) -> None:

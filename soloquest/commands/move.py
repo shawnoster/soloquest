@@ -137,6 +137,7 @@ def handle_move(state: GameState, args: list[str], flags: set[str]) -> None:
     if len(matches) > 1:
         if category_filter and not query:
             _display_category_moves(state.moves, matches, category_filter)
+            display.info("  Use 'move [name]' to play a move.")
         else:
             names = ", ".join(state.moves[k]["name"] for k in matches)
             display.warn(f"Multiple matches ({len(matches)}): {names}. Be more specific.")
@@ -584,6 +585,7 @@ def _list_all_moves(move_data: dict) -> None:
 
     for category in sorted(categories.keys()):
         _display_category_moves(move_data, categories[category], category)
+    display.info("  Use 'move [name]' to play a move.")
 
 
 def _display_category_moves(move_data: dict, keys: list[str], category: str) -> None:
@@ -610,7 +612,6 @@ def _display_category_moves(move_data: dict, keys: list[str], category: str) -> 
     display.console.print(f"\n[bold]{category_display} Moves[/bold]")
     display.console.print(table)
     display.console.print()
-    display.info("  Use /move [name] to play a move.")
 
 
 def _handle_narrative_move(move_name: str, move: dict, state: GameState) -> None:

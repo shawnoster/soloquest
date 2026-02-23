@@ -633,4 +633,3 @@ class TestHandleEdit:
         mock_display.success.assert_called_once()
         call_args = mock_display.success.call_args[0][0]
         assert "..." in call_args  # Should have ellipsis for truncation
-

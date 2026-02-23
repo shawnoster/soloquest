@@ -165,36 +165,38 @@ def load_move_data() -> dict:
 
 def _get_multiline_journal_entry(prompt_session: PromptSession, first_line: str) -> str | None:
     """Capture multi-line journal entry using paragraph blocks.
-    
+
     - Press Enter twice to add a new paragraph
     - Single Enter adds line break within paragraph
     - Ctrl+D to finish and submit
     - Ctrl+C to cancel
-    
+
     Args:
         prompt_session: The prompt session to use
         first_line: The first line already entered
-        
+
     Returns:
         The complete journal entry, or None if cancelled
     """
     from prompt_toolkit.formatted_text import HTML
     from prompt_toolkit.key_binding import KeyBindings
-    
+
     # Sentinel value to mark paragraph breaks
     PARAGRAPH_BREAK = "<<<PARAGRAPH_BREAK>>>"
-    
+
     lines = [first_line]
-    display.info("Multi-line mode: Press Enter twice for paragraph, Ctrl+D to finish, Ctrl+C to cancel")
-    
+    display.info(
+        "Multi-line mode: Press Enter twice for paragraph, Ctrl+D to finish, Ctrl+C to cancel"
+    )
+
     # Create custom key bindings for multi-line input
     bindings = KeyBindings()
-    
-    @bindings.add('c-d')
+
+    @bindings.add("c-d")
     def _(event):
         """Accept input on Ctrl+D."""
         event.current_buffer.validate_and_handle()
-    
+
     while True:
         try:
             # Prompt for next line with continuation indicator
@@ -203,9 +205,9 @@ def _get_multiline_journal_entry(prompt_session: PromptSession, first_line: str)
                 key_bindings=bindings,
                 multiline=False,  # We handle multi-line logic ourselves
             )
-            
+
             line = line.strip()
-            
+
             # Empty line means paragraph break or continuation
             if not line:
                 # Check if previous line was also empty (double enter)
@@ -218,16 +220,16 @@ def _get_multiline_journal_entry(prompt_session: PromptSession, first_line: str)
                     lines.append("")
             else:
                 lines.append(line)
-                
+
         except EOFError:
             # Ctrl+D pressed - finish entry
             # Clean up trailing empty lines (but preserve paragraph breaks)
             while lines and lines[-1] == "":
                 lines.pop()
-            
+
             if not lines:
                 return None
-                
+
             # Convert paragraph break markers to double newlines
             result = []
             for line in lines:
@@ -236,13 +238,143 @@ def _get_multiline_journal_entry(prompt_session: PromptSession, first_line: str)
                     result.append("")
                 else:
                     result.append(line)
-            
+
             return "\n".join(result)
-            
+
         except KeyboardInterrupt:
             # Ctrl+C pressed - cancel
             display.info("Journal entry cancelled")
             return None
+
+
+def _build_game_state(
+    character: Character,
+    vows: list[Vow],
+    session_count: int,
+    dice_mode: DiceMode,
+    session: Session,
+    campaign=None,
+    campaign_dir: Path | None = None,
+) -> GameState:
+    """Load all game data and return an initialized GameState. No I/O beyond data loading."""
+    moves = load_move_data()
+    oracles = load_oracles(DATA_DIR)
+    assets = load_assets(DATA_DIR)
+    truth_categories = load_truth_categories(DATA_DIR)
+    dice = make_dice_provider(dice_mode)
+
+    sync: SyncPort = (
+        FileLogAdapter(campaign_dir, character.name)
+        if campaign_dir
+        else LocalAdapter(character.name)
+    )
+
+    return GameState(
+        character=character,
+        vows=vows,
+        session=session,
+        session_count=session_count,
+        dice_mode=dice_mode,
+        dice=dice,
+        moves=moves,
+        oracles=oracles,
+        assets=assets,
+        truth_categories=truth_categories,
+        sync=sync,
+        campaign=campaign,
+        campaign_dir=campaign_dir,
+    )
+
+
+def _dispatch_command(state: GameState, cmd_name: str, args: list[str], flags: set[str]) -> None:
+    """Dispatch a single command to the appropriate handler."""
+    match cmd_name:
+        case "next":
+            advance_phase(state)
+        case "guide":
+            handle_guide(state, args, flags)
+        case "campaign":
+            handle_campaign(state, args, flags)
+        case "truths":
+            handle_truths(state, args, flags)
+        case "move":
+            handle_move(state, args, flags)
+        case "oracle":
+            handle_oracle(state, args, flags)
+        case "asset":
+            handle_asset(state, args, flags)
+        case "vow":
+            handle_vow(state, args, flags)
+        case "progress":
+            handle_progress(state, args, flags)
+        case "fulfill":
+            handle_fulfill(state, args, flags)
+        case "char":
+            handle_char(state, args, flags)
+        case "log":
+            handle_log(state, args, flags)
+        case "note":
+            handle_note(state, args, flags)
+        case "edit":
+            handle_edit(state, args, flags)
+        case "health" | "spirit" | "supply":
+            handle_track(state, cmd_name, args)
+        case "momentum":
+            handle_momentum(state, args, flags)
+        case "debility":
+            handle_debility(state, args, flags)
+        case "roll":
+            handle_roll(state, args, flags)
+        case "forsake":
+            from soloquest.commands.move import _handle_forsake_vow
+
+            _handle_forsake_vow(state)
+        case "settings":
+            handle_settings(state, args, flags)
+        case "newsession":
+            handle_newsession(state, args, flags)
+        case "end":
+            handle_end(state, args, flags)
+        case "clear":
+            display.console.clear()
+        case "help":
+            handle_help(state, args, flags)
+        case "interpret":
+            handle_interpret(state, args, flags)
+        case "accept":
+            handle_accept(state, args, flags)
+        case _:
+            known = list(COMMAND_HELP.keys())
+            close = [k for k in known if k.startswith(cmd_name)]
+            if close:
+                suggestions = ", ".join(f"/{c}" for c in close)
+                display.warn(get_string("loop.did_you_mean", cmd=cmd_name, suggestions=suggestions))
+            else:
+                display.error(get_string("loop.unknown_command", cmd=cmd_name))
+
+
+def run_oneshot(
+    character: Character,
+    vows: list[Vow],
+    session_count: int,
+    dice_mode: DiceMode,
+    session: Session | None,
+    command: str,
+    args: list[str],
+    flags: set[str],
+) -> int:
+    """Build GameState, dispatch one command, autosave, return exit code.
+
+    Forces DigitalDice — physical/mixed dice mode doesn't make sense for one-liners.
+    """
+    if session is None:
+        session_count += 1
+        session = Session(number=session_count)
+
+    state = _build_game_state(character, vows, session_count, DiceMode.DIGITAL, session)
+    _dispatch_command(state, command, args, flags)
+    _autosave_state(state)
+    return 0
 
 
 def run_session(
@@ -262,32 +394,8 @@ def run_session(
         # Resume existing session (session_count remains the same)
         pass
 
-    moves = load_move_data()
-    oracles = load_oracles(DATA_DIR)
-    assets = load_assets(DATA_DIR)
-    truth_categories = load_truth_categories(DATA_DIR)
-    dice = make_dice_provider(dice_mode)
-
-    sync: SyncPort = (
-        FileLogAdapter(campaign_dir, character.name)
-        if campaign_dir
-        else LocalAdapter(character.name)
-    )
-
-    state = GameState(
-        character=character,
-        vows=vows,
-        session=session,
-        session_count=session_count,
-        dice_mode=dice_mode,
-        dice=dice,
-        moves=moves,
-        oracles=oracles,
-        assets=assets,
-        truth_categories=truth_categories,
-        sync=sync,
-        campaign=campaign,
-        campaign_dir=campaign_dir,
+    state = _build_game_state(
+        character, vows, session_count, dice_mode, session, campaign, campaign_dir
     )
 
     is_new_session = session.number == session_count and len(session.entries) == 0
@@ -363,78 +471,17 @@ def run_session(
 
         # Dispatch with error handling
         try:
-            match cmd.name:
-                case "next":
-                    advance_phase(state)
-                case "guide":
-                    handle_guide(state, cmd.args, cmd.flags)
-                case "campaign":
-                    handle_campaign(state, cmd.args, cmd.flags)
-                case "truths":
-                    handle_truths(state, cmd.args, cmd.flags)
-                case "move":
-                    handle_move(state, cmd.args, cmd.flags)
-                case "oracle":
-                    handle_oracle(state, cmd.args, cmd.flags)
-                case "asset":
-                    handle_asset(state, cmd.args, cmd.flags)
-                case "vow":
-                    handle_vow(state, cmd.args, cmd.flags)
-                case "progress":
-                    handle_progress(state, cmd.args, cmd.flags)
-                case "fulfill":
-                    handle_fulfill(state, cmd.args, cmd.flags)
-                case "char":
-                    handle_char(state, cmd.args, cmd.flags)
-                case "log":
-                    handle_log(state, cmd.args, cmd.flags)
-                case "note":
-                    handle_note(state, cmd.args, cmd.flags)
-                case "edit":
-                    handle_edit(state, cmd.args, cmd.flags)
-                case "health" | "spirit" | "supply":
-                    handle_track(state, cmd.name, cmd.args)
-                case "momentum":
-                    handle_momentum(state, cmd.args, cmd.flags)
-                case "debility":
-                    handle_debility(state, cmd.args, cmd.flags)
-                case "roll":
-                    handle_roll(state, cmd.args, cmd.flags)
-                case "forsake":
-                    from soloquest.commands.move import _handle_forsake_vow
-
-                    _handle_forsake_vow(state)
-                case "settings":
-                    handle_settings(state, cmd.args, cmd.flags)
-                case "newsession":
-                    handle_newsession(state, cmd.args, cmd.flags)
-                case "end":
-                    handle_end(state, cmd.args, cmd.flags)
-                case "clear":
-                    display.console.clear()
-                case "help":
-                    handle_help(state, cmd.args, cmd.flags)
-                case "interpret":
-                    handle_interpret(state, cmd.args, cmd.flags)
-                case "accept":
-                    handle_accept(state, cmd.args, cmd.flags)
-                case "sync":
-                    _poll_and_display(state, explicit=True)
-                    continue  # no autosave needed
-                case "quit" | "q" | "exit":
-                    if state.guided_mode:
-                        stop_guided_mode(state)
-                    else:
-                        _confirm_quit(state)
-                case _:
-                    known = list(COMMAND_HELP.keys())
-                    close = [k for k in known if k.startswith(cmd.name)]
-                    if close:
-                        suggestions = ", ".join(f"/{c}" for c in close)
-                        display.warn(get_string("loop.did_you_mean", cmd=cmd.name, suggestions=suggestions))
-                    else:
-                        display.error(get_string("loop.unknown_command", cmd=cmd.name))
-                    continue  # skip autosave on unknown commands
+            # Handle REPL-only commands before delegating to shared dispatcher
+            if cmd.name == "sync":
+                _poll_and_display(state, explicit=True)
+                continue  # no autosave needed
+            elif cmd.name in ("quit", "q", "exit"):
+                if state.guided_mode:
+                    stop_guided_mode(state)
+                else:
+                    _confirm_quit(state)
+            else:
+                _dispatch_command(state, cmd.name, cmd.args, cmd.flags)
 
             # Autosave after mechanical commands
             if cmd.name in AUTOSAVE_AFTER:

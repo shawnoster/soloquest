@@ -47,7 +47,7 @@ def handle_note(state: GameState, args: list[str], flags: set[str]) -> None:
 
 def handle_edit(state: GameState, args: list[str], flags: set[str]) -> None:
     """Open external editor to write a journal entry.
-    
+
     Args are reserved for future use (e.g., specifying editor or template).
     Flags are reserved for future use.
     """
@@ -66,7 +66,9 @@ def handle_edit(state: GameState, args: list[str], flags: set[str]) -> None:
     with tempfile.NamedTemporaryFile(mode="w+", suffix=".md", delete=False) as tmp_file:
         tmp_path = tmp_file.name
         # Add helpful instruction at top
-        tmp_file.write("# Write your journal entry below (lines starting with # will be ignored)\n\n")
+        tmp_file.write(
+            "# Write your journal entry below (lines starting with # will be ignored)\n\n"
+        )
 
     try:
         # Open editor

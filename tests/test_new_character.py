@@ -62,69 +62,83 @@ class TestRollTable:
             assert result[0] == i
 
 
-def _make_path_session_prompt(paths):
-    """Create a mock PromptSession that returns paths in sequence."""
-    mock_session = MagicMock()
-    mock_session.prompt.side_effect = paths
-    return mock_session
-
-
 class TestRunCreationWizard:
-    """Integration tests for run_creation_wizard — mocking all I/O."""
+    """Integration tests for run_creation_wizard — mocking all I/O.
 
-    def _run_wizard_with_answers(self, prompt_answers, confirm_answers=None):
-        """Run the wizard with mocked Prompt.ask and Confirm.ask answers."""
-        if confirm_answers is None:
-            # Default: skip all optional oracle rolls, confirm at end
-            confirm_answers = [False, False, False, True]
+    All prompts go through a single PromptSession.prompt() call.
+    Prompt order (25 entries for a minimal run):
+      [0]  inspiration (enter "" to skip)
+      [1]  path 1 (e.g. "ace")
+      [2]  path 2 (e.g. "navigator")
+      [3]  backstory oracle confirm ("" → False, default=False)
+      [4]  backstory text
+      [5]  background vow text
+      [6]  ship name
+      [7]  starship history oracle confirm ("" → False, default=False)
+      [8]  starship quirk oracle confirm ("" → False, default=False)
+      [9]  final asset (e.g. "empath")
+      [10] edge
+      [11] heart
+      [12] iron
+      [13] shadow
+      [14] wits
+      [15] look
+      [16] act
+      [17] wear
+      [18] name
+      [19] pronouns
+      [20] callsign
+      [21] homeworld
+      [22] gear item 1 ("" → done)
+      [23] dice mode ("1" = digital)
+      [24] begin journey confirm ("" → True, default=True)
+    """
 
-        with (
-            patch("soloquest.commands.new_character.Prompt.ask", side_effect=prompt_answers),
-            patch("soloquest.commands.new_character.Confirm.ask", side_effect=confirm_answers),
-            patch("soloquest.commands.new_character.PromptSession") as mock_session_class,
-        ):
-            # Make PromptSession().prompt() return values for asset prompts
+    def _base_answers(self):
+        """Return the minimal 25-prompt answer list for a default wizard run."""
+        return [
+            "",  # [0]  inspiration (skip)
+            "ace",  # [1]  path 1
+            "navigator",  # [2]  path 2
+            "",  # [3]  backstory oracle confirm (default=False → skip)
+            "",  # [4]  backstory
+            "Find the truth",  # [5]  background vow
+            "",  # [6]  ship name
+            "",  # [7]  starship history oracle confirm (default=False → skip)
+            "",  # [8]  starship quirk oracle confirm (default=False → skip)
+            "empath",  # [9]  final asset
+            "3",  # [10] edge
+            "2",  # [11] heart
+            "2",  # [12] iron
+            "1",  # [13] shadow
+            "1",  # [14] wits
+            "",  # [15] look
+            "",  # [16] act
+            "",  # [17] wear
+            "Kael",  # [18] name
+            "",  # [19] pronouns
+            "",  # [20] callsign
+            "",  # [21] homeworld
+            "",  # [22] gear (done immediately)
+            "1",  # [23] dice mode (digital)
+            "",  # [24] begin journey confirm (default=True → yes)
+        ]
+
+    def _run_wizard_with_answers(self, all_prompt_answers):
+        """Run the wizard with all session.prompt() answers in sequence."""
+        with patch("soloquest.commands.new_character.PromptSession") as mock_session_class:
             mock_session = MagicMock()
-            # path1, path2, final_asset
-            mock_session.prompt.side_effect = ["ace", "navigator", "empath"]
+            mock_session.prompt.side_effect = all_prompt_answers
             mock_session_class.return_value = mock_session
-
             result = run_creation_wizard(DATA_DIR)
-
         return result
 
     def test_wizard_returns_character_vows_dice_mode(self):
         """Successful completion returns a 3-tuple."""
-        prompt_answers = [
-            # Step 1 inspiration (skip)
-            "",
-            # Step 3 backstory
-            "",
-            # Step 4 background vow
-            "Find the truth",
-            # Step 5 ship name
-            "Stellar Drift",
-            # Step 7 stats: edge=3, heart=2, iron=2, shadow=1, wits=1
-            "3",
-            "2",
-            "2",
-            "1",
-            "1",
-            # Step 9 envision
-            "",
-            "",
-            "",
-            # Step 10 name/pronouns/callsign/homeworld
-            "Kael",
-            "",
-            "",
-            "The Rift",
-            # Step 11 gear (skip immediately)
-            "",
-            # Dice mode
-            "1",
-        ]
-        result = self._run_wizard_with_answers(prompt_answers)
+        answers = self._base_answers()
+        answers[6] = "Stellar Drift"
+        answers[21] = "The Rift"
+        result = self._run_wizard_with_answers(answers)
         assert result is not None
         character, vows, dice_mode = result
         assert character.name == "Kael"
@@ -133,27 +147,9 @@ class TestRunCreationWizard:
 
     def test_wizard_grants_starship_and_two_paths(self):
         """Character must have starship + 2 path assets + 1 free asset."""
-        prompt_answers = [
-            "",  # inspiration (skip)
-            "",  # backstory
-            "Find the truth",  # vow
-            "Rusty",  # ship name
-            "3",
-            "2",
-            "2",
-            "1",
-            "1",  # stats
-            "",
-            "",
-            "",  # envision
-            "Kael",
-            "",
-            "",
-            "",  # name/pronouns/callsign/homeworld
-            "",  # gear done
-            "1",  # dice mode
-        ]
-        result = self._run_wizard_with_answers(prompt_answers)
+        answers = self._base_answers()
+        answers[6] = "Rusty"
+        result = self._run_wizard_with_answers(answers)
         assert result is not None
         character, vows, dice_mode = result
 
@@ -170,27 +166,9 @@ class TestRunCreationWizard:
 
     def test_wizard_stores_ship_name_in_input_values(self):
         """STARSHIP asset input_values should contain the ship name."""
-        prompt_answers = [
-            "",  # inspiration (skip)
-            "",
-            "Find the truth",
-            "Stellar Drift",
-            "3",
-            "2",
-            "2",
-            "1",
-            "1",
-            "",
-            "",
-            "",
-            "Kael",
-            "",
-            "",
-            "",
-            "",
-            "1",
-        ]
-        result = self._run_wizard_with_answers(prompt_answers)
+        answers = self._base_answers()
+        answers[6] = "Stellar Drift"
+        result = self._run_wizard_with_answers(answers)
         assert result is not None
         character, _, _ = result
         starship = next(a for a in character.assets if a.asset_key == "starship")
@@ -200,27 +178,9 @@ class TestRunCreationWizard:
         """Background vow must be Epic rank."""
         from soloquest.models.vow import VowRank
 
-        prompt_answers = [
-            "",  # inspiration (skip)
-            "",
-            "Avenge my homeworld",
-            "",
-            "3",
-            "2",
-            "2",
-            "1",
-            "1",
-            "",
-            "",
-            "",
-            "Kael",
-            "",
-            "",
-            "",
-            "",
-            "1",
-        ]
-        result = self._run_wizard_with_answers(prompt_answers)
+        answers = self._base_answers()
+        answers[5] = "Avenge my homeworld"
+        result = self._run_wizard_with_answers(answers)
         assert result is not None
         _, vows, _ = result
         assert len(vows) == 1
@@ -229,27 +189,16 @@ class TestRunCreationWizard:
 
     def test_wizard_stores_narrative_fields(self):
         """Narrative fields (look, act, wear, pronouns, callsign, backstory) are stored."""
-        prompt_answers = [
-            "",  # inspiration (skip)
-            "Fled the war",  # backstory
-            "Find the truth",  # vow
-            "Ghost",  # ship name
-            "3",
-            "2",
-            "2",
-            "1",
-            "1",  # stats
-            "Tall with red hair",  # look
-            "Calm and decisive",  # act
-            "Worn leather jacket",  # wear
-            "Kael",  # name
-            "they/them",  # pronouns
-            "Shadow",  # callsign
-            "Drift Station",  # homeworld
-            "",  # gear done
-            "1",  # dice mode
-        ]
-        result = self._run_wizard_with_answers(prompt_answers)
+        answers = self._base_answers()
+        answers[4] = "Fled the war"  # backstory
+        answers[6] = "Ghost"  # ship name
+        answers[15] = "Tall with red hair"  # look
+        answers[16] = "Calm and decisive"  # act
+        answers[17] = "Worn leather jacket"  # wear
+        answers[19] = "they/them"  # pronouns
+        answers[20] = "Shadow"  # callsign
+        answers[21] = "Drift Station"  # homeworld
+        result = self._run_wizard_with_answers(answers)
         assert result is not None
         character, _, _ = result
         assert character.backstory == "Fled the war"
@@ -261,29 +210,36 @@ class TestRunCreationWizard:
 
     def test_wizard_stores_gear(self):
         """Personal gear items are stored on the character."""
-        prompt_answers = [
-            "",  # inspiration (skip)
-            "",  # backstory
-            "Find the truth",  # vow
-            "",  # ship name
-            "3",
-            "2",
-            "2",
-            "1",
-            "1",  # stats
-            "",
-            "",
-            "",  # envision
-            "Kael",
-            "",
-            "",
-            "",  # name etc.
-            "Data pad",  # gear 1
-            "Lucky coin",  # gear 2
-            "",  # gear done
-            "1",  # dice mode
+        answers = [
+            "",  # [0]  inspiration
+            "ace",  # [1]  path 1
+            "navigator",  # [2]  path 2
+            "",  # [3]  backstory oracle confirm
+            "",  # [4]  backstory
+            "Find the truth",  # [5]  vow
+            "",  # [6]  ship name
+            "",  # [7]  history oracle confirm
+            "",  # [8]  quirk oracle confirm
+            "empath",  # [9]  final asset
+            "3",  # [10] edge
+            "2",  # [11] heart
+            "2",  # [12] iron
+            "1",  # [13] shadow
+            "1",  # [14] wits
+            "",  # [15] look
+            "",  # [16] act
+            "",  # [17] wear
+            "Kael",  # [18] name
+            "",  # [19] pronouns
+            "",  # [20] callsign
+            "",  # [21] homeworld
+            "Data pad",  # [22] gear 1
+            "Lucky coin",  # [23] gear 2
+            "",  # [24] gear done
+            "1",  # [25] dice mode
+            "",  # [26] confirm
         ]
-        result = self._run_wizard_with_answers(prompt_answers)
+        result = self._run_wizard_with_answers(answers)
         assert result is not None
         character, _, _ = result
         assert "Data pad" in character.gear
@@ -291,121 +247,41 @@ class TestRunCreationWizard:
 
     def test_wizard_supply_starts_at_5(self):
         """Character supply should start at 5 per rulebook."""
-        prompt_answers = [
-            "",  # inspiration (skip)
-            "",
-            "Find the truth",
-            "",
-            "3",
-            "2",
-            "2",
-            "1",
-            "1",
-            "",
-            "",
-            "",
-            "Kael",
-            "",
-            "",
-            "",
-            "",
-            "1",
-        ]
-        result = self._run_wizard_with_answers(prompt_answers)
+        result = self._run_wizard_with_answers(self._base_answers())
         assert result is not None
         character, _, _ = result
         assert character.supply == 5
 
     def test_wizard_cancellation_returns_none_on_back(self):
         """Typing 'back' at name prompt returns None."""
-        prompt_answers = [
-            "",  # inspiration (skip)
-            "",  # backstory
-            "Find the truth",  # vow
-            "",  # ship name
-            "3",
-            "2",
-            "2",
-            "1",
-            "1",  # stats
-            "",
-            "",
-            "",  # envision
-            "back",  # name → cancel
-        ]
-        result = self._run_wizard_with_answers(prompt_answers)
+        answers = self._base_answers()
+        answers[18] = "back"  # name → cancel
+        result = self._run_wizard_with_answers(answers)
         assert result is None
 
     def test_wizard_cancellation_returns_none_on_keyboard_interrupt(self):
         """KeyboardInterrupt at any step returns None."""
-        mock_session = MagicMock()
-        mock_session.prompt.side_effect = KeyboardInterrupt
-        with (
-            patch(
-                "soloquest.commands.new_character.Prompt.ask",
-                side_effect=KeyboardInterrupt,
-            ),
-            patch("soloquest.commands.new_character.Confirm.ask", return_value=False),
-            patch(
-                "soloquest.commands.new_character.PromptSession",
-                return_value=mock_session,
-            ),
-        ):
+        with patch("soloquest.commands.new_character.PromptSession") as mock_session_class:
+            mock_session = MagicMock()
+            mock_session.prompt.side_effect = KeyboardInterrupt
+            mock_session_class.return_value = mock_session
             result = run_creation_wizard(DATA_DIR)
         assert result is None
 
     def test_wizard_dice_mode_physical(self):
         """Selecting '2' sets physical dice mode."""
-        prompt_answers = [
-            "",  # inspiration (skip)
-            "",
-            "Find the truth",
-            "",
-            "3",
-            "2",
-            "2",
-            "1",
-            "1",
-            "",
-            "",
-            "",
-            "Kael",
-            "",
-            "",
-            "",
-            "",
-            "2",  # physical dice mode
-        ]
-        result = self._run_wizard_with_answers(prompt_answers)
+        answers = self._base_answers()
+        answers[23] = "2"  # physical dice mode
+        result = self._run_wizard_with_answers(answers)
         assert result is not None
         _, _, dice_mode = result
         assert dice_mode == DiceMode.PHYSICAL
 
     def test_wizard_confirm_no_returns_none(self):
         """Declining the final confirmation returns None."""
-        prompt_answers = [
-            "",  # inspiration (skip)
-            "",
-            "Find the truth",
-            "",
-            "3",
-            "2",
-            "2",
-            "1",
-            "1",
-            "",
-            "",
-            "",
-            "Kael",
-            "",
-            "",
-            "",
-            "",
-            "1",
-        ]
-        # Last confirm=False means cancel
-        confirm_answers = [False, False, False, False]
-        result = self._run_wizard_with_answers(prompt_answers, confirm_answers)
+        answers = self._base_answers()
+        answers[24] = "n"  # decline (default=True, so "n" → False)
+        result = self._run_wizard_with_answers(answers)
         assert result is None
 
 
@@ -430,28 +306,6 @@ class TestRunNewCharacterFlow:
         )
         return {"The Cataclysm": category}
 
-    def _wizard_prompt_answers(self):
-        return [
-            "",  # inspiration (skip)
-            "",  # backstory
-            "Find the truth",  # vow
-            "Ghost",  # ship name
-            "3",
-            "2",
-            "2",
-            "1",
-            "1",  # stats
-            "",
-            "",
-            "",  # envision
-            "Kael",
-            "",
-            "",
-            "",  # name/pronouns/callsign/homeworld
-            "",  # gear done
-            "1",  # dice mode
-        ]
-
     def test_truths_attached_to_character(self):
         """Truths returned by run_truths_wizard are attached to the character."""
         from soloquest.models.truths import ChosenTruth
@@ -459,27 +313,44 @@ class TestRunNewCharacterFlow:
         chosen = [ChosenTruth(category="The Cataclysm", option_summary="All is well")]
         truth_categories = self._make_truth_categories()
 
-        mock_session = MagicMock()
-        mock_session.prompt.side_effect = ["ace", "navigator", "empath"]
+        answers = [
+            "",  # [0]  inspiration
+            "ace",  # [1]  path 1
+            "navigator",  # [2]  path 2
+            "",  # [3]  backstory oracle confirm
+            "",  # [4]  backstory
+            "Find the truth",  # [5]  vow
+            "Ghost",  # [6]  ship name
+            "",  # [7]  history oracle confirm
+            "",  # [8]  quirk oracle confirm
+            "empath",  # [9]  final asset
+            "3",  # [10] edge
+            "2",  # [11] heart
+            "2",  # [12] iron
+            "1",  # [13] shadow
+            "1",  # [14] wits
+            "",  # [15] look
+            "",  # [16] act
+            "",  # [17] wear
+            "Kael",  # [18] name
+            "",  # [19] pronouns
+            "",  # [20] callsign
+            "",  # [21] homeworld
+            "",  # [22] gear done
+            "1",  # [23] dice mode
+            "",  # [24] confirm
+        ]
 
         with (
             patch(
                 "soloquest.commands.new_character.run_truths_wizard",
                 return_value=chosen,
             ),
-            patch(
-                "soloquest.commands.new_character.Prompt.ask",
-                side_effect=self._wizard_prompt_answers(),
-            ),
-            patch(
-                "soloquest.commands.new_character.Confirm.ask",
-                side_effect=[False, False, False, True],
-            ),
-            patch(
-                "soloquest.commands.new_character.PromptSession",
-                return_value=mock_session,
-            ),
+            patch("soloquest.commands.new_character.PromptSession") as mock_session_class,
         ):
+            mock_session = MagicMock()
+            mock_session.prompt.side_effect = answers
+            mock_session_class.return_value = mock_session
             result = run_new_character_flow(DATA_DIR, truth_categories)
 
         assert result is not None

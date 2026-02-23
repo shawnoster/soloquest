@@ -3,10 +3,11 @@
 from __future__ import annotations
 
 import argparse
+import sys
 from pathlib import Path
 
 from soloquest.models.session import Session
-from soloquest.state.save import list_saves, load_most_recent
+from soloquest.state.save import list_saves, list_saves_paths, load_by_name, load_most_recent
 from soloquest.ui import display
 from soloquest.ui.strings import get_string
 
@@ -23,6 +24,9 @@ Examples:
   soloquest -d ~/my-campaigns                  # Use custom directory
   soloquest --adventures-dir ./test-campaign   # Use relative path
   soloquest --new                              # Start a new character
+  soloquest oracle action                      # One-liner: roll oracle
+  soloquest roll d100                          # One-liner: roll dice
+  soloquest --char Robin move "face danger"    # One-liner with named character
 
 For more information: https://github.com/shawnoster/solo-cli
         """,
@@ -44,6 +48,17 @@ For more information: https://github.com/shawnoster/solo-cli
         action="store_true",
         help="start with a new character",
     )
+    parser.add_argument(
+        "-c",
+        "--char",
+        metavar="NAME",
+        help="character name to load (one-liner mode only)",
+    )
+    parser.add_argument(
+        "oneshot",
+        nargs=argparse.REMAINDER,
+        help="command + args for one-liner mode, e.g.: oracle action",
+    )
     return parser.parse_args()
 
 
@@ -61,7 +76,38 @@ def main() -> None:
     if args.adventures_dir:
         config.set_adventures_dir(args.adventures_dir)
 
-    # Determine startup path
+    # --- One-liner mode ---
+    if args.oneshot:
+        tokens = args.oneshot
+        command = tokens[0]
+        cmd_args = [t for t in tokens[1:] if not t.startswith("--")]
+        cmd_flags = {t.lstrip("-") for t in tokens[1:] if t.startswith("--")}
+
+        if args.char:
+            result = load_by_name(args.char, config.saves_dir())
+            if result is None:
+                saves = list_saves_paths(config.saves_dir())
+                names = [s.stem.replace("_", " ").title() for s in saves]
+                display.console.print(f"[red]Character '{args.char}' not found.[/red]")
+                display.console.print(f"Available: {', '.join(names) or 'none'}")
+                sys.exit(1)
+            character, vows, session_count, dice_mode, session = result
+        else:
+            most_recent = load_most_recent()
+            if most_recent is None:
+                display.error(get_string("startup.corrupted_save"))
+                sys.exit(1)
+            character, vows, session_count, dice_mode, session = most_recent
+
+        from soloquest.loop import run_oneshot
+
+        sys.exit(
+            run_oneshot(
+                character, vows, session_count, dice_mode, session, command, cmd_args, cmd_flags
+            )
+        )
+
+    # --- Interactive session mode ---
     has_saves = bool(list_saves())
 
     if not args.new and has_saves:

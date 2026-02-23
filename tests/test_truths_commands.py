@@ -168,7 +168,9 @@ class TestPromptToStartWizard:
     @patch("soloquest.commands.truths._start_truths_wizard")
     @patch("soloquest.commands.truths.display")
     @patch("soloquest.commands.truths.Confirm.ask", return_value=True)
-    def test_prompt_to_start_wizard_accepted(self, mock_confirm, mock_display, mock_start, mock_state):
+    def test_prompt_to_start_wizard_accepted(
+        self, mock_confirm, mock_display, mock_start, mock_state
+    ):
         """Test accepting prompt starts wizard."""
         _prompt_to_start_wizard(mock_state)
         mock_confirm.assert_called_once()
@@ -176,7 +178,9 @@ class TestPromptToStartWizard:
 
     @patch("soloquest.commands.truths.display")
     @patch("soloquest.commands.truths.Confirm.ask", side_effect=KeyboardInterrupt)
-    def test_prompt_to_start_wizard_keyboard_interrupt(self, mock_confirm, mock_display, mock_state):
+    def test_prompt_to_start_wizard_keyboard_interrupt(
+        self, mock_confirm, mock_display, mock_state
+    ):
         """Test keyboard interrupt during prompt."""
         _prompt_to_start_wizard(mock_state)
         mock_display.info.assert_called_once()
@@ -201,9 +205,9 @@ class TestStartTruthsWizard:
         """Test starting wizard when no truths exist."""
         chosen_truths = [ChosenTruth(category="Cataclysm", option_summary="The Sun Plague")]
         mock_run_wizard.return_value = chosen_truths
-        
+
         _start_truths_wizard(mock_state)
-        
+
         mock_run_wizard.assert_called_once_with(mock_state.truth_categories)
         assert mock_state.character.truths == chosen_truths
         mock_display.success.assert_called_once()
@@ -215,14 +219,12 @@ class TestStartTruthsWizard:
         self, mock_confirm, mock_display, mock_run_wizard, mock_state
     ):
         """Test starting wizard with existing truths and confirming overwrite."""
-        mock_state.character.truths = [
-            ChosenTruth(category="Old", option_summary="Old truth")
-        ]
+        mock_state.character.truths = [ChosenTruth(category="Old", option_summary="Old truth")]
         new_truths = [ChosenTruth(category="Cataclysm", option_summary="The Sun Plague")]
         mock_run_wizard.return_value = new_truths
-        
+
         _start_truths_wizard(mock_state)
-        
+
         mock_confirm.assert_called_once()
         mock_run_wizard.assert_called_once()
         assert mock_state.character.truths == new_truths
@@ -235,9 +237,9 @@ class TestStartTruthsWizard:
         """Test declining to overwrite existing truths."""
         original_truths = [ChosenTruth(category="Old", option_summary="Old truth")]
         mock_state.character.truths = original_truths.copy()
-        
+
         _start_truths_wizard(mock_state)
-        
+
         mock_confirm.assert_called_once()
         mock_display.info.assert_called_once()
         assert mock_state.character.truths == original_truths
@@ -250,9 +252,9 @@ class TestStartTruthsWizard:
         """Test keyboard interrupt during overwrite confirmation."""
         original_truths = [ChosenTruth(category="Old", option_summary="Old truth")]
         mock_state.character.truths = original_truths.copy()
-        
+
         _start_truths_wizard(mock_state)
-        
+
         mock_display.info.assert_called_once()
         assert mock_state.character.truths == original_truths
 
@@ -262,9 +264,9 @@ class TestStartTruthsWizard:
         """Test wizard returning None (cancelled)."""
         original_truths = []
         mock_state.character.truths = original_truths
-        
+
         _start_truths_wizard(mock_state)
-        
+
         # Truths should remain unchanged
         assert mock_state.character.truths == original_truths
         # Success should not be called
@@ -310,7 +312,7 @@ class TestGetTruthChoice:
     ):
         """Test selecting option 1."""
         result = _get_truth_choice(self.category)
-        
+
         assert result is not None
         assert result.category == "Cataclysm"
         assert result.option_summary == "The Sun Plague"
@@ -326,7 +328,7 @@ class TestGetTruthChoice:
     ):
         """Test selecting option 2 with a note."""
         result = _get_truth_choice(self.category)
-        
+
         assert result is not None
         assert result.option_summary == "Entities"
         assert result.note == "My note"
@@ -340,7 +342,7 @@ class TestGetTruthChoice:
     ):
         """Test selecting option 3 with subchoice."""
         result = _get_truth_choice(self.category)
-        
+
         assert result is not None
         assert result.option_summary == "War"
         assert result.subchoice == "subchoice text"
@@ -350,7 +352,7 @@ class TestGetTruthChoice:
     def test_get_truth_choice_skip(self, mock_display, mock_prompt):
         """Test skipping a truth."""
         result = _get_truth_choice(self.category)
-        
+
         assert result is not None
         assert result.category == "Cataclysm"
         assert result.option_summary == "[To be determined]"
@@ -359,13 +361,15 @@ class TestGetTruthChoice:
     def test_get_truth_choice_custom(self):
         """Test entering a custom truth."""
         # Mock Prompt.ask to return "c" first (for choice), then the custom text
-        with patch("soloquest.commands.truths.Prompt.ask") as mock_ask, \
-             patch("soloquest.commands.truths._prompt_note", return_value="Custom note"), \
-             patch("soloquest.commands.truths.display"):
+        with (
+            patch("soloquest.commands.truths.Prompt.ask") as mock_ask,
+            patch("soloquest.commands.truths._prompt_note", return_value="Custom note"),
+            patch("soloquest.commands.truths.display"),
+        ):
             mock_ask.side_effect = ["c", "My custom truth"]
-            
+
             result = _get_truth_choice(self.category)
-            
+
             assert result is not None
             assert result.category == "Cataclysm"
             assert result.option_summary == "My custom truth"
@@ -380,9 +384,9 @@ class TestGetTruthChoice:
         # then "c" again, then valid custom text
         with patch("soloquest.commands.truths.Prompt.ask") as mock_ask:
             mock_ask.side_effect = ["c", "", "c", "Valid custom text"]
-            
+
             result = _get_truth_choice(self.category)
-            
+
             assert result is not None
             assert result.custom_text == "Valid custom text"
             mock_display.error.assert_called_once()
@@ -397,7 +401,7 @@ class TestGetTruthChoice:
     ):
         """Test rolling for a truth."""
         result = _get_truth_choice(self.category)
-        
+
         assert result is not None
         assert result.option_summary == "Entities"  # roll 50 matches 34-67
         mock_randint.assert_called_once_with(1, 100)
@@ -412,9 +416,9 @@ class TestGetTruthChoice:
     ):
         """Test invalid choice followed by valid choice."""
         mock_prompt.side_effect = ["invalid", "1"]
-        
+
         result = _get_truth_choice(self.category)
-        
+
         assert result is not None
         assert result.option_summary == "The Sun Plague"
         mock_display.error.assert_called_once()
@@ -446,7 +450,7 @@ class TestGetSubchoice:
     def test_get_subchoice_numbered_selection(self, mock_display, mock_prompt):
         """Test selecting a subchoice by number."""
         result = _get_subchoice(self.subchoices)
-        
+
         assert result == "Temporal distortions"
 
     @patch("soloquest.commands.truths.Prompt.ask", return_value="4")
@@ -454,7 +458,7 @@ class TestGetSubchoice:
     def test_get_subchoice_last_option(self, mock_display, mock_prompt):
         """Test selecting the last subchoice."""
         result = _get_subchoice(self.subchoices)
-        
+
         assert result == "Experiment gone wrong"
 
     @patch("soloquest.commands.truths.Prompt.ask", return_value="r")
@@ -463,7 +467,7 @@ class TestGetSubchoice:
     def test_get_subchoice_roll(self, mock_display, mock_randint, mock_prompt):
         """Test rolling for a subchoice."""
         result = _get_subchoice(self.subchoices)
-        
+
         assert result == "Dark matter decay"  # roll 30 matches 26-50
         mock_randint.assert_called_once_with(1, 100)
 
@@ -473,7 +477,7 @@ class TestGetSubchoice:
     def test_get_subchoice_roll_first_range(self, mock_display, mock_randint, mock_prompt):
         """Test rolling matches first range."""
         result = _get_subchoice(self.subchoices)
-        
+
         assert result == "Temporal distortions"
 
     @patch("soloquest.commands.truths.Prompt.ask", return_value="r")
@@ -482,7 +486,7 @@ class TestGetSubchoice:
     def test_get_subchoice_roll_last_range(self, mock_display, mock_randint, mock_prompt):
         """Test rolling matches last range."""
         result = _get_subchoice(self.subchoices)
-        
+
         assert result == "Experiment gone wrong"
 
     @patch("soloquest.commands.truths.Prompt.ask")
@@ -490,9 +494,9 @@ class TestGetSubchoice:
     def test_get_subchoice_invalid_then_valid(self, mock_display, mock_prompt):
         """Test invalid choice followed by valid choice."""
         mock_prompt.side_effect = ["invalid", "2"]
-        
+
         result = _get_subchoice(self.subchoices)
-        
+
         assert result == "Dark matter decay"
         mock_display.error.assert_called_once()
 
@@ -501,7 +505,7 @@ class TestGetSubchoice:
     def test_get_subchoice_keyboard_interrupt(self, mock_display, mock_prompt):
         """Test keyboard interrupt returns empty string."""
         result = _get_subchoice(self.subchoices)
-        
+
         assert result == ""
 
 
@@ -515,28 +519,28 @@ class TestPromptNote:
     def test_prompt_note_with_text(self, mock_prompt):
         """Test entering a note."""
         result = _prompt_note()
-        
+
         assert result == "My personal note"
 
     @patch("soloquest.commands.truths.Prompt.ask", return_value="")
     def test_prompt_note_empty(self, mock_prompt):
         """Test skipping note entry."""
         result = _prompt_note()
-        
+
         assert result == ""
 
     @patch("soloquest.commands.truths.Prompt.ask", side_effect=KeyboardInterrupt)
     def test_prompt_note_keyboard_interrupt(self, mock_prompt):
         """Test keyboard interrupt returns empty string."""
         result = _prompt_note()
-        
+
         assert result == ""
 
     @patch("soloquest.commands.truths.Prompt.ask", side_effect=EOFError)
     def test_prompt_note_eof_error(self, mock_prompt):
         """Test EOF error returns empty string."""
         result = _prompt_note()
-        
+
         assert result == ""
 
 
@@ -559,9 +563,9 @@ class TestShowOptionDetails:
             quest_starter="Test quest",
             subchoices=["Choice 1 [1-50]", "Choice 2 [51-100]"],
         )
-        
+
         result = _show_option_details(option)
-        
+
         assert result == "chosen sub"
         mock_subchoice.assert_called_once_with(option.subchoices)
 
@@ -574,9 +578,9 @@ class TestShowOptionDetails:
             text="Test description",
             quest_starter="Test quest",
         )
-        
+
         result = _show_option_details(option)
-        
+
         assert result == ""
 
     @patch("soloquest.commands.truths.display")
@@ -587,9 +591,9 @@ class TestShowOptionDetails:
             summary="Test",
             text="Test description",
         )
-        
+
         result = _show_option_details(option)
-        
+
         assert result == ""
 
 
@@ -603,9 +607,9 @@ class TestShowTruths:
     def test_show_truths_with_no_truths(self, mock_display, mock_state):
         """Test showing truths when none are set."""
         mock_state.character.truths = []
-        
+
         _show_truths(mock_state)
-        
+
         mock_display.info.assert_called_once()
 
     @patch("soloquest.commands.truths.display")
@@ -619,9 +623,9 @@ class TestShowTruths:
                 note="Personal note",
             ),
         ]
-        
+
         _show_truths(mock_state)
-        
+
         mock_display.rule.assert_called_once()
 
 
@@ -642,9 +646,9 @@ class TestShowSummary:
                 note="My note",
             ),
         ]
-        
+
         _show_summary(truths)
-        
+
         mock_display.rule.assert_called_once()
 
 
@@ -663,9 +667,9 @@ class TestCreateChosenTruth:
             text="Test text",
             quest_starter="Test quest",
         )
-        
+
         result = _create_chosen_truth(category, option)
-        
+
         assert result.category == "Test"
         assert result.option_summary == "Test summary"
         assert result.option_text == "Test text"
@@ -681,11 +685,9 @@ class TestCreateChosenTruth:
             summary="Test",
             text="Test",
         )
-        
-        result = _create_chosen_truth(
-            category, option, subchoice="My subchoice", note="My note"
-        )
-        
+
+        result = _create_chosen_truth(category, option, subchoice="My subchoice", note="My note")
+
         assert result.subchoice == "My subchoice"
         assert result.note == "My note"
 
@@ -700,7 +702,7 @@ class TestRunTruthsWizard:
     def test_run_truths_wizard_no_categories(self, mock_display):
         """Test wizard with no categories returns None."""
         result = run_truths_wizard({})
-        
+
         assert result is None
         mock_display.error.assert_called_once()
 
@@ -712,12 +714,10 @@ class TestRunTruthsWizard:
     ):
         """Test declining final confirmation returns None."""
         categories = _make_test_categories()
-        mock_get_choice.return_value = ChosenTruth(
-            category="Cataclysm", option_summary="Test"
-        )
-        
+        mock_get_choice.return_value = ChosenTruth(category="Cataclysm", option_summary="Test")
+
         result = run_truths_wizard(categories)
-        
+
         assert result is None
         mock_display.info.assert_called_once()
 
@@ -730,15 +730,15 @@ class TestRunTruthsWizard:
     ):
         """Test successful wizard completion."""
         categories = _make_test_categories()
-        
+
         # Return different truth for each category
         mock_get_choice.side_effect = [
             ChosenTruth(category="Cataclysm", option_summary="The Sun Plague"),
             ChosenTruth(category="Exodus", option_summary="Generation ships"),
         ]
-        
+
         result = run_truths_wizard(categories)
-        
+
         assert result is not None
         assert len(result) == 2
         assert result[0].category == "Cataclysm"
@@ -747,13 +747,11 @@ class TestRunTruthsWizard:
     @patch("soloquest.commands.truths._get_truth_choice", side_effect=KeyboardInterrupt)
     @patch("soloquest.commands.truths.display")
     @patch("soloquest.commands.truths._show_introduction")
-    def test_run_truths_wizard_keyboard_interrupt(
-        self, mock_intro, mock_display, mock_get_choice
-    ):
+    def test_run_truths_wizard_keyboard_interrupt(self, mock_intro, mock_display, mock_get_choice):
         """Test keyboard interrupt during wizard returns None."""
         categories = _make_test_categories()
-        
+
         result = run_truths_wizard(categories)
-        
+
         assert result is None
         mock_display.info.assert_called_once()

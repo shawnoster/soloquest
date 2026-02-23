@@ -9,7 +9,6 @@ from pathlib import Path
 from prompt_toolkit import PromptSession
 from prompt_toolkit.completion import Completer, Completion
 from rich.panel import Panel
-from rich.prompt import Confirm, Prompt
 
 from soloquest.commands.truths import run_truths_wizard
 from soloquest.engine.assets import load_assets
@@ -94,9 +93,29 @@ class AssetCompleter(Completer):
         yield from sorted(completions, key=lambda c: c.text)
 
 
-def _prompt_oracle_roll(table: list[tuple], table_name: str) -> None:
+def _wprompt(session: PromptSession, label: str, default: str = "") -> str:
+    """Plain-text prompt via prompt_toolkit. Returns stripped input or default."""
+    suffix = f" [{default}]" if default else ""
+    result = session.prompt(f"{label}{suffix}: ")
+    return result.strip() or default
+
+
+def _wconfirm(session: PromptSession, label: str, default: bool = True) -> bool:
+    """Yes/no prompt via prompt_toolkit."""
+    hint = "[Y/n]" if default else "[y/N]"
+    while True:
+        raw = session.prompt(f"{label} {hint}: ").strip().lower()
+        if not raw:
+            return default
+        if raw in ("y", "yes"):
+            return True
+        if raw in ("n", "no"):
+            return False
+
+
+def _prompt_oracle_roll(table: list[tuple], table_name: str, session: PromptSession) -> None:
     """Offer to roll on an oracle table and display the result."""
-    roll_it = Confirm.ask(f"  Roll on the {table_name} table?", default=False)
+    roll_it = _wconfirm(session, f"  Roll on the {table_name} table?", default=False)
     if roll_it:
         result = _roll_table(table)
         roll = result[0]
@@ -104,14 +123,17 @@ def _prompt_oracle_roll(table: list[tuple], table_name: str) -> None:
         display.oracle_result_panel(table_name, roll, text)
 
 
-def _prompt_paths(available_assets: dict[str, Asset]) -> list[CharacterAsset] | None:
+def _prompt_paths(
+    available_assets: dict[str, Asset], session: PromptSession
+) -> list[CharacterAsset] | None:
     """Prompt for 2 path assets. Returns None if cancelled."""
     paths = {k: v for k, v in available_assets.items() if v.category == "path"}
     path_completer = AssetCompleter(paths)
-    path_session = PromptSession(completer=path_completer)
 
     display.console.print()
-    display.console.print(f"  [dim]{get_string('character_creation.instructions.paths_intro')}[/dim]")
+    display.console.print(
+        f"  [dim]{get_string('character_creation.instructions.paths_intro')}[/dim]"
+    )
     display.console.print()
     display.info(f"  {get_string('character_creation.instructions.paths_categories')}")
 
@@ -124,10 +146,8 @@ def _prompt_paths(available_assets: dict[str, Asset]) -> list[CharacterAsset] | 
     # Inspiration prompt
     try:
         raw = (
-            Prompt.ask(
-                f"  {get_string('character_creation.instructions.inspiration_prompt')}",
-                default="",
-                show_default=False,
+            session.prompt(
+                f"  {get_string('character_creation.instructions.inspiration_prompt')}: "
             )
             .strip()
             .lower()
@@ -161,7 +181,7 @@ def _prompt_paths(available_assets: dict[str, Asset]) -> list[CharacterAsset] | 
     for i in range(1, 3):
         while True:
             try:
-                raw = path_session.prompt(f"  Path {i}: ")
+                raw = session.prompt(f"  Path {i}: ", completer=path_completer)
             except (KeyboardInterrupt, EOFError):
                 return None
             key = raw.strip().lower().replace(" ", "_").replace("-", "_")
@@ -169,7 +189,9 @@ def _prompt_paths(available_assets: dict[str, Asset]) -> list[CharacterAsset] | 
                 display.error(f"  {get_string('character_creation.errors.path_empty')}")
                 continue
             if key not in paths:
-                display.error(f"  {get_string('character_creation.errors.path_invalid', path=raw.strip())}")
+                display.error(
+                    f"  {get_string('character_creation.errors.path_invalid', path=raw.strip())}"
+                )
                 continue
             if key in chosen_paths:
                 display.error(
@@ -182,19 +204,20 @@ def _prompt_paths(available_assets: dict[str, Asset]) -> list[CharacterAsset] | 
     return [CharacterAsset(asset_key=k) for k in chosen_paths]
 
 
-def _prompt_final_asset(available_assets: dict[str, Asset]) -> CharacterAsset | None:
+def _prompt_final_asset(
+    available_assets: dict[str, Asset], session: PromptSession
+) -> CharacterAsset | None:
     """Prompt for one final asset (path/module/companion/support_vehicle). Returns None if cancelled."""
     valid_categories = {"path", "module", "companion", "support_vehicle"}
     eligible = {k: v for k, v in available_assets.items() if v.category in valid_categories}
     asset_completer = AssetCompleter(eligible)
-    asset_session = PromptSession(completer=asset_completer)
 
     display.console.print()
     display.info(f"  {get_string('character_creation.instructions.final_asset_prompt')}")
 
     while True:
         try:
-            raw = asset_session.prompt("  Final asset: ")
+            raw = session.prompt("  Final asset: ", completer=asset_completer)
         except (KeyboardInterrupt, EOFError):
             return None
         key = raw.strip().lower().replace(" ", "_").replace("-", "_")
@@ -209,7 +232,7 @@ def _prompt_final_asset(available_assets: dict[str, Asset]) -> CharacterAsset | 
         return CharacterAsset(asset_key=key)
 
 
-def _prompt_stats() -> Stats | None:
+def _prompt_stats(session: PromptSession) -> Stats | None:
     """Distribute [3,2,2,1,1] across stats. Returns None if cancelled."""
     display.console.print()
     display.info(f"  {get_string('character_creation.instructions.stats_assign')}")
@@ -225,11 +248,11 @@ def _prompt_stats() -> Stats | None:
         display.info(f"  Remaining values: {sorted(remaining, reverse=True)}")
         while True:
             try:
-                raw = Prompt.ask(f"  {stat.capitalize()}")
+                raw = session.prompt(f"  {stat.capitalize()}: ")
             except (KeyboardInterrupt, EOFError):
                 return None
             try:
-                val = int(raw)
+                val = int(raw.strip())
                 if val in remaining:
                     assigned[stat] = val
                     remaining.remove(val)
@@ -282,6 +305,11 @@ def run_creation_wizard(data_dir: Path) -> tuple[Character, list[Vow], DiceMode]
     )
     display.console.print(f"  [dim]{get_string('character_creation.instructions.tab_hint')}[/dim]")
 
+    # Single session for the entire wizard — avoids mixing prompt_toolkit with
+    # Rich's input()-based Prompt.ask/Confirm.ask, which leaves the terminal in
+    # application-keypad mode between prompts and breaks numpad arrow keys.
+    session: PromptSession = PromptSession()
+
     try:
         available_assets = load_assets(data_dir)
 
@@ -289,7 +317,7 @@ def run_creation_wizard(data_dir: Path) -> tuple[Character, list[Vow], DiceMode]
         display.console.print()
         display.rule(get_string("character_creation.wizard_steps.step1_title"))
         display.console.print()
-        path_assets = _prompt_paths(available_assets)
+        path_assets = _prompt_paths(available_assets, session)
         if path_assets is None:
             display.console.print()
             return None
@@ -300,16 +328,20 @@ def run_creation_wizard(data_dir: Path) -> tuple[Character, list[Vow], DiceMode]
         display.console.print()
         display.rule(get_string("character_creation.wizard_steps.step2_title"))
         display.console.print()
-        _prompt_oracle_roll(BACKSTORY_TABLE, "Backstory")
+        _prompt_oracle_roll(BACKSTORY_TABLE, "Backstory", session)
         display.console.print()
-        backstory = Prompt.ask(f"  {get_string('character_creation.prompts.backstory_prompt')}", default="")
+        backstory = _wprompt(
+            session, f"  {get_string('character_creation.prompts.backstory_prompt')}"
+        )
 
         # ── Step 3: Background vow ──────────────────────────────────────────
         display.console.print()
         display.rule(get_string("character_creation.wizard_steps.step3_title"))
         display.console.print()
         display.info(f"  {get_string('character_creation.prompts.background_vow_intro')}")
-        bg_vow_text = Prompt.ask(f"  {get_string('character_creation.prompts.background_vow_prompt')}")
+        bg_vow_text = _wprompt(
+            session, f"  {get_string('character_creation.prompts.background_vow_prompt')}"
+        )
         vows = [Vow(description=bg_vow_text, rank=VowRank.EPIC)]
 
         # ── Step 4: STARSHIP ────────────────────────────────────────────────
@@ -317,9 +349,11 @@ def run_creation_wizard(data_dir: Path) -> tuple[Character, list[Vow], DiceMode]
         display.rule(get_string("character_creation.wizard_steps.step4_title"))
         display.console.print()
         display.info(f"  {get_string('character_creation.prompts.starship_auto_grant')}")
-        ship_name = Prompt.ask(f"  {get_string('character_creation.prompts.starship_name_prompt')}", default="")
-        _prompt_oracle_roll(STARSHIP_HISTORY_TABLE, "Starship History")
-        _prompt_oracle_roll(STARSHIP_QUIRK_TABLE, "Starship Quirk")
+        ship_name = _wprompt(
+            session, f"  {get_string('character_creation.prompts.starship_name_prompt')}"
+        )
+        _prompt_oracle_roll(STARSHIP_HISTORY_TABLE, "Starship History", session)
+        _prompt_oracle_roll(STARSHIP_QUIRK_TABLE, "Starship Quirk", session)
         starship_asset = CharacterAsset(
             asset_key="starship",
             input_values={"name": ship_name} if ship_name else {},
@@ -330,7 +364,7 @@ def run_creation_wizard(data_dir: Path) -> tuple[Character, list[Vow], DiceMode]
         display.console.print()
         display.rule(get_string("character_creation.wizard_steps.step5_title"))
         display.console.print()
-        final_asset = _prompt_final_asset(available_assets)
+        final_asset = _prompt_final_asset(available_assets, session)
         if final_asset is None:
             display.console.print()
             return None
@@ -342,7 +376,7 @@ def run_creation_wizard(data_dir: Path) -> tuple[Character, list[Vow], DiceMode]
         display.console.print()
         display.rule(get_string("character_creation.wizard_steps.step6_title"))
         display.console.print()
-        stats = _prompt_stats()
+        stats = _prompt_stats(session)
         if stats is None:
             display.console.print()
             return None
@@ -368,20 +402,28 @@ def run_creation_wizard(data_dir: Path) -> tuple[Character, list[Vow], DiceMode]
         display.rule(get_string("character_creation.wizard_steps.step8_title"))
         display.console.print()
         display.info(f"  {get_string('character_creation.instructions.envision_optional')}")
-        look = Prompt.ask("  Look (appearance, one or two facts)", default="")
-        act = Prompt.ask("  Act (how you behave)", default="")
-        wear = Prompt.ask("  Wear (what you wear)", default="")
+        look = _wprompt(session, "  Look (appearance, one or two facts)")
+        act = _wprompt(session, "  Act (how you behave)")
+        wear = _wprompt(session, "  Wear (what you wear)")
 
         # ── Step 9: Name your character ────────────────────────────────────
         display.console.print()
         display.rule(get_string("character_creation.wizard_steps.step9_title"))
         display.console.print()
-        name = Prompt.ask(f"  {get_string('character_creation.prompts.character_name_prompt')}")
+        name = _wprompt(
+            session, f"  {get_string('character_creation.prompts.character_name_prompt')}"
+        )
         if name.lower() in {"back", "cancel", "quit", "exit"}:
             return None
-        pronouns = Prompt.ask(f"  {get_string('character_creation.prompts.pronouns_prompt')}", default="")
-        callsign = Prompt.ask(f"  {get_string('character_creation.prompts.callsign_prompt')}", default="")
-        homeworld = Prompt.ask(f"  {get_string('character_creation.prompts.homeworld_prompt')}", default="")
+        pronouns = _wprompt(
+            session, f"  {get_string('character_creation.prompts.pronouns_prompt')}"
+        )
+        callsign = _wprompt(
+            session, f"  {get_string('character_creation.prompts.callsign_prompt')}"
+        )
+        homeworld = _wprompt(
+            session, f"  {get_string('character_creation.prompts.homeworld_prompt')}"
+        )
 
         # ── Step 10: Gear up ────────────────────────────────────────────────
         display.console.print()
@@ -402,7 +444,7 @@ def run_creation_wizard(data_dir: Path) -> tuple[Character, list[Vow], DiceMode]
         display.info(f"  {get_string('character_creation.prompts.gear_prompt')}")
         gear: list[str] = []
         while len(gear) < 5:
-            item = Prompt.ask(f"  Personal item {len(gear) + 1} (or Enter when done)", default="")
+            item = _wprompt(session, f"  Personal item {len(gear) + 1} (or Enter when done)")
             if not item:
                 break
             gear.append(item)
@@ -415,7 +457,7 @@ def run_creation_wizard(data_dir: Path) -> tuple[Character, list[Vow], DiceMode]
         display.info(f"    {get_string('character_creation.dice_modes.option1')}")
         display.info(f"    {get_string('character_creation.dice_modes.option2')}")
         display.info(f"    {get_string('character_creation.dice_modes.option3')}")
-        raw = Prompt.ask("  Choose", default="1")
+        raw = _wprompt(session, "  Choose", default="1")
         mode_map = {"1": DiceMode.DIGITAL, "2": DiceMode.PHYSICAL, "3": DiceMode.MIXED}
         dice_mode = mode_map.get(raw, DiceMode.DIGITAL)
 
@@ -462,7 +504,9 @@ def run_creation_wizard(data_dir: Path) -> tuple[Character, list[Vow], DiceMode]
             )
         )
 
-        if not Confirm.ask(f"  {get_string('character_creation.prompts.begin_journey')}", default=True):
+        if not _wconfirm(
+            session, f"  {get_string('character_creation.prompts.begin_journey')}", default=True
+        ):
             return None
 
         character = Character(
