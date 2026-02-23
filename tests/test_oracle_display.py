@@ -253,6 +253,71 @@ class TestOracleCommand:
             calls = [c[0][0] for c in mock_console.print.call_args_list]
             assert not any("dim italic" in c for c in calls)
 
+    def test_oracle_lone_integer_does_direct_lookup(self):
+        """A lone integer after a table name uses it as the roll, no dice."""
+        from soloquest.models.session import EntryKind
+
+        state = self._make_state()
+
+        with (
+            patch("soloquest.commands.oracle.roll_oracle") as mock_roll,
+            patch("soloquest.commands.oracle.display.oracle_result_panel") as mock_panel,
+        ):
+            handle_oracle(state, args=["action", "23"], flags=set())
+
+            # Dice should NOT have been rolled
+            mock_roll.assert_not_called()
+            # Result panel should show roll=23
+            mock_panel.assert_called_once()
+            _, roll_arg, _ = mock_panel.call_args[0]
+            assert roll_arg == 23
+
+        # Should be logged as an oracle entry
+        oracle_entries = [e for e in state.session.entries if e.kind == EntryKind.ORACLE]
+        assert len(oracle_entries) == 1
+        assert "23" in oracle_entries[0].text
+
+    def test_oracle_number_in_note_text_rolls_randomly(self):
+        """A number embedded in a multi-word note triggers a random roll, not direct lookup."""
+        from soloquest.models.session import EntryKind
+
+        state = self._make_state()
+
+        # Use words that don't substring-match any oracle table key
+        with (
+            patch("soloquest.commands.oracle.roll_oracle", return_value=77) as mock_roll,
+            patch("soloquest.commands.oracle.display.oracle_result_panel"),
+            patch("soloquest.commands.oracle.display.console"),
+        ):
+            handle_oracle(
+                state,
+                args=["action", "spotted", "23", "enemies"],
+                flags=set(),
+            )
+
+            # Dice SHOULD have been rolled (random, not 23)
+            mock_roll.assert_called_once()
+
+        # Note should be captured
+        note_entries = [e for e in state.session.entries if e.kind == EntryKind.NOTE]
+        assert len(note_entries) == 1
+        assert "23 enemies" in note_entries[0].text
+
+    def test_oracle_direct_lookup_no_note_logged(self):
+        """Direct lookup by number should not create a note entry."""
+        from soloquest.models.session import EntryKind
+
+        state = self._make_state()
+
+        with (
+            patch("soloquest.commands.oracle.roll_oracle"),
+            patch("soloquest.commands.oracle.display.oracle_result_panel"),
+        ):
+            handle_oracle(state, args=["action", "50"], flags=set())
+
+        note_entries = [e for e in state.session.entries if e.kind == EntryKind.NOTE]
+        assert len(note_entries) == 0
+
 
 class TestOracleSyncPublishing:
     """Oracle rolls are published to the sync layer in co-op sessions."""
