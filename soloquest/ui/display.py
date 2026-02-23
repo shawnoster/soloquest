@@ -434,7 +434,9 @@ def log_entry(entry: LogEntry, show_label: bool = False) -> None:
 def recent_log(entries: list[LogEntry], n: int = 5) -> None:
     """Show last n journal, note, oracle, and move entries for context."""
     recent = [
-        e for e in entries if e.kind in (EntryKind.JOURNAL, EntryKind.NOTE, EntryKind.ORACLE, EntryKind.MOVE)
+        e
+        for e in entries
+        if e.kind in (EntryKind.JOURNAL, EntryKind.NOTE, EntryKind.ORACLE, EntryKind.MOVE)
     ][-n:]
     if not recent:
         return

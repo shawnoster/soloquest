@@ -16,7 +16,9 @@ class TestSandboxStartup:
             patch("soloquest.main.display"),
             patch("soloquest.loop.run_session") as mock_run,
         ):
-            mock_args.return_value = MagicMock(new=False, adventures_dir=None)
+            mock_args.return_value = MagicMock(
+                new=False, adventures_dir=None, oneshot=[], char=None
+            )
             main()
 
         mock_run.assert_called_once()
@@ -34,7 +36,9 @@ class TestSandboxStartup:
             patch("soloquest.loop.run_session"),
             patch("soloquest.commands.new_character.run_new_character_flow") as mock_flow,
         ):
-            mock_args.return_value = MagicMock(new=False, adventures_dir=None)
+            mock_args.return_value = MagicMock(
+                new=False, adventures_dir=None, oneshot=[], char=None
+            )
             main()
 
         mock_flow.assert_not_called()
@@ -49,7 +53,7 @@ class TestSandboxStartup:
             patch("soloquest.main.display"),
             patch("soloquest.loop.run_session") as mock_run,
         ):
-            mock_args.return_value = MagicMock(new=True, adventures_dir=None)
+            mock_args.return_value = MagicMock(new=True, adventures_dir=None, oneshot=[], char=None)
             main()
 
         character = mock_run.call_args[0][0]
@@ -65,7 +69,9 @@ class TestSandboxStartup:
             patch("soloquest.main.display"),
             patch("soloquest.loop.run_session") as mock_run,
         ):
-            mock_args.return_value = MagicMock(new=False, adventures_dir=None)
+            mock_args.return_value = MagicMock(
+                new=False, adventures_dir=None, oneshot=[], char=None
+            )
             main()
 
         vows = mock_run.call_args[0][1]
@@ -88,7 +94,9 @@ class TestAutoResumeStartup:
             patch("soloquest.main.display"),
             patch("soloquest.loop.run_session") as mock_run,
         ):
-            mock_args.return_value = MagicMock(new=False, adventures_dir=None)
+            mock_args.return_value = MagicMock(
+                new=False, adventures_dir=None, oneshot=[], char=None
+            )
             mock_load.return_value = (saved_character, [], 3, DiceMode.DIGITAL, None)
             main()
 
@@ -106,7 +114,7 @@ class TestAutoResumeStartup:
             patch("soloquest.main.display"),
             patch("soloquest.loop.run_session"),
         ):
-            mock_args.return_value = MagicMock(new=True, adventures_dir=None)
+            mock_args.return_value = MagicMock(new=True, adventures_dir=None, oneshot=[], char=None)
             main()
 
         mock_load.assert_not_called()
@@ -122,7 +130,9 @@ class TestAutoResumeStartup:
             patch("soloquest.main.display") as mock_display,
             patch("soloquest.loop.run_session") as mock_run,
         ):
-            mock_args.return_value = MagicMock(new=False, adventures_dir=None)
+            mock_args.return_value = MagicMock(
+                new=False, adventures_dir=None, oneshot=[], char=None
+            )
             main()
 
         mock_run.assert_not_called()

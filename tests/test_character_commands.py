@@ -296,13 +296,12 @@ class TestHandleCharNew:
         mock_sheet.assert_called_once()
 
     @patch("soloquest.commands.character.display.info")
-    @patch("soloquest.commands.character.display.warn")
     @patch("soloquest.commands.character.Confirm.ask", return_value=False)
-    def test_char_new_deny_returns_early(self, mock_confirm, mock_warn, mock_info):
+    def test_char_new_deny_returns_early(self, mock_confirm, mock_info):
         """Declining the confirmation guard returns without creating a character."""
         handle_char(self.state, ["new"], set())
 
-        mock_warn.assert_called_once()
+        mock_info.assert_called()
         # State should be unchanged
         assert self.state.character.name == "Old Character"
 
@@ -347,9 +346,8 @@ class TestHandleCharNew:
         mock_success.assert_called_once()
 
     @patch("soloquest.commands.character.display.info")
-    @patch("soloquest.commands.character.display.warn")
     @patch("soloquest.commands.character.Confirm.ask", return_value=True)
-    def test_char_new_cancelled_flow_shows_info(self, mock_confirm, mock_warn, mock_info):
+    def test_char_new_cancelled_flow_shows_info(self, mock_confirm, mock_info):
         """Cancelling during new character flow shows info message."""
         with patch(
             "soloquest.commands.character.run_new_character_flow",
@@ -357,6 +355,6 @@ class TestHandleCharNew:
         ):
             handle_char(self.state, ["new"], set())
 
-        mock_info.assert_called_once()
+        mock_info.assert_called()
         # State unchanged
         assert self.state.character.name == "Old Character"

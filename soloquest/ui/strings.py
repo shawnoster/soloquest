@@ -39,7 +39,7 @@ def get_string(key: str, **kwargs: Any) -> str:
     Example:
         >>> get_string("oracle.not_found", query="action")
         "Oracle table not found: 'action'"
-    
+
     Note:
         This function is not cached due to the variable format arguments.
         The underlying string data is cached via _load_strings().

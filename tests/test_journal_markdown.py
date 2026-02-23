@@ -67,7 +67,7 @@ class TestJournalMarkdown:
 
     def test_raw_markdown_preserved_in_model(self):
         """LogEntry should store raw markdown, not processed HTML/markup."""
-        text_with_markdown = "The ship's AI says: *\"Welcome aboard.\"*"
+        text_with_markdown = 'The ship\'s AI says: *"Welcome aboard."*'
         entry = LogEntry(kind=EntryKind.JOURNAL, text=text_with_markdown)
 
         # Raw text should be preserved

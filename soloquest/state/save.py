@@ -35,6 +35,55 @@ def list_saves() -> list[str]:
     return [p.stem.replace("_", " ").title() for p in saves_directory.glob("*.json")]
 
 
+def list_saves_paths(save_dir: Path | None = None) -> list[Path]:
+    """Return all .json save files (excludes .bak) sorted by mtime desc."""
+    saves_directory = save_dir if save_dir is not None else _saves_dir()
+    if not saves_directory.exists():
+        return []
+    return sorted(saves_directory.glob("*.json"), key=lambda p: p.stat().st_mtime, reverse=True)
+
+
+def load_by_name(
+    name: str, save_dir: Path | None = None
+) -> tuple[Character, list[Vow], int, DiceMode, Session | None] | None:
+    """Case-insensitive character name lookup.
+
+    Returns same tuple as load_game(), or None if not found.
+    """
+    saves_directory = save_dir if save_dir is not None else _saves_dir()
+    if not saves_directory.exists():
+        return None
+
+    slug = name.lower().replace(" ", "_")
+    path = saves_directory / f"{slug}.json"
+    if not path.exists():
+        return None
+
+    backup_path = path.with_suffix(".json.bak")
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, FileNotFoundError, KeyError):
+        if backup_path.exists():
+            try:
+                data = json.loads(backup_path.read_text(encoding="utf-8"))
+            except (json.JSONDecodeError, KeyError):
+                return None
+        else:
+            return None
+
+    try:
+        character = Character.from_dict(data["character"])
+        vows = [Vow.from_dict(v) for v in data.get("vows", [])]
+        session_count = data.get("session_count", 0)
+        dice_mode = DiceMode(data.get("settings", {}).get("dice_mode", "digital"))
+        session = None
+        if "session" in data:
+            session = Session.from_dict(data["session"])
+        return character, vows, session_count, dice_mode, session
+    except (KeyError, ValueError):
+        return None
+
+
 def save_game(
     character: Character,
     vows: list[Vow],
