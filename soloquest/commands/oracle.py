@@ -77,39 +77,54 @@ def handle_oracle(state: GameState, args: list[str], flags: set[str]) -> None:
             display.oracle_table_view(matches[0])
         return
 
-    # Support multiple table names followed by an optional trailing note.
-    # Once we see an unmatched arg after at least one table has resolved, the
-    # remaining args are treated as the note (e.g. /oracle action theme why did he lie?)
-    results: list[OracleResult] = []
-    note_parts: list[str] = []
-    note_started = False
+    # Two-pass parsing:
+    # Pass 1: greedily match table names from the front; collect trailing args.
+    # If the only trailing arg is a bare integer, use it as a direct lookup
+    # (e.g. /oracle action 23 → show row 23, no dice roll).
+    # Otherwise trailing args become a note with a normal random roll
+    # (e.g. /oracle action and then there were 23 ghosts).
+    table_queries = []
+    trailing: list[str] = []
 
     for query in args:
-        if note_started:
-            note_parts.append(query)
+        if trailing:
+            trailing.append(query)
             continue
-
         matches = fuzzy_match_oracle(query, state.oracles)
-        if not matches:
-            if results:
-                # First unmatched word after at least one table result → start of note
-                note_started = True
-                note_parts.append(query)
+        if matches:
+            if len(matches) > 1:
+                names = ", ".join(m.name for m in matches)
+                display.warn(get_string("oracle.multiple_matches", query=query, names=names))
+                matches = matches[:1]
+            table_queries.append(matches[0])
+        else:
+            if table_queries:
+                trailing.append(query)
             else:
                 display.warn(get_string("oracle.not_found", query=query))
-            continue
 
-        if len(matches) > 1:
-            names = ", ".join(m.name for m in matches)
-            display.warn(get_string("oracle.multiple_matches", query=query, names=names))
-            # Use the first one anyway
-            matches = matches[:1]
+    if not table_queries:
+        return
 
-        table = matches[0]
-        roll = roll_oracle(state.dice)
-        if roll is None:
-            display.info(get_string("oracle.cancelled"))
-            return
+    direct_roll: int | None = None
+    note_parts: list[str] = []
+
+    if len(trailing) == 1 and trailing[0].isdigit():
+        direct_roll = int(trailing[0])
+    else:
+        note_parts = trailing
+
+    # Pass 2: roll (or direct-lookup) each matched table
+    results: list[OracleResult] = []
+
+    for table in table_queries:
+        if direct_roll is not None:
+            roll = direct_roll
+        else:
+            roll = roll_oracle(state.dice)
+            if roll is None:
+                display.info(get_string("oracle.cancelled"))
+                return
         result_text = table.lookup(roll)
         results.append(OracleResult(table_name=table.name, roll=roll, result=result_text))
 
