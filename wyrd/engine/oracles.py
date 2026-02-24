@@ -4,11 +4,19 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 import tomllib
 from dataclasses import dataclass
 from pathlib import Path
 
 logger = logging.getLogger(__name__)
+
+_MD_LINK = re.compile(r"\[([^\]]+)\]\([^)]*\)")
+
+
+def _strip_md_links(text: str) -> str:
+    """Replace markdown links [label](url) with just the label."""
+    return _MD_LINK.sub(r"\1", text)
 
 
 @dataclass(frozen=True)
@@ -117,7 +125,7 @@ def load_dataforged_oracles(data_dir: Path) -> dict[str, OracleTable]:
                 for row in item["Table"]:
                     floor = row.get("Floor", row.get("Chance", {}).get("Min", 1))
                     ceiling = row.get("Ceiling", row.get("Chance", {}).get("Max", 100))
-                    result = row.get("Result", "")
+                    result = _strip_md_links(row.get("Result", ""))
                     # Skip if floor/ceiling are None or result is empty
                     if result and floor is not None and ceiling is not None:
                         results.append((floor, ceiling, result))
