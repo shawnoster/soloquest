@@ -70,6 +70,9 @@ _TAG_PATTERN = re.compile(r"^\*\*([^*:]+):\*\*\s*(.*)")
 _ABILITIES_LINE = re.compile(r"^Abilities:\s*((?:\[[x ]\]\s*)+)", re.IGNORECASE)
 _ABILITY_CELL = re.compile(r"\[([x ])\]", re.IGNORECASE)
 
+# Matches:  - [x] ability text  or  - [ ]
+_ABILITY_BULLET = re.compile(r"^-\s+\[([x ])\]\s*(.*)", re.IGNORECASE)
+
 
 # ── Key derivation (mirrors wyrd/engine/assets.py) ────────────────────────────
 
@@ -206,9 +209,16 @@ def character_to_markdown(
             for track_name, track_val in char_asset.track_values.items():
                 lines.append(f"**{track_name.title()}:** {track_val}")
 
-            # Ability checkboxes
+            # Ability checkboxes — with text if registry available
+            asset_def = asset_registry.get(char_asset.asset_key) if asset_registry else None
             if char_asset.abilities_unlocked:
-                lines.append(_abilities_line(char_asset.abilities_unlocked))
+                for i, unlocked in enumerate(char_asset.abilities_unlocked):
+                    mark = "x" if unlocked else " "
+                    if asset_def and i < len(asset_def.abilities):
+                        text = asset_def.abilities[i].text.replace("\n", " ").strip()
+                        lines.append(f"- [{mark}] {text}")
+                    else:
+                        lines.append(f"- [{mark}]")
 
             # Conditions
             if char_asset.conditions:
@@ -323,7 +333,13 @@ def _parse_assets(lines: list[str]) -> list[CharacterAsset]:
         for line in asset_lines:
             stripped = line.strip()
 
-            # Abilities: [x] [ ] [ ]
+            # - [x] ability text  (new format)
+            m = _ABILITY_BULLET.match(stripped)
+            if m:
+                abilities_unlocked.append(m.group(1).lower() == "x")
+                continue
+
+            # Abilities: [x] [ ] [ ]  (legacy format)
             parsed = _parse_abilities(stripped)
             if parsed is not None:
                 abilities_unlocked = parsed
