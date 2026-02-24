@@ -17,7 +17,6 @@ from soloquest.state.truths_md import (
     write_truths_md,
 )
 
-
 # ── Fixtures ─────────────────────────────────────────────────────────────────
 
 
@@ -78,23 +77,26 @@ class TestTruthsToMarkdown:
 
     def test_standard_truth_fields(self, standard_truth: ChosenTruth) -> None:
         md = truths_to_markdown([standard_truth])
-        assert "## The Cataclysm" in md
-        assert "**Choice:** Promises of a new age" in md
-        assert "### Detail" in md
+        assert "## The Cataclysm — Promises of a new age" in md
+        assert "**Choice:**" not in md
+        assert "### Detail" not in md
         assert "The galaxy is scarred by the Sundering." in md
         assert "### Quest Starter" in md
         assert "Some believe they know the true cause." in md
         assert "- **Subchoice:** The cities of bone" in md
-        assert "- **Note:** This resonates with Kira." in md
+        assert "### Notes" in md
+        assert "- This resonates with Kira." in md
+        assert "- **Note:**" not in md
 
     def test_custom_truth_uses_custom_tag(self, custom_truth: ChosenTruth) -> None:
         md = truths_to_markdown([custom_truth])
-        assert "**Custom:** They were driven out." in md
+        assert "## Exodus — They were driven out." in md
+        assert "**Custom**" in md
         assert "**Choice:**" not in md
 
-    def test_empty_note_still_written(self, minimal_truth: ChosenTruth) -> None:
+    def test_notes_section_always_written(self, minimal_truth: ChosenTruth) -> None:
         md = truths_to_markdown([minimal_truth])
-        assert "**Note:**" in md
+        assert "### Notes" in md
 
     def test_subchoice_omitted_when_empty(self, minimal_truth: ChosenTruth) -> None:
         md = truths_to_markdown([minimal_truth])
@@ -104,7 +106,9 @@ class TestTruthsToMarkdown:
         md = truths_to_markdown([minimal_truth])
         assert "**Detail:**" not in md
 
-    def test_sections_separated_by_hr(self, standard_truth: ChosenTruth, custom_truth: ChosenTruth) -> None:
+    def test_sections_separated_by_hr(
+        self, standard_truth: ChosenTruth, custom_truth: ChosenTruth
+    ) -> None:
         md = truths_to_markdown([standard_truth, custom_truth])
         assert "---" in md
 
@@ -168,10 +172,17 @@ class TestTruthsFromMarkdown:
 
     def test_hand_edited_note_is_picked_up(self, minimal_truth: ChosenTruth) -> None:
         md = truths_to_markdown([minimal_truth])
-        md = md.replace("**Note:**", "**Note:** Hand-written note here.")
+        md = md.replace("### Notes\n\n", "### Notes\n\n- Hand-written note here.\n")
         result = truths_from_markdown(md)
         assert result is not None
         assert result[0].note == "Hand-written note here."
+
+    def test_multiple_note_bullets_joined(self, minimal_truth: ChosenTruth) -> None:
+        md = truths_to_markdown([minimal_truth])
+        md = md.replace("### Notes\n\n", "### Notes\n\n- First note.\n- Second note.\n")
+        result = truths_from_markdown(md)
+        assert result is not None
+        assert result[0].note == "First note.\nSecond note."
 
     def test_hand_edited_custom_text(self) -> None:
         md = "# Campaign Truths\n\n## Exodus\n\n**Custom:** Original text.\n**Note:**\n\n---\n"
@@ -217,7 +228,6 @@ class TestSaveLoadIntegration:
     """Verify adventure-level truths markdown is written and read."""
 
     def test_write_adventure_truths_creates_file(self, tmp_path: Path) -> None:
-        from soloquest.state.truths_md import write_adventure_truths
 
         truths = [
             ChosenTruth(
@@ -232,10 +242,10 @@ class TestSaveLoadIntegration:
         assert md_path.exists()
         content = md_path.read_text(encoding="utf-8")
         assert "## The Cataclysm" in content
-        assert "**Note:** Test note" in content
+        assert "### Notes" in content
+        assert "- Test note" in content
 
     def test_read_adventure_truths_roundtrip(self, tmp_path: Path) -> None:
-        from soloquest.state.truths_md import read_adventure_truths, write_adventure_truths
 
         truths = [ChosenTruth(category="The Cataclysm", option_summary="Original summary")]
         write_adventure_truths(truths, tmp_path, "Kira")

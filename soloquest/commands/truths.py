@@ -18,7 +18,7 @@ from rich.prompt import Confirm, Prompt
 from soloquest.engine.truths import get_ordered_categories
 from soloquest.models.truths import ChosenTruth, TruthCategory, TruthOption
 from soloquest.ui import display
-from soloquest.ui.theme import BORDER_REFERENCE, COOP_TRUTH, HINT_COMMAND, ORACLE_RESULT
+from soloquest.ui.theme import BORDER_REFERENCE, COOP_TRUTH, ORACLE_RESULT
 
 if TYPE_CHECKING:
     from soloquest.loop import GameState
@@ -319,7 +319,7 @@ def _truth_prompt(
     while True:
         if session is not None:
             suffix = f" [{default}]" if default else ""
-            raw = (session.prompt(f"{label}{suffix}: ").strip() or default)
+            raw = session.prompt(f"{label}{suffix}: ").strip() or default
         else:
             raw = Prompt.ask(label, default=default, show_default=bool(default))
         checked = check_oracle_prefix(raw, state)
@@ -328,7 +328,9 @@ def _truth_prompt(
         # oracle ran — re-prompt the same question
 
 
-def _get_subchoice(subchoices: list[str], state: GameState | None = None, session: PromptSession | None = None) -> str:
+def _get_subchoice(
+    subchoices: list[str], state: GameState | None = None, session: PromptSession | None = None
+) -> str:
     """Prompt user to select a subchoice.
 
     Returns the chosen subchoice text (without roll range).
@@ -535,8 +537,10 @@ def _show_summary(truths: list[ChosenTruth]) -> None:
     width = max(40, raw_width) if isinstance(raw_width, int) else 80
     for truth in truths:
         base = truth.custom_text or truth.option_summary
+        display.console.print()
         display.console.print(f"  [bold]• {truth.category}:[/bold] {base}")
         if truth.option_text and not truth.custom_text:
+            display.console.print()
             wrapped_desc = textwrap.fill(
                 truth.option_text, width=width, initial_indent=indent, subsequent_indent=indent
             )
@@ -547,10 +551,17 @@ def _show_summary(truths: list[ChosenTruth]) -> None:
             )
             display.console.print(f"[dim]{wrapped_sub}[/dim]")
         if truth.note:
-            wrapped_note = textwrap.fill(
-                truth.note, width=width, initial_indent=indent, subsequent_indent=indent
-            )
-            display.console.print(f"[italic]{wrapped_note}[/italic]")
+            display.console.print()
+            for note_line in truth.note.split("\n"):
+                note_line = note_line.strip()
+                if note_line:
+                    wrapped_note = textwrap.fill(
+                        note_line,
+                        width=width,
+                        initial_indent=indent + "- ",
+                        subsequent_indent=indent + "  ",
+                    )
+                    display.console.print(f"[italic]{wrapped_note}[/italic]")
         display.console.print()
 
 
@@ -568,8 +579,10 @@ def _show_truths(state: GameState) -> None:
     width = max(40, raw_width) if isinstance(raw_width, int) else 80
     for truth in state.truths:
         base = truth.custom_text or truth.option_summary
+        display.console.print()
         display.console.print(f"  [bold]• {truth.category}:[/bold] {base}")
         if truth.option_text and not truth.custom_text:
+            display.console.print()
             wrapped_desc = textwrap.fill(
                 truth.option_text, width=width, initial_indent=indent, subsequent_indent=indent
             )
@@ -580,12 +593,18 @@ def _show_truths(state: GameState) -> None:
             )
             display.console.print(f"[dim]{wrapped_sub}[/dim]")
         if truth.note:
-            wrapped_note = textwrap.fill(
-                truth.note, width=width, initial_indent=indent, subsequent_indent=indent
-            )
-            display.console.print(f"[italic]{wrapped_note}[/italic]")
+            display.console.print()
+            for note_line in truth.note.split("\n"):
+                note_line = note_line.strip()
+                if note_line:
+                    wrapped_note = textwrap.fill(
+                        note_line,
+                        width=width,
+                        initial_indent=indent + "- ",
+                        subsequent_indent=indent + "  ",
+                    )
+                    display.console.print(f"[italic]{wrapped_note}[/italic]")
         display.console.print()
-
 
 
 # ---------------------------------------------------------------------------

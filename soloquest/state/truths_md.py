@@ -1,18 +1,14 @@
 """Markdown serialization for campaign truths.
 
-Truths are stored in a human-readable ``<character>.truths.md`` file
-alongside the JSON save.  Users can edit this file directly; the CLI
-reads it on load and honours any changes.
+Truths are stored in a human-readable ``truths.md`` file in the adventure
+directory.  Users can edit this file directly; the CLI reads it on load
+and honours any changes.
 
 Format example::
 
     # Campaign Truths — Kira
 
-    ## The Cataclysm
-
-    **Choice:** Promises of a new age
-
-    ### Detail
+    ## The Cataclysm — Promises of a new age
 
     The galaxy is scarred by the Sundering...
 
@@ -25,9 +21,9 @@ Format example::
 
     ---
 
-    ## Exodus
+    ## Exodus — The people didn't flee — they were driven out.
 
-    **Custom:** The people didn't flee — they were driven out.
+    **Custom**
 
     - **Note:**
 
@@ -82,17 +78,14 @@ def truths_to_markdown(truths: list[ChosenTruth], character_name: str = "") -> s
     lines: list[str] = [header, ""]
 
     for truth in truths:
-        lines.append(f"## {truth.category}")
+        summary = truth.custom_text or truth.option_summary
+        lines.append(f"## {truth.category} — {summary}")
         lines.append("")
 
         if truth.custom_text:
-            lines.append(f"**Custom:** {truth.custom_text}")
+            lines.append("**Custom**")
         else:
-            lines.append(f"**Choice:** {truth.option_summary}")
             if truth.option_text:
-                lines.append("")
-                lines.append("### Detail")
-                lines.append("")
                 lines.append(truth.option_text)
             if truth.quest_starter:
                 lines.append("")
@@ -100,12 +93,17 @@ def truths_to_markdown(truths: list[ChosenTruth], character_name: str = "") -> s
                 lines.append("")
                 lines.append(truth.quest_starter)
 
-        # Bullet list for short inline fields
-        lines.append("")
+        # Subchoice (optional inline bullet)
         if truth.subchoice:
+            lines.append("")
             lines.append(f"- **Subchoice:** {truth.subchoice}")
-        # Note is always included (even blank) so users know where to add one
-        lines.append(f"- **Note:** {truth.note}")
+
+        # Notes section (always included so users know where to add entries)
+        lines.append("")
+        lines.append("### Notes")
+        lines.append("")
+        for note_line in (ln.strip() for ln in truth.note.split("\n") if ln.strip()):
+            lines.append(f"- {note_line}")
         lines.append("")
         lines.append("---")
         lines.append("")
@@ -118,6 +116,9 @@ def truths_to_markdown(truths: list[ChosenTruth], character_name: str = "") -> s
 
 def truths_from_markdown(text: str) -> list[ChosenTruth] | None:
     """Parse a markdown truths file and return a list of :class:`ChosenTruth`.
+
+    Supports both the current format (summary embedded in H2, detail as the
+    first paragraph) and the legacy format (``**Choice:**`` / ``### Detail``).
 
     Returns ``None`` on a parse error so callers can fall back gracefully.
     """
@@ -132,70 +133,143 @@ def truths_from_markdown(text: str) -> list[ChosenTruth] | None:
             continue
 
         lines = section.splitlines()
-        category = lines[0][3:].strip()
+        h2_line = lines[0][3:].strip()  # strip "## "
+
+        # New format: "Category — Summary text"
+        if " \u2014 " in h2_line:
+            category, h2_summary = h2_line.split(" \u2014 ", 1)
+            category = category.strip()
+            h2_summary = h2_summary.strip()
+        else:
+            category = h2_line.strip()
+            h2_summary = ""
+
         if not category:
             continue
 
         fields: dict[str, str] = {}
-        current_heading: str | None = None
-        body_lines: list[str] = []
+        if h2_summary:
+            fields["option_summary"] = h2_summary
 
-        def _flush() -> None:
-            if current_heading and body_lines:
-                field = _HEADING_TAGS.get(current_heading)
-                if field:
-                    fields[field] = " ".join(body_lines)
-            body_lines.clear()
+        is_custom = False
+        current_heading: str | None = None
+        heading_body: list[str] = []
+        pre_detail: list[str] = []  # lines before first subheading/bullet/tag
+        left_pre_detail = False  # True once structural elements are seen
+        note_lines_collected: list[str] = []
 
         for line in lines[1:]:
             stripped = line.strip()
 
-            # ### Subheading → start collecting paragraph body
+            # ### Subheading
             if stripped.startswith("### "):
-                _flush()
+                if heading_body:
+                    field = _HEADING_TAGS.get(current_heading or "")
+                    if field:
+                        fields[field] = " ".join(heading_body)
+                    heading_body.clear()
+                if not left_pre_detail and pre_detail and "option_text" not in fields:
+                    fields["option_text"] = " ".join(pre_detail)
+                left_pre_detail = True
                 current_heading = stripped[4:].strip()
                 continue
 
             # Bullet: - **Tag:** value
             m = _BULLET_PATTERN.match(stripped)
             if m:
-                _flush()
+                if heading_body:
+                    field = _HEADING_TAGS.get(current_heading or "")
+                    if field:
+                        fields[field] = " ".join(heading_body)
+                    heading_body.clear()
+                if not left_pre_detail and pre_detail and "option_text" not in fields:
+                    fields["option_text"] = " ".join(pre_detail)
+                left_pre_detail = True
                 current_heading = None
                 tag, value = m.group(1), m.group(2).strip()
                 if tag in _INLINE_TAGS:
                     fields[_INLINE_TAGS[tag]] = value
                 continue
 
-            # Plain: **Tag:** value  (Choice / Custom)
+            # Plain bullet under ### Notes (new format)
+            if stripped.startswith("- ") and current_heading == "Notes":
+                note_text = stripped[2:].strip()
+                if note_text:
+                    note_lines_collected.append(note_text)
+                continue
+
+            # **Custom** standalone flag (new format)
+            if stripped == "**Custom**":
+                if not left_pre_detail and pre_detail and "option_text" not in fields:
+                    fields["option_text"] = " ".join(pre_detail)
+                left_pre_detail = True
+                is_custom = True
+                continue
+
+            # Plain: **Tag:** value (legacy Choice / Custom)
             m = _TAG_PATTERN.match(stripped)
             if m:
-                _flush()
+                if heading_body:
+                    field = _HEADING_TAGS.get(current_heading or "")
+                    if field:
+                        fields[field] = " ".join(heading_body)
+                    heading_body.clear()
+                if not left_pre_detail and pre_detail and "option_text" not in fields:
+                    fields["option_text"] = " ".join(pre_detail)
+                left_pre_detail = True
                 current_heading = None
                 tag, value = m.group(1), m.group(2).strip()
-                if tag in _INLINE_TAGS:
+                if tag == "Custom":
+                    is_custom = True
+                    fields["custom_text"] = value
+                    if not fields.get("option_summary"):
+                        fields["option_summary"] = value
+                elif tag in _INLINE_TAGS:
                     fields[_INLINE_TAGS[tag]] = value
                 continue
 
-            # Hard separator — flush and end the section
+            # Hard separator
             if stripped == "---":
-                _flush()
+                if heading_body:
+                    field = _HEADING_TAGS.get(current_heading or "")
+                    if field:
+                        fields[field] = " ".join(heading_body)
+                    heading_body.clear()
+                if not left_pre_detail and pre_detail and "option_text" not in fields:
+                    fields["option_text"] = " ".join(pre_detail)
+                left_pre_detail = True
                 current_heading = None
                 continue
 
-            # Blank line — skip (don't reset heading; body may follow)
+            # Blank line — skip
             if not stripped:
                 continue
 
-            # Body text for current ### subheading
+            # Body text
             if current_heading:
-                body_lines.append(stripped)
+                if current_heading == "Notes":
+                    note_lines_collected.append(stripped)
+                else:
+                    heading_body.append(stripped)
+            elif not left_pre_detail:
+                pre_detail.append(stripped)
 
-        _flush()
+        # Final flush
+        if heading_body:
+            field = _HEADING_TAGS.get(current_heading or "")
+            if field:
+                fields[field] = " ".join(heading_body)
+        if not left_pre_detail and pre_detail and "option_text" not in fields:
+            fields["option_text"] = " ".join(pre_detail)
+        if note_lines_collected:
+            fields["note"] = "\n".join(note_lines_collected)
 
         if not fields:
             continue
 
         custom_text = fields.get("custom_text", "")
+        if is_custom and not custom_text:
+            custom_text = fields.get("option_summary", "")
         option_summary = fields.get("option_summary", custom_text)
 
         if not option_summary and not custom_text:

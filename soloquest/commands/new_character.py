@@ -109,7 +109,7 @@ def _wprompt(
 
     suffix = f" [{default}]" if default else ""
     while True:
-        raw = (session.prompt(f"{label}{suffix}: ").strip() or default)
+        raw = session.prompt(f"{label}{suffix}: ", completer=None).strip() or default
         checked = check_oracle_prefix(raw, state)
         if checked is not None:
             return checked
@@ -127,7 +127,7 @@ def _wconfirm(
 
     hint = "[Y/n]" if default else "[y/N]"
     while True:
-        raw = session.prompt(f"{label} {hint}: ").strip().lower()
+        raw = session.prompt(f"{label} {hint}: ", completer=None).strip().lower()
         if raw:
             checked = check_oracle_prefix(raw, state)
             if checked is None:
@@ -139,6 +139,12 @@ def _wconfirm(
             return True
         if raw in ("n", "no"):
             return False
+
+
+def _roll_and_show(table: list[tuple], table_name: str) -> None:
+    """Roll on a table and display the result unconditionally."""
+    result = _roll_table(table)
+    display.oracle_result_panel(table_name, result[0], result[1])
 
 
 def _prompt_oracle_roll(
@@ -402,7 +408,7 @@ def run_creation_wizard(
         display.console.print()
         display.rule(get_string("character_creation.wizard_steps.step2_title"))
         display.console.print()
-        _prompt_oracle_roll(BACKSTORY_TABLE, "Backstory", session, state=state)
+        _roll_and_show(BACKSTORY_TABLE, "Backstory")
         display.console.print()
         backstory = _wprompt(
             session, f"  {get_string('character_creation.prompts.backstory_prompt')}", state=state
@@ -414,7 +420,9 @@ def run_creation_wizard(
         display.console.print()
         display.info(f"  {get_string('character_creation.prompts.background_vow_intro')}")
         bg_vow_text = _wprompt(
-            session, f"  {get_string('character_creation.prompts.background_vow_prompt')}", state=state
+            session,
+            f"  {get_string('character_creation.prompts.background_vow_prompt')}",
+            state=state,
         )
         vows = [Vow(description=bg_vow_text, rank=VowRank.EPIC)]
 
@@ -424,7 +432,9 @@ def run_creation_wizard(
         display.console.print()
         display.info(f"  {get_string('character_creation.prompts.starship_auto_grant')}")
         ship_name = _wprompt(
-            session, f"  {get_string('character_creation.prompts.starship_name_prompt')}", state=state
+            session,
+            f"  {get_string('character_creation.prompts.starship_name_prompt')}",
+            state=state,
         )
         _prompt_oracle_roll(STARSHIP_HISTORY_TABLE, "Starship History", session, state=state)
         _prompt_oracle_roll(STARSHIP_QUIRK_TABLE, "Starship Quirk", session, state=state)
@@ -485,7 +495,9 @@ def run_creation_wizard(
         display.rule(get_string("character_creation.wizard_steps.step9_title"))
         display.console.print()
         name = _wprompt(
-            session, f"  {get_string('character_creation.prompts.character_name_prompt')}", state=state
+            session,
+            f"  {get_string('character_creation.prompts.character_name_prompt')}",
+            state=state,
         )
         if name.lower() in {"back", "cancel", "quit", "exit"}:
             return None
@@ -518,7 +530,9 @@ def run_creation_wizard(
         display.info(f"  {get_string('character_creation.prompts.gear_prompt')}")
         gear: list[str] = []
         while len(gear) < 5:
-            item = _wprompt(session, f"  Personal item {len(gear) + 1} (or Enter when done)", state=state)
+            item = _wprompt(
+                session, f"  Personal item {len(gear) + 1} (or Enter when done)", state=state
+            )
             if not item:
                 break
             gear.append(item)
@@ -579,7 +593,10 @@ def run_creation_wizard(
         )
 
         if not _wconfirm(
-            session, f"  {get_string('character_creation.prompts.begin_journey')}", default=True, state=state
+            session,
+            f"  {get_string('character_creation.prompts.begin_journey')}",
+            default=True,
+            state=state,
         ):
             return None
 
