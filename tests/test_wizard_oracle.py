@@ -75,8 +75,10 @@ class TestCheckOraclePrefix:
 
     def test_none_state_with_bare_oracle_shows_hint_not_warning(self):
         """Bare ?/oracle with no state still shows usage hint (checked before state guard)."""
-        with patch("soloquest.ui.display.info") as mock_info, \
-             patch("soloquest.ui.display.warn") as mock_warn:
+        with (
+            patch("soloquest.ui.display.info") as mock_info,
+            patch("soloquest.ui.display.warn") as mock_warn,
+        ):
             result = check_oracle_prefix("?", None)
         assert result is None
         mock_info.assert_called_once()
@@ -110,9 +112,7 @@ class TestCheckOraclePrefix:
         with patch("soloquest.commands.wizard_oracle._run_inline_oracle") as mock_run:
             result = check_oracle_prefix("?action theme descriptor focus", mock_state)
         assert result is None
-        mock_run.assert_called_once_with(
-            mock_state, ["action", "theme", "descriptor", "focus"]
-        )
+        mock_run.assert_called_once_with(mock_state, ["action", "theme", "descriptor", "focus"])
 
     def test_whitespace_stripped_from_input(self, mock_state):
         """Leading/trailing whitespace in raw_input is handled correctly."""

@@ -400,7 +400,13 @@ def run_session(
         pass
 
     state = _build_game_state(
-        character, vows, session_count, dice_mode, session, campaign, campaign_dir,
+        character,
+        vows,
+        session_count,
+        dice_mode,
+        session,
+        campaign,
+        campaign_dir,
         truths=truths,
     )
 
