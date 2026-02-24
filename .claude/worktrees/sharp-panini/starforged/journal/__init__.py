@@ -1,1 +1,0 @@
-"""Journal export functionality."""
