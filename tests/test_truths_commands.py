@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import ANY, MagicMock, patch
 
 import pytest
 
@@ -208,7 +208,9 @@ class TestStartTruthsWizard:
 
         _start_truths_wizard(mock_state)
 
-        mock_run_wizard.assert_called_once_with(mock_state.truth_categories)
+        mock_run_wizard.assert_called_once_with(
+            mock_state.truth_categories, existing_truths=None, on_truth_saved=ANY
+        )
         assert mock_state.character.truths == chosen_truths
         mock_display.success.assert_called_once()
 
@@ -234,13 +236,14 @@ class TestStartTruthsWizard:
     def test_start_wizard_with_existing_truths_overwrite_declined(
         self, mock_confirm, mock_display, mock_state
     ):
-        """Test declining to overwrite existing truths."""
+        """Test declining to resume and declining to start over keeps existing truths."""
         original_truths = [ChosenTruth(category="Old", option_summary="Old truth")]
         mock_state.character.truths = original_truths.copy()
 
         _start_truths_wizard(mock_state)
 
-        mock_confirm.assert_called_once()
+        # is_partial path: "Resume?" (False) → "Start over?" (False) → keep truths
+        assert mock_confirm.call_count == 2
         mock_display.info.assert_called_once()
         assert mock_state.character.truths == original_truths
 
@@ -249,13 +252,13 @@ class TestStartTruthsWizard:
     def test_start_wizard_keyboard_interrupt_on_overwrite_prompt(
         self, mock_confirm, mock_display, mock_state
     ):
-        """Test keyboard interrupt during overwrite confirmation."""
+        """Test keyboard interrupt during resume/overwrite prompt keeps existing truths."""
         original_truths = [ChosenTruth(category="Old", option_summary="Old truth")]
         mock_state.character.truths = original_truths.copy()
 
         _start_truths_wizard(mock_state)
 
-        mock_display.info.assert_called_once()
+        mock_display.info.assert_called_once_with("Keeping existing truths.")
         assert mock_state.character.truths == original_truths
 
     @patch("soloquest.commands.truths.run_truths_wizard", return_value=None)

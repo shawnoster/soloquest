@@ -5,6 +5,8 @@ from __future__ import annotations
 import contextlib
 import random
 import re
+import textwrap
+from collections.abc import Callable
 from typing import TYPE_CHECKING
 
 from prompt_toolkit.shortcuts import prompt
@@ -63,7 +65,6 @@ def handle_truths(state: GameState, args: list[str], flags: set[str]) -> None:
 
 def _prompt_to_start_wizard(state: GameState) -> None:
     """Prompt the user to start the truths wizard."""
-    display.rule("Choose Your Truths")
     display.console.print()
     display.console.print("  [bold]You haven't chosen your campaign truths yet.[/bold]")
     display.console.print()
@@ -86,12 +87,27 @@ def _prompt_to_start_wizard(state: GameState) -> None:
         display.info("You can start later with: /truths start")
 
 
-def run_truths_wizard(truth_categories: dict[str, TruthCategory]) -> list[ChosenTruth] | None:
-    """Run the interactive truths wizard. Returns chosen truths or None if cancelled."""
+def run_truths_wizard(
+    truth_categories: dict[str, TruthCategory],
+    existing_truths: list[ChosenTruth] | None = None,
+    on_truth_saved: Callable[[ChosenTruth], None] | None = None,
+) -> list[ChosenTruth] | None:
+    """Run the interactive truths wizard. Returns chosen truths or None if cancelled.
+
+    Args:
+        truth_categories: Available truth categories.
+        existing_truths: Truths already chosen (their categories are skipped).
+            Pass these when resuming a previous session.
+        on_truth_saved: If provided, called immediately after each truth is chosen
+            so the caller can persist progress incrementally.
+    """
+    is_resuming = bool(existing_truths)
+
     display.rule("Choose Your Truths — Campaign Setup")
     display.console.print()
 
-    _show_introduction()
+    if not is_resuming:
+        _show_introduction()
 
     categories = get_ordered_categories(truth_categories)
 
@@ -99,17 +115,30 @@ def run_truths_wizard(truth_categories: dict[str, TruthCategory]) -> list[Chosen
         display.error("No truth categories found. Check data files.")
         return None
 
-    chosen_truths: list[ChosenTruth] = []
+    chosen_truths: list[ChosenTruth] = list(existing_truths) if existing_truths else []
+    done_names = {t.category for t in chosen_truths}
+    categories_to_do = [c for c in categories if c.name not in done_names]
+
+    if is_resuming:
+        display.info(
+            f"  Resuming: {len(done_names)} of {len(categories)} truths already set, "
+            f"{len(categories_to_do)} remaining."
+        )
+        display.console.print(
+            "  [dim]Done: " + ", ".join(t.category for t in chosen_truths) + "[/dim]"
+        )
+        display.console.print()
 
     try:
-        # Walk through each category
-        for idx, category in enumerate(categories, start=1):
+        for idx, category in enumerate(categories_to_do, start=1):
             display.console.print()
             display.console.print("  " + "─" * 76)
             display.console.print()
 
+            current_num = len(done_names) + idx if is_resuming else idx
+            progress = f"{current_num} of {len(categories)}"
             display.console.print(
-                f"  [bold cyan]Truth {idx} of {len(categories)}: {category.name.upper()}[/bold cyan]"
+                f"  [bold cyan]Truth {progress}: {category.name.upper()}[/bold cyan]"
             )
             display.console.print()
 
@@ -124,6 +153,8 @@ def run_truths_wizard(truth_categories: dict[str, TruthCategory]) -> list[Chosen
             chosen_truth = _get_truth_choice(category)
             if chosen_truth:
                 chosen_truths.append(chosen_truth)
+                if on_truth_saved:
+                    on_truth_saved(chosen_truth)
 
         # Show summary
         display.console.print()
@@ -142,15 +173,46 @@ def run_truths_wizard(truth_categories: dict[str, TruthCategory]) -> list[Chosen
     except (KeyboardInterrupt, EOFError):
         display.console.print()
         display.console.print()
-        display.info("Truth selection cancelled. Run /truths start to begin again.")
+        if chosen_truths and on_truth_saved:
+            n_done = len(chosen_truths)
+            display.info(
+                f"Truth selection paused ({n_done} of {len(categories)} set). "
+                "Run /truths start to continue."
+            )
+        else:
+            display.info("Truth selection cancelled. Run /truths start to begin again.")
         return None
 
 
 def _start_truths_wizard(state: GameState) -> None:
-    """Start the interactive truths wizard."""
-    # If truths already exist, confirm overwrite
-    if state.character.truths:
+    """Start or resume the interactive truths wizard."""
+    all_categories = get_ordered_categories(state.truth_categories)
+    existing = state.character.truths or []
+    done_names = {t.category for t in existing}
+    is_partial = 0 < len(done_names) < len(all_categories)
+    is_complete = len(done_names) >= len(all_categories)
+
+    resume = False
+    display.console.print()
+
+    if is_partial:
+        remaining = len(all_categories) - len(done_names)
+        display.console.print(
+            f"  You have [bold]{len(done_names)} of {len(all_categories)}[/bold] truths set"
+            f" ([bold]{remaining}[/bold] remaining)."
+        )
         display.console.print()
+        try:
+            if Confirm.ask("  Resume from where you left off?", default=True):
+                resume = True
+            elif not Confirm.ask("  Start over from the beginning?", default=False):
+                display.info("Keeping existing truths.")
+                return
+        except (KeyboardInterrupt, EOFError):
+            display.console.print()
+            display.info("Keeping existing truths.")
+            return
+    elif is_complete:
         try:
             if not Confirm.ask(
                 "  You already have truths set. Start over and replace them?",
@@ -163,7 +225,30 @@ def _start_truths_wizard(state: GameState) -> None:
             display.info("Keeping existing truths.")
             return
 
-    result = run_truths_wizard(state.truth_categories)
+    def _on_truth_saved(truth: ChosenTruth) -> None:
+        """Persist each truth immediately so progress survives an early exit."""
+        _apply_truth_to_character(state, truth)
+        from soloquest.state.campaign import player_save_path
+        from soloquest.state.save import autosave
+
+        save_path = None
+        if state.campaign_dir is not None:
+            save_path = player_save_path(state.campaign_dir, state.character.name)
+        autosave(
+            state.character,
+            state.vows,
+            state.session_count,
+            state.dice_mode,
+            state.session,
+            save_path=save_path,
+        )
+        display.autosaved()
+
+    result = run_truths_wizard(
+        state.truth_categories,
+        existing_truths=existing if resume else None,
+        on_truth_saved=_on_truth_saved,
+    )
     if result is not None:
         state.character.truths = result
         display.success("Campaign truths saved!")
@@ -386,9 +471,21 @@ def _show_summary(truths: list[ChosenTruth]) -> None:
     display.console.print()
 
     for truth in truths:
-        display.console.print(f"  [bold]• {truth.category}:[/bold] {truth.display_text()}")
+        base = truth.custom_text or truth.option_summary
+        display.console.print(f"  [bold]• {truth.category}:[/bold] {base}")
+        indent = " " * (6 + len(truth.category))
+        raw_width = display.console.width
+        width = max(40, raw_width) if isinstance(raw_width, int) else 80
+        if truth.subchoice:
+            wrapped_sub = textwrap.fill(
+                truth.subchoice, width=width, initial_indent=indent, subsequent_indent=indent
+            )
+            display.console.print(f"[dim]{wrapped_sub}[/dim]")
         if truth.note:
-            display.console.print(f"    [dim italic]{truth.note}[/dim italic]")
+            wrapped_note = textwrap.fill(
+                truth.note, width=width, initial_indent=indent, subsequent_indent=indent
+            )
+            display.console.print(f"[dim italic]{wrapped_note}[/dim italic]")
 
     display.console.print()
 
@@ -405,7 +502,13 @@ def _show_truths(state: GameState) -> None:
     for truth in state.character.truths:
         display.console.print(f"  [bold]• {truth.category}:[/bold] {truth.display_text()}")
         if truth.note:
-            display.console.print(f"    [dim italic]{truth.note}[/dim italic]")
+            indent = " " * (6 + len(truth.category))
+            raw_width = display.console.width
+            width = max(40, raw_width) if isinstance(raw_width, int) else 80
+            wrapped = textwrap.fill(
+                truth.note, width=width, initial_indent=indent, subsequent_indent=indent
+            )
+            display.console.print(f"[dim italic]{wrapped}[/dim italic]")
 
     display.console.print()
     display.console.print("  [dim]Commands:[/dim]")
