@@ -10,8 +10,9 @@ from prompt_toolkit import PromptSession
 from prompt_toolkit.completion import Completer, Completion
 from rich.panel import Panel
 
+from soloquest.commands.asset import display_asset_card
 from soloquest.commands.truths import run_truths_wizard
-from soloquest.engine.assets import load_assets
+from soloquest.engine.assets import fuzzy_match_asset, load_assets
 from soloquest.engine.dice import DiceMode
 from soloquest.models.asset import Asset, CharacterAsset
 from soloquest.models.character import Character, Stats
@@ -123,6 +124,26 @@ def _prompt_oracle_roll(table: list[tuple], table_name: str, session: PromptSess
         display.oracle_result_panel(table_name, roll, text)
 
 
+def _parse_suggestion_defaults(suggestion: str, paths: dict[str, Asset]) -> list[str]:
+    """Parse a suggestion string like 'Ace + Navigator' into default display names.
+
+    Returns a two-element list [default1, default2].  An empty string means no
+    default for that slot (e.g., when the suggestion is 'Choose any two paths').
+    """
+    if " + " not in suggestion:
+        return ["", ""]
+    parts = suggestion.split(" + ", 1)
+    # Handle "or" alternatives (e.g., "Archer or Blademaster") — take the first option
+    name1 = parts[0].split(" or ")[0].strip()
+    name2 = parts[1].strip()
+
+    def best_name(query: str) -> str:
+        matches = fuzzy_match_asset(query, paths)
+        return matches[0].name if matches else query
+
+    return [best_name(name1), best_name(name2)]
+
+
 def _prompt_paths(
     available_assets: dict[str, Asset], session: PromptSession
 ) -> list[CharacterAsset] | None:
@@ -155,6 +176,8 @@ def _prompt_paths(
     except (KeyboardInterrupt, EOFError):
         return None
 
+    path_defaults: list[str] = ["", ""]
+
     if raw == "r":
         result = _roll_table(BACKGROUND_PATHS_TABLE)
         roll, background, suggestion = result
@@ -165,6 +188,7 @@ def _prompt_paths(
                 border_style=BORDER_ORACLE,
             )
         )
+        path_defaults = _parse_suggestion_defaults(suggestion, paths)
     elif raw.isdigit():
         idx = int(raw) - 1
         if 0 <= idx < len(BACKGROUND_PATHS_TABLE):
@@ -176,12 +200,17 @@ def _prompt_paths(
                     border_style=BORDER_ORACLE,
                 )
             )
+            path_defaults = _parse_suggestion_defaults(suggestion, paths)
 
     chosen_paths: list[str] = []
     for i in range(1, 3):
         while True:
             try:
-                raw = session.prompt(f"  Path {i}: ", completer=path_completer)
+                raw = session.prompt(
+                    f"  Path {i}: ",
+                    completer=path_completer,
+                    default=path_defaults[i - 1],
+                )
             except (KeyboardInterrupt, EOFError):
                 return None
             key = raw.strip().lower().replace(" ", "_").replace("-", "_")
@@ -200,6 +229,11 @@ def _prompt_paths(
                 continue
             chosen_paths.append(key)
             break
+
+    # Show the chosen asset cards
+    display.console.print()
+    for key in chosen_paths:
+        display_asset_card(paths[key])
 
     return [CharacterAsset(asset_key=k) for k in chosen_paths]
 
