@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from prompt_toolkit.document import Document
 
-from soloquest.commands.completion import CommandCompleter
-from soloquest.engine.oracles import OracleTable
+from wyrd.commands.completion import CommandCompleter
+from wyrd.engine.oracles import OracleTable
 
 
 class TestCommandCompleter:

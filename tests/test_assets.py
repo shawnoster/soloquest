@@ -2,10 +2,10 @@
 
 from pathlib import Path
 
-from soloquest.engine.assets import fuzzy_match_asset, load_assets
-from soloquest.models.asset import Asset, AssetAbility, CharacterAsset
+from wyrd.engine.assets import fuzzy_match_asset, load_assets
+from wyrd.models.asset import Asset, AssetAbility, CharacterAsset
 
-DATA_DIR = Path(__file__).parent.parent / "soloquest" / "data"
+DATA_DIR = Path(__file__).parent.parent / "wyrd" / "data"
 
 
 class TestAssetModel:
@@ -73,7 +73,7 @@ class TestFuzzyMatchAsset:
 class TestCharacterAssetBackwardCompatibility:
     def test_character_from_dict_old_format(self):
         """Test loading old save format with assets as list[str]."""
-        from soloquest.models.character import Character
+        from wyrd.models.character import Character
 
         old_save = {
             "name": "Test Character",
@@ -91,7 +91,7 @@ class TestCharacterAssetBackwardCompatibility:
 
     def test_character_from_dict_new_format(self):
         """Test loading new save format with full CharacterAsset data."""
-        from soloquest.models.character import Character
+        from wyrd.models.character import Character
 
         new_save = {
             "name": "Test Character",
@@ -115,7 +115,7 @@ class TestCharacterAssetBackwardCompatibility:
 
     def test_character_to_dict_new_format(self):
         """Test that to_dict produces the new format."""
-        from soloquest.models.character import Character
+        from wyrd.models.character import Character
 
         char = Character(name="Test")
         char.assets = [

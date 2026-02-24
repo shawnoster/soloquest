@@ -1,7 +1,7 @@
 # Documentation Restructure Plan
 
 **Date:** 2026-02-15
-**Goal:** Align soloquest documentation with modern GitHub conventions
+**Goal:** Align wyrd documentation with modern GitHub conventions
 
 ---
 
@@ -233,12 +233,12 @@ The project is **functionally complete** for its core POC goals:
 ## Active Tasks
 
 See GitHub Issues for current work:
-https://github.com/your-org/soloquest/issues
+https://github.com/your-org/wyrd/issues
 
 ## Next Milestones
 
 See GitHub Projects for roadmap:
-https://github.com/your-org/soloquest/projects
+https://github.com/your-org/wyrd/projects
 ```
 
 ### CLAUDE.md Update

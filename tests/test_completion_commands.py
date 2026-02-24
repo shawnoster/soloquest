@@ -2,8 +2,8 @@
 
 from prompt_toolkit.document import Document
 
-from soloquest.commands.completion import CommandCompleter
-from soloquest.engine.oracles import OracleTable
+from wyrd.commands.completion import CommandCompleter
+from wyrd.engine.oracles import OracleTable
 
 
 class TestCommandCompleterBasics:
@@ -207,7 +207,7 @@ class TestAssetCompletion:
 
     def setup_method(self):
         # Create test assets
-        from soloquest.models.asset import Asset
+        from wyrd.models.asset import Asset
 
         self.assets = {
             "starship": Asset(
@@ -345,7 +345,7 @@ class TestCompletionEdgeCases:
             ),
         }
         self.moves = {"strike": {"name": "Strike"}}
-        from soloquest.models.asset import Asset
+        from wyrd.models.asset import Asset
 
         self.assets = {
             "starship": Asset(

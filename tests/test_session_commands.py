@@ -2,7 +2,7 @@
 
 from unittest.mock import MagicMock, mock_open, patch
 
-from soloquest.commands.session import (
+from wyrd.commands.session import (
     handle_edit,
     handle_end,
     handle_help,
@@ -10,10 +10,10 @@ from soloquest.commands.session import (
     handle_newsession,
     handle_note,
 )
-from soloquest.engine.dice import DiceMode
-from soloquest.models.character import Character, Stats
-from soloquest.models.session import EntryKind, LogEntry, Session
-from soloquest.models.vow import Vow, VowRank
+from wyrd.engine.dice import DiceMode
+from wyrd.models.character import Character, Stats
+from wyrd.models.session import EntryKind, LogEntry, Session
+from wyrd.models.vow import Vow, VowRank
 
 
 class TestHandleLog:
@@ -26,14 +26,14 @@ class TestHandleLog:
         )
         self.state.session = Session(number=1)
 
-    @patch("soloquest.commands.session.display")
+    @patch("wyrd.commands.session.display")
     def test_empty_session_shows_message(self, mock_display):
         """handle_log with no entries should show info message."""
         handle_log(self.state, [], set())
 
         mock_display.info.assert_called_once_with("No entries in this session yet.")
 
-    @patch("soloquest.commands.session.display")
+    @patch("wyrd.commands.session.display")
     def test_displays_all_entries(self, mock_display):
         """handle_log should display all entries by default."""
         self.state.session.entries = [
@@ -48,7 +48,7 @@ class TestHandleLog:
         mock_display.rule.assert_called_once_with("Session 1 Log")
         assert mock_display.log_entry.call_count == 4
 
-    @patch("soloquest.commands.session.display")
+    @patch("wyrd.commands.session.display")
     def test_moves_flag_shows_only_moves_and_oracles(self, mock_display):
         """handle_log with --moves flag should show only move and oracle entries."""
         self.state.session.entries = [
@@ -66,7 +66,7 @@ class TestHandleLog:
         assert EntryKind.MOVE in kinds_shown
         assert EntryKind.ORACLE in kinds_shown
 
-    @patch("soloquest.commands.session.display")
+    @patch("wyrd.commands.session.display")
     def test_compact_flag_skips_mechanical(self, mock_display):
         """handle_log with --compact flag should skip mechanical entries."""
         self.state.session.entries = [
@@ -82,7 +82,7 @@ class TestHandleLog:
         kinds_shown = [call[0][0].kind for call in mock_display.log_entry.call_args_list]
         assert EntryKind.MECHANICAL not in kinds_shown
 
-    @patch("soloquest.commands.session.display")
+    @patch("wyrd.commands.session.display")
     def test_moves_and_compact_flags_together(self, mock_display):
         """handle_log with both flags should apply both filters."""
         self.state.session.entries = [
@@ -99,7 +99,7 @@ class TestHandleLog:
         assert EntryKind.MOVE in kinds_shown
         assert EntryKind.ORACLE in kinds_shown
 
-    @patch("soloquest.commands.session.display")
+    @patch("wyrd.commands.session.display")
     def test_empty_entries_with_moves_flag(self, mock_display):
         """handle_log with --moves flag but no moves/oracles should show empty."""
         self.state.session.entries = [
@@ -122,7 +122,7 @@ class TestHandleNote:
         )
         self.state.session = Session(number=1)
 
-    @patch("soloquest.commands.session.display")
+    @patch("wyrd.commands.session.display")
     def test_note_without_args_shows_error(self, mock_display):
         """handle_note with no args should show usage error."""
         handle_note(self.state, [], set())
@@ -131,7 +131,7 @@ class TestHandleNote:
         call_args = mock_display.error.call_args[0][0]
         assert "Usage" in call_args
 
-    @patch("soloquest.commands.session.display")
+    @patch("wyrd.commands.session.display")
     def test_note_adds_to_session(self, mock_display):
         """handle_note should add note to session."""
         handle_note(self.state, ["Remember", "the", "store"], set())
@@ -141,7 +141,7 @@ class TestHandleNote:
         assert entry.kind == EntryKind.NOTE
         assert entry.text == "Remember the store"
 
-    @patch("soloquest.commands.session.display")
+    @patch("wyrd.commands.session.display")
     def test_note_displays_success(self, mock_display):
         """handle_note should display success message."""
         handle_note(self.state, ["Test note"], set())
@@ -150,7 +150,7 @@ class TestHandleNote:
         call_args = mock_display.success.call_args[0][0]
         assert "Test note" in call_args
 
-    @patch("soloquest.commands.session.display")
+    @patch("wyrd.commands.session.display")
     def test_note_with_special_characters(self, mock_display):
         """handle_note should handle special characters correctly."""
         handle_note(self.state, ["NPC:", "Kael's", "brother", "(wounded)"], set())
@@ -160,7 +160,7 @@ class TestHandleNote:
         assert entry.text == "NPC: Kael's brother (wounded)"
         assert entry.kind == EntryKind.NOTE
 
-    @patch("soloquest.commands.session.display")
+    @patch("wyrd.commands.session.display")
     def test_note_with_single_word(self, mock_display):
         """handle_note should handle single word notes."""
         handle_note(self.state, ["ambush!"], set())
@@ -182,10 +182,10 @@ class TestHandleNewsession:
         self.state.vows = []
         self.state.dice_mode = DiceMode.DIGITAL
 
-    @patch("soloquest.commands.session.display")
+    @patch("wyrd.commands.session.display")
     @patch("rich.prompt.Confirm.ask", return_value=True)
-    @patch("soloquest.commands.session._export_session")
-    @patch("soloquest.state.save.save_game", return_value="/tmp/save.json")
+    @patch("wyrd.commands.session._export_session")
+    @patch("wyrd.state.save.save_game", return_value="/tmp/save.json")
     def test_newsession_with_entries_confirms_and_exports(
         self, mock_save, mock_export, mock_confirm, mock_display
     ):
@@ -216,9 +216,9 @@ class TestHandleNewsession:
         # Should save game
         mock_save.assert_called_once()
 
-    @patch("soloquest.commands.session.display")
+    @patch("wyrd.commands.session.display")
     @patch("rich.prompt.Confirm.ask", return_value=False)
-    @patch("soloquest.commands.session._export_session")
+    @patch("wyrd.commands.session._export_session")
     def test_newsession_cancelled_by_user(self, mock_export, mock_confirm, mock_display):
         """handle_newsession should cancel if user declines confirmation."""
         self.state.session.entries = [LogEntry(kind=EntryKind.JOURNAL, text="Test")]
@@ -233,8 +233,8 @@ class TestHandleNewsession:
         assert self.state.session_count == 1
         assert len(self.state.session.entries) == 1
 
-    @patch("soloquest.commands.session.display")
-    @patch("soloquest.state.save.save_game", return_value="/tmp/save.json")
+    @patch("wyrd.commands.session.display")
+    @patch("wyrd.state.save.save_game", return_value="/tmp/save.json")
     def test_newsession_without_entries_no_confirmation(self, mock_save, mock_display):
         """handle_newsession without entries should not show confirmation."""
         # Empty session
@@ -247,10 +247,10 @@ class TestHandleNewsession:
         assert self.state.session_count == 2
         assert self.state.session.number == 2
 
-    @patch("soloquest.commands.session.display")
+    @patch("wyrd.commands.session.display")
     @patch("rich.prompt.Confirm.ask", return_value=True)
-    @patch("soloquest.commands.session._export_session")
-    @patch("soloquest.state.save.save_game", return_value="/tmp/save.json")
+    @patch("wyrd.commands.session._export_session")
+    @patch("wyrd.state.save.save_game", return_value="/tmp/save.json")
     def test_newsession_increments_session_number_correctly(
         self, mock_save, mock_export, mock_confirm, mock_display
     ):
@@ -279,10 +279,10 @@ class TestHandleEnd:
         self.state.dice_mode = DiceMode.DIGITAL
         self.state.running = True
 
-    @patch("soloquest.commands.session.display")
-    @patch("soloquest.commands.session.Prompt.ask", return_value="Epic Session")
-    @patch("soloquest.commands.session._export_session")
-    @patch("soloquest.commands.session.save_game", return_value="/tmp/save.json")
+    @patch("wyrd.commands.session.display")
+    @patch("wyrd.commands.session.Prompt.ask", return_value="Epic Session")
+    @patch("wyrd.commands.session._export_session")
+    @patch("wyrd.commands.session.save_game", return_value="/tmp/save.json")
     def test_end_with_entries_and_title(self, mock_save, mock_export, mock_prompt, mock_display):
         """handle_end with entries should prompt for title and export."""
         # Add various entry types
@@ -316,10 +316,10 @@ class TestHandleEnd:
         # Should stop running
         assert self.state.running is False
 
-    @patch("soloquest.commands.session.display")
-    @patch("soloquest.commands.session.Prompt.ask", return_value="")
-    @patch("soloquest.commands.session._export_session")
-    @patch("soloquest.commands.session.save_game", return_value="/tmp/save.json")
+    @patch("wyrd.commands.session.display")
+    @patch("wyrd.commands.session.Prompt.ask", return_value="")
+    @patch("wyrd.commands.session._export_session")
+    @patch("wyrd.commands.session.save_game", return_value="/tmp/save.json")
     def test_end_with_entries_no_title(self, mock_save, mock_export, mock_prompt, mock_display):
         """handle_end should work without title when user skips."""
         self.state.session.entries = [LogEntry(kind=EntryKind.MOVE, text="Strike")]
@@ -332,8 +332,8 @@ class TestHandleEnd:
         # Should still export
         mock_export.assert_called_once()
 
-    @patch("soloquest.commands.session.display")
-    @patch("soloquest.commands.session.save_game", return_value="/tmp/save.json")
+    @patch("wyrd.commands.session.display")
+    @patch("wyrd.commands.session.save_game", return_value="/tmp/save.json")
     def test_end_with_no_entries(self, mock_save, mock_display):
         """handle_end with no entries should not export but still save."""
         # Empty session
@@ -351,10 +351,10 @@ class TestHandleEnd:
         # Should stop running
         assert self.state.running is False
 
-    @patch("soloquest.commands.session.display")
-    @patch("soloquest.commands.session.Prompt.ask", return_value="")
-    @patch("soloquest.commands.session._export_session")
-    @patch("soloquest.commands.session.save_game", return_value="/tmp/save.json")
+    @patch("wyrd.commands.session.display")
+    @patch("wyrd.commands.session.Prompt.ask", return_value="")
+    @patch("wyrd.commands.session._export_session")
+    @patch("wyrd.commands.session.save_game", return_value="/tmp/save.json")
     def test_end_displays_session_stats_correctly(
         self, mock_save, mock_export, mock_prompt, mock_display
     ):
@@ -406,9 +406,9 @@ class TestHandleHelp:
             "theme": MagicMock(name="Theme"),
         }
 
-    @patch("soloquest.commands.session.display")
+    @patch("wyrd.commands.session.display")
     @patch(
-        "soloquest.commands.registry.COMMAND_HELP",
+        "wyrd.commands.registry.COMMAND_HELP",
         {"move": "move — resolve a move", "oracle": "oracle — consult oracle"},
     )
     def test_help_with_no_args_shows_command_list(self, mock_display):
@@ -419,7 +419,7 @@ class TestHandleHelp:
         # Should print commands
         assert mock_display.console.print.call_count > 0
 
-    @patch("soloquest.commands.session.display")
+    @patch("wyrd.commands.session.display")
     def test_help_moves_shows_categorized_moves(self, mock_display):
         """handle_help moves should show categorized move list."""
         handle_help(self.state, ["moves"], set())
@@ -434,7 +434,7 @@ class TestHandleHelp:
         assert "Face Danger" in printed_text
         assert "Compel" in printed_text
 
-    @patch("soloquest.commands.session.display")
+    @patch("wyrd.commands.session.display")
     def test_help_oracles_shows_oracle_list(self, mock_display):
         """handle_help oracles should show available oracles."""
         handle_help(self.state, ["oracles"], set())
@@ -444,8 +444,8 @@ class TestHandleHelp:
         # Should print oracle names
         assert mock_display.console.print.call_count > 0
 
-    @patch("soloquest.commands.session.display")
-    @patch("soloquest.commands.registry.COMMAND_HELP", {"move": "move — resolve a move"})
+    @patch("wyrd.commands.session.display")
+    @patch("wyrd.commands.registry.COMMAND_HELP", {"move": "move — resolve a move"})
     def test_help_specific_command_shows_details(self, mock_display):
         """handle_help with specific command should show that command's help."""
         handle_help(self.state, ["move"], set())
@@ -454,7 +454,7 @@ class TestHandleHelp:
         call_args = mock_display.info.call_args[0][0]
         assert "move" in call_args.lower()
 
-    @patch("soloquest.commands.session.display")
+    @patch("wyrd.commands.session.display")
     def test_help_unknown_topic_shows_error(self, mock_display):
         """handle_help with unknown topic should show error."""
         handle_help(self.state, ["invalid_topic"], set())
@@ -475,7 +475,7 @@ class TestHandleEdit:
         self.state.session = Session(number=1)
         self.state._unsaved_entries = 0
 
-    @patch("soloquest.commands.session.display")
+    @patch("wyrd.commands.session.display")
     @patch.dict("os.environ", {}, clear=True)
     def test_edit_without_editor_env_shows_error(self, mock_display):
         """handle_edit without EDITOR env var should show error."""
@@ -485,7 +485,7 @@ class TestHandleEdit:
         call_args = mock_display.error.call_args[0][0]
         assert "EDITOR" in call_args or "editor" in call_args
 
-    @patch("soloquest.commands.session.display")
+    @patch("wyrd.commands.session.display")
     @patch("subprocess.run")
     @patch("tempfile.NamedTemporaryFile")
     @patch("builtins.open", new_callable=mock_open, read_data="# Comment\n\nTest journal entry")
@@ -526,7 +526,7 @@ class TestHandleEdit:
         # Should clean up temp file
         mock_unlink.assert_called_once_with("/tmp/test.md")
 
-    @patch("soloquest.commands.session.display")
+    @patch("wyrd.commands.session.display")
     @patch("subprocess.run")
     @patch("tempfile.NamedTemporaryFile")
     @patch("builtins.open", new_callable=mock_open, read_data="")
@@ -552,7 +552,7 @@ class TestHandleEdit:
         call_args = mock_display.warn.call_args[0][0]
         assert "cancelled" in call_args.lower() or "No content" in call_args
 
-    @patch("soloquest.commands.session.display")
+    @patch("wyrd.commands.session.display")
     @patch("subprocess.run")
     @patch("tempfile.NamedTemporaryFile")
     @patch("os.unlink")
@@ -578,7 +578,7 @@ class TestHandleEdit:
         # Should not add journal entry
         assert len(self.state.session.entries) == 0
 
-    @patch("soloquest.commands.session.display")
+    @patch("wyrd.commands.session.display")
     @patch("subprocess.run")
     @patch("tempfile.NamedTemporaryFile")
     @patch(
@@ -608,7 +608,7 @@ class TestHandleEdit:
         assert "Actual content here" in entry.text
         assert "Multiple lines" in entry.text
 
-    @patch("soloquest.commands.session.display")
+    @patch("wyrd.commands.session.display")
     @patch("subprocess.run")
     @patch("tempfile.NamedTemporaryFile")
     @patch(

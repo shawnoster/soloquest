@@ -1,0 +1,168 @@
+# UI Strings — All user-facing text extracted from Python source
+# Organized by module for maintainability and future i18n support
+
+# ── Character Creation Wizard ─────────────────────────────────────────────────
+
+[character_creation.wizard_steps]
+step1_title = "Step 1 — Choose 2 Paths"
+step2_title = "Step 2 — Backstory"
+step3_title = "Step 3 — Background Vow"
+step4_title = "Step 4 — Board Your STARSHIP"
+step5_title = "Step 5 — Choose Final Asset"
+step6_title = "Step 6 — Set Stats"
+step7_title = "Step 7 — Condition Meters"
+step8_title = "Step 8 — Envision Your Character"
+step9_title = "Step 9 — Name Your Character"
+step10_title = "Step 10 — Gear Up"
+dice_mode_title = "Dice Mode"
+
+[character_creation.instructions]
+paths_intro = "Paths represent your background. Modules and companions come later."
+paths_categories = "Available path categories include: Archer, Ace, Empath, Infiltrator, and many more."
+inspiration_prompt = "Need inspiration? (1–20, r to roll, Enter to skip)"
+final_asset_prompt = "Choose your final asset — a path, module, companion, or support vehicle."
+stats_assign = "Assign stats (Edge, Heart, Iron, Shadow, Wits)."
+stats_distribute = "Distribute these values: 3, 2, 2, 1, 1"
+tab_hint = "Press TAB at any asset prompt to browse options."
+dice_mode_question = "How should dice be handled?"
+envision_optional = "All fields optional — press Enter to skip."
+
+[character_creation.panels]
+starting_assets = """You begin with:
+  • Two path assets that reflect your background
+  • A command vehicle (STARSHIP) auto-granted"""
+# Format variables: {health}, {spirit}, {supply}, {momentum}
+starting_meters = """Health   {health}  (Your readiness)
+Spirit   {spirit}  (Your courage)
+Supply   {supply}  (Your provisions)
+Momentum {momentum:+d}  (Your drive)"""
+spacer_kit = """Basic spacer kit (included):
+  • Personal comms unit
+  • Repair tool kit
+  • Standard-issue sidearm
+  • Datapad
+  • Enviroseal rebreather"""
+character_summary_title = "Character Complete"
+
+[character_creation.prompts]
+backstory_prompt = "Your backstory (or Enter to skip)"
+background_vow_intro = "Every character begins with an Epic background vow."
+background_vow_prompt = "Your background vow"
+starship_auto_grant = "Your STARSHIP is auto-granted as a command vehicle."
+starship_name_prompt = "Name your starship"
+character_name_prompt = "Character name (or 'back' to cancel)"
+pronouns_prompt = "Pronouns (optional, e.g. she/her)"
+callsign_prompt = "Callsign (optional)"
+homeworld_prompt = "Homeworld or origin"
+gear_prompt = "Add up to 5 personal items (Enter when done)."
+begin_journey = "Begin your journey?"
+
+[character_creation.dice_modes]
+option1 = "1. Digital — Auto-roll all dice (fastest)"
+option2 = "2. Physical — Prompt for user input (immersive)"
+option3 = "3. Mixed — Digital action die, physical challenge dice"
+
+[character_creation.errors]
+path_empty = "Path cannot be empty."
+path_invalid = "'{path}' is not a valid path. Try TAB for options."
+path_duplicate = "You already chose '{existing}'. Pick a different path."
+asset_empty = "Asset cannot be empty."
+asset_invalid = "'{asset}' is not available. Choose a path, module, companion, or support vehicle."
+not_a_number = "Enter a number."
+
+# ── Oracle Commands ───────────────────────────────────────────────────────────
+
+[oracle]
+panel_title = "[bold]Oracle Tables[/bold]"
+panel_subtitle = "[dim]/oracle [[table]] [[table...]][/dim]"
+cancelled = "  Oracle roll cancelled."
+not_found = "Oracle table not found: '{query}'"
+multiple_matches = "Multiple matches for '{query}': {names}"
+inspiration_header = "\nInspiration combos:\n"
+log_format = "Oracle [{table}] roll {roll} → {result}"
+
+# ── Roll Commands ─────────────────────────────────────────────────────────────
+
+[roll]
+usage = "Usage: /roll [dice] [note]  (e.g. /roll d6, /roll 2d10, /roll d100 inciting incident)"
+parse_error = "Can't parse dice expression '{expr}'. Try: d6, 2d10, d100"
+dice_count_error = "Roll between 1 and 20 dice at once."
+sides_error = "Dice must have at least 2 sides."
+log_format = "Roll {count}d{sides}: {rolls}"
+
+# ── Session Commands ──────────────────────────────────────────────────────────
+
+[session]
+note_usage = "Usage: /note [text]"
+no_entries = "No entries in this session yet."
+help_unknown_topic = "Unknown help topic '{topic}'. Try: help, help moves, help oracles"
+
+# ── Vow Commands ──────────────────────────────────────────────────────────────
+
+[vow]
+vow_usage = "Usage: /vow [rank] [description]"
+progress_usage = "Usage: /progress [vow name or number]"
+no_active_vows = "No active vows."
+unknown_rank = "Unknown rank '{rank}'. Valid: {ranks}"
+
+# ── Asset Commands ────────────────────────────────────────────────────────────
+
+[asset]
+usage = "Usage: /asset [name] [+/-N | meter +/-N | condition]"
+
+# ── Character Commands ────────────────────────────────────────────────────────
+
+[character]
+track_usage = "Usage: /{track} +N or -{track} N  (e.g. /{track} +1)"
+
+# ── Main Loop & Startup ───────────────────────────────────────────────────────
+
+[startup]
+corrupted_save = "  Save file corrupted. Use --new to start fresh."
+no_save_line1 = "  [dim]No save found. Type [bold]/campaign start[/bold] to begin your adventure,[/dim]"
+no_save_line2 = "  [dim]or roll some oracles first with [bold]/oracle[/bold].[/dim]"
+
+[session_header]
+help_text = "  Type to journal. /guide for gameplay loop, /help for commands."
+continuing_journey = "Continuing Your Journey"
+active_vows_label = "  [bold]Active Vows:[/bold]"
+no_active_vows = "  [dim]No active vows[/dim]"
+
+[loop]
+invalid_value = "Invalid value: {error}"
+help_info = "  Type /help for usage information."
+missing_data = "Missing data: {error}"
+corrupted_save_warn = "  Your save file may be corrupted."
+invalid_attribute = "Invalid attribute: {error}"
+bug_report = "  This is a bug. Please report it."
+unexpected_error = "Unexpected error: {error}"
+state_preserved = "  Game state preserved. Continue playing."
+unknown_command = "Unknown command '/{cmd}'. Type /help for commands."
+did_you_mean = "Unknown command '/{cmd}'. Did you mean: {suggestions}?"
+no_partner_activity = "  No new partner activity."
+
+[quit]
+session_saved = "Session saved. Resume with 'wyrd' or start a new session with '/newsession'."
+
+# ── Display Labels ────────────────────────────────────────────────────────────
+
+[display]
+splash_title = "SOLOQUEST"
+strong_hit = "◆ STRONG HIT"
+weak_hit = "◇ WEAK HIT"
+miss = "✕ MISS"
+match_dramatic = "⚡ MATCH — a dramatic turn"
+progress_score = "Progress score: [bold]{score}[/bold]"
+burned_momentum = "Burned momentum ({momentum:+d}) as action score"
+action_label = "Action:  d6({die}) + {stat}({value}){adds} = [bold]{score}[/bold]"
+challenge_label = "Challenge: [{c1_style}]{c1}[/{c1_style}]  [{c2_style}]{c2}[/{c2_style}]"
+momentum_delta = "[dim]Momentum {delta:+d}[/dim]"
+
+[display.character_sheet]
+sessions_label = "[dim]Sessions:[/dim] {count}"
+backstory_label = "[dim]Backstory:[/dim] {text}"
+look_label = "[dim]Look:[/dim] {text}"
+act_label = "[dim]Act:[/dim] {text}"
+wear_label = "[dim]Wear:[/dim] {text}"
+gear_label = "[dim]Gear:[/dim] {items}"
+homeworld_label = "[dim]Homeworld:[/dim] {world}"

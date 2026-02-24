@@ -7,7 +7,7 @@
 
 ## What Was Accomplished
 
-Successfully restructured soloquest documentation to align with modern GitHub conventions.
+Successfully restructured wyrd documentation to align with modern GitHub conventions.
 
 ### Before
 

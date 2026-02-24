@@ -4,10 +4,10 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
 
-from soloquest.commands.asset import handle_asset
-from soloquest.models.asset import Asset, AssetAbility, CharacterAsset
-from soloquest.models.character import Character, Stats
-from soloquest.models.session import EntryKind, Session
+from wyrd.commands.asset import handle_asset
+from wyrd.models.asset import Asset, AssetAbility, CharacterAsset
+from wyrd.models.character import Character, Stats
+from wyrd.models.session import EntryKind, Session
 
 
 def _make_state(char_assets: list[CharacterAsset], asset_defs: dict[str, Asset]) -> MagicMock:
@@ -102,7 +102,7 @@ class TestUpdateNamedMeter:
         mech_entries = [e for e in state.session.entries if e.kind == EntryKind.MECHANICAL]
         assert len(mech_entries) == 1
 
-    @patch("soloquest.commands.asset.display.error")
+    @patch("wyrd.commands.asset.display.error")
     def test_invalid_meter_name_shows_error(self, mock_error):
         char_asset = CharacterAsset(asset_key="starship", track_values={"integrity": 5})
         state = _make_state([char_asset], {"starship": _starship_def()})
@@ -146,7 +146,7 @@ class TestToggleCondition:
 
 
 class TestErrorCases:
-    @patch("soloquest.commands.asset.display.error")
+    @patch("wyrd.commands.asset.display.error")
     def test_unknown_asset_shows_error(self, mock_error):
         char_asset = CharacterAsset(asset_key="starship", track_values={"integrity": 5})
         state = _make_state([char_asset], {"starship": _starship_def()})
@@ -155,7 +155,7 @@ class TestErrorCases:
 
         mock_error.assert_called()
 
-    @patch("soloquest.commands.asset.display.error")
+    @patch("wyrd.commands.asset.display.error")
     def test_asset_with_no_meter_errors(self, mock_error):
         char_asset = CharacterAsset(asset_key="navigator")
         state = _make_state([char_asset], {"navigator": _no_track_def()})
@@ -165,7 +165,7 @@ class TestErrorCases:
         mock_error.assert_called_once()
         assert "no condition meters" in mock_error.call_args[0][0].lower()
 
-    @patch("soloquest.commands.asset.display.error")
+    @patch("wyrd.commands.asset.display.error")
     def test_mutation_on_unowned_asset_errors(self, mock_error):
         char_asset = CharacterAsset(asset_key="starship", track_values={"integrity": 5})
         state = _make_state(
@@ -180,7 +180,7 @@ class TestErrorCases:
 
 
 class TestNoArgs:
-    @patch("soloquest.commands.asset.display.console")
+    @patch("wyrd.commands.asset.display.console")
     def test_no_args_lists_assets(self, mock_console):
         state = _make_state([], {"starship": _starship_def()})
 

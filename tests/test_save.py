@@ -7,12 +7,12 @@ from unittest.mock import patch
 
 import pytest
 
-from soloquest.engine.dice import DiceMode
-from soloquest.models.character import Character, Stats
-from soloquest.models.session import Session
-from soloquest.models.vow import Vow, VowRank
-from soloquest.state import save as save_module
-from soloquest.state.save import autosave, load_game, save_game
+from wyrd.engine.dice import DiceMode
+from wyrd.models.character import Character, Stats
+from wyrd.models.session import Session
+from wyrd.models.vow import Vow, VowRank
+from wyrd.state import save as save_module
+from wyrd.state.save import autosave, load_game, save_game
 
 
 @pytest.fixture
@@ -127,7 +127,7 @@ class TestAutosave:
 
     def test_autosave_does_not_raise_on_error(self, tmp_saves, sample_character, sample_vows):
         """Autosave must never crash the caller."""
-        with patch("soloquest.state.save.save_game", side_effect=OSError("disk full")):
+        with patch("wyrd.state.save.save_game", side_effect=OSError("disk full")):
             # Should not raise
             autosave(sample_character, sample_vows, 1, DiceMode.DIGITAL)
 

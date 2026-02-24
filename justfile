@@ -1,4 +1,4 @@
-# soloquest - Cross-platform task runner for local development
+# wyrd - Cross-platform task runner for local development
 # CI/CD workflows use `uv run` commands directly (no just required)
 
 set windows-shell := ["powershell.exe", "-NoLogo", "-Command"]
@@ -17,7 +17,7 @@ dev:
 
 # Run the CLI
 run:
-    uv run soloquest
+    uv run wyrd
 
 # Run tests with coverage
 test:
@@ -25,12 +25,12 @@ test:
 
 # Lint with ruff
 lint:
-    uv run ruff check soloquest tests
+    uv run ruff check wyrd tests
 
 # Auto-format code with ruff
 format:
-    uv run ruff format soloquest tests
-    uv run ruff check --fix soloquest tests
+    uv run ruff format wyrd tests
+    uv run ruff check --fix wyrd tests
 
 # Run lint + tests
 check: lint test

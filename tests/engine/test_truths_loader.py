@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from soloquest.engine.truths import (
+from wyrd.engine.truths import (
     get_ordered_categories,
     get_truth_category,
     load_truth_categories,
@@ -14,7 +14,7 @@ from soloquest.engine.truths import (
 @pytest.fixture
 def data_dir():
     """Return path to test data directory."""
-    return Path(__file__).parent.parent.parent / "soloquest" / "data"
+    return Path(__file__).parent.parent.parent / "wyrd" / "data"
 
 
 def test_load_truth_categories(data_dir):

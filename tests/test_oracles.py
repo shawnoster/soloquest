@@ -2,9 +2,9 @@
 
 from pathlib import Path
 
-from soloquest.engine.oracles import OracleTable, fuzzy_match_oracle, load_oracles
+from wyrd.engine.oracles import OracleTable, fuzzy_match_oracle, load_oracles
 
-DATA_DIR = Path(__file__).parent.parent / "soloquest" / "data"
+DATA_DIR = Path(__file__).parent.parent / "wyrd" / "data"
 
 
 class TestOracleTable:

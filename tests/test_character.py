@@ -1,6 +1,6 @@
 """Tests for the Character model."""
 
-from soloquest.models.character import (
+from wyrd.models.character import (
     MOMENTUM_MAX_BASE,
     MOMENTUM_RESET_BASE,
     Character,
@@ -83,7 +83,7 @@ class TestCharacter:
         Fixed in: main.py - convert asset key strings to CharacterAsset objects
         during character creation.
         """
-        from soloquest.models.asset import CharacterAsset
+        from wyrd.models.asset import CharacterAsset
 
         # Simulate character creation with assets (as CharacterAsset objects)
         self.char.assets = [
@@ -121,8 +121,8 @@ class TestCharacter:
 
         Bug: Previously tried to call .replace() on CharacterAsset object instead of asset_key.
         """
-        from soloquest.models.asset import CharacterAsset
-        from soloquest.ui.display import character_sheet
+        from wyrd.models.asset import CharacterAsset
+        from wyrd.ui.display import character_sheet
 
         # Add assets to character
         self.char.assets = [
@@ -144,7 +144,7 @@ class TestCharacter:
 
     def test_character_sheet_display_empty_assets(self):
         """Character sheet should handle empty asset list correctly."""
-        from soloquest.ui.display import character_sheet
+        from wyrd.ui.display import character_sheet
 
         # Empty assets list
         self.char.assets = []
@@ -157,8 +157,8 @@ class TestCharacter:
 
     def test_character_sheet_display_asset_with_underscores(self):
         """Asset keys with underscores should be formatted correctly for display."""
-        from soloquest.models.asset import CharacterAsset
-        from soloquest.ui.display import character_sheet
+        from wyrd.models.asset import CharacterAsset
+        from wyrd.ui.display import character_sheet
 
         # Asset with underscores in key
         self.char.assets = [

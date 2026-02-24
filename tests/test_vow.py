@@ -1,6 +1,6 @@
 """Tests for the Vow model."""
 
-from soloquest.models.vow import MAX_TICKS, Vow, VowRank, fuzzy_match_vow
+from wyrd.models.vow import MAX_TICKS, Vow, VowRank, fuzzy_match_vow
 
 
 class TestVow:

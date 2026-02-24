@@ -1,6 +1,6 @@
 """Tests for truth models."""
 
-from soloquest.models.truths import ChosenTruth, TruthCategory, TruthOption
+from wyrd.models.truths import ChosenTruth, TruthCategory, TruthOption
 
 
 class TestTruthOption:

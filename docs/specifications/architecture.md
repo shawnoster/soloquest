@@ -22,7 +22,7 @@ Soloquest is a terminal-based companion for playing solo RPGs. The CLI handles t
 ## Architecture Overview
 
 ```
-soloquest/
+wyrd/
 ├── main.py               # Entry point, session bootstrap
 ├── loop.py               # Main REPL loop
 ├── commands/             # Command handlers (UI layer)
@@ -139,7 +139,7 @@ To add a new game system (e.g., Mythic GME):
 
 ### 1. Data Files
 
-Add system-specific data in `soloquest/data/[system]/`:
+Add system-specific data in `wyrd/data/[system]/`:
 ```
 data/
 ├── ironsworn/
@@ -154,7 +154,7 @@ data/
 
 ### 2. Engine Modules
 
-Create system-specific engines in `soloquest/engine/[system]/`:
+Create system-specific engines in `wyrd/engine/[system]/`:
 ```python
 # engine/mythic/fate_chart.py
 def resolve_fate_question(chaos_factor: int, odds: str) -> str:
@@ -164,7 +164,7 @@ def resolve_fate_question(chaos_factor: int, odds: str) -> str:
 
 ### 3. Command Handlers
 
-Add system-specific commands in `soloquest/commands/`:
+Add system-specific commands in `wyrd/commands/`:
 ```python
 # commands/mythic.py
 def handle_fate_question(state: GameState, args: str) -> None:
@@ -202,7 +202,7 @@ Future versions may support:
 
 Potential plugin system for community-contributed systems:
 ```
-~/.soloquest/plugins/
+~/.wyrd/plugins/
 └── blades-in-the-dark/
     ├── manifest.toml
     ├── moves.toml

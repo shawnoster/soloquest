@@ -8,12 +8,12 @@ These tests ensure that fuzzy matching prioritizes:
 
 from pathlib import Path
 
-from soloquest.commands.move import fuzzy_match_move
-from soloquest.engine.assets import fuzzy_match_asset, load_assets
-from soloquest.engine.oracles import fuzzy_match_oracle, load_oracles
-from soloquest.loop import load_move_data
+from wyrd.commands.move import fuzzy_match_move
+from wyrd.engine.assets import fuzzy_match_asset, load_assets
+from wyrd.engine.oracles import fuzzy_match_oracle, load_oracles
+from wyrd.loop import load_move_data
 
-DATA_DIR = Path(__file__).parent.parent / "soloquest" / "data"
+DATA_DIR = Path(__file__).parent.parent / "wyrd" / "data"
 
 
 class TestAssetFuzzyMatching:

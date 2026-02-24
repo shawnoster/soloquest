@@ -5,11 +5,11 @@ Tests the full flow of assets from loading to display to character ownership.
 
 from pathlib import Path
 
-from soloquest.engine.assets import load_assets
-from soloquest.models.asset import CharacterAsset
-from soloquest.models.character import Character, Stats
+from wyrd.engine.assets import load_assets
+from wyrd.models.asset import CharacterAsset
+from wyrd.models.character import Character, Stats
 
-DATA_DIR = Path(__file__).parent.parent / "soloquest" / "data"
+DATA_DIR = Path(__file__).parent.parent / "wyrd" / "data"
 
 
 class TestAssetLoading:
@@ -265,7 +265,7 @@ class TestAssetLookupPerformance:
         """Fuzzy matching should complete in reasonable time."""
         import time
 
-        from soloquest.engine.assets import fuzzy_match_asset
+        from wyrd.engine.assets import fuzzy_match_asset
 
         start = time.time()
         for query in ["star", "nav", "module", "companion", "path"]:

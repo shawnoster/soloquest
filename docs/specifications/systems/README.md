@@ -63,8 +63,8 @@ To add a new game system to Soloquest:
 
 1. **Research** - Study the game's mechanics and licensing
 2. **System Spec** - Create `[system-name].md` in this directory
-3. **Data Files** - Add game content to `soloquest/data/[system]/`
-4. **Engine** - Implement mechanics in `soloquest/engine/[system]/`
+3. **Data Files** - Add game content to `wyrd/data/[system]/`
+4. **Engine** - Implement mechanics in `wyrd/engine/[system]/`
 5. **Commands** - Add system-specific commands
 6. **Tests** - Write comprehensive test coverage
 7. **Documentation** - Update user guides and this README

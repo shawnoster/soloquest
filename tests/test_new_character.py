@@ -5,7 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-from soloquest.commands.new_character import (
+from wyrd.commands.new_character import (
     BACKGROUND_PATHS_TABLE,
     BACKSTORY_TABLE,
     STARSHIP_HISTORY_TABLE,
@@ -14,9 +14,9 @@ from soloquest.commands.new_character import (
     run_creation_wizard,
     run_new_character_flow,
 )
-from soloquest.engine.dice import DiceMode
+from wyrd.engine.dice import DiceMode
 
-DATA_DIR = Path(__file__).parent.parent / "soloquest" / "data"
+DATA_DIR = Path(__file__).parent.parent / "wyrd" / "data"
 
 
 class TestRollTable:
@@ -24,13 +24,13 @@ class TestRollTable:
         # Use a simple table with known entries
         table = [(1, 50, "first half"), (51, 100, "second half")]
         # Patch random.randint to return a specific value
-        with patch("soloquest.commands.new_character.random.randint", return_value=25):
+        with patch("wyrd.commands.new_character.random.randint", return_value=25):
             result = _roll_table(table)
         assert result == (25, "first half")
 
     def test_roll_returns_last_row_on_100(self):
         table = BACKSTORY_TABLE
-        with patch("soloquest.commands.new_character.random.randint", return_value=100):
+        with patch("wyrd.commands.new_character.random.randint", return_value=100):
             result = _roll_table(table)
         assert result[0] == 100
         # Should match the last entry (96-100)
@@ -38,26 +38,26 @@ class TestRollTable:
 
     def test_backstory_table_covers_1_to_100(self):
         for i in range(1, 101):
-            with patch("soloquest.commands.new_character.random.randint", return_value=i):
+            with patch("wyrd.commands.new_character.random.randint", return_value=i):
                 result = _roll_table(BACKSTORY_TABLE)
             assert result[0] == i
             assert isinstance(result[1], str)
 
     def test_starship_history_table_covers_1_to_100(self):
         for i in range(1, 101):
-            with patch("soloquest.commands.new_character.random.randint", return_value=i):
+            with patch("wyrd.commands.new_character.random.randint", return_value=i):
                 result = _roll_table(STARSHIP_HISTORY_TABLE)
             assert result[0] == i
 
     def test_starship_quirk_table_covers_1_to_100(self):
         for i in range(1, 101):
-            with patch("soloquest.commands.new_character.random.randint", return_value=i):
+            with patch("wyrd.commands.new_character.random.randint", return_value=i):
                 result = _roll_table(STARSHIP_QUIRK_TABLE)
             assert result[0] == i
 
     def test_background_paths_table_covers_1_to_100(self):
         for i in range(1, 101):
-            with patch("soloquest.commands.new_character.random.randint", return_value=i):
+            with patch("wyrd.commands.new_character.random.randint", return_value=i):
                 result = _roll_table(BACKGROUND_PATHS_TABLE)
             assert result[0] == i
 
@@ -124,7 +124,7 @@ class TestRunCreationWizard:
 
     def _run_wizard_with_answers(self, all_prompt_answers):
         """Run the wizard with all session.prompt() answers in sequence."""
-        with patch("soloquest.commands.new_character.PromptSession") as mock_session_class:
+        with patch("wyrd.commands.new_character.PromptSession") as mock_session_class:
             mock_session = MagicMock()
             mock_session.prompt.side_effect = all_prompt_answers
             mock_session_class.return_value = mock_session
@@ -174,7 +174,7 @@ class TestRunCreationWizard:
 
     def test_wizard_creates_epic_background_vow(self):
         """Background vow must be Epic rank."""
-        from soloquest.models.vow import VowRank
+        from wyrd.models.vow import VowRank
 
         answers = self._base_answers()
         answers[4] = "Avenge my homeworld"
@@ -258,7 +258,7 @@ class TestRunCreationWizard:
 
     def test_wizard_cancellation_returns_none_on_keyboard_interrupt(self):
         """KeyboardInterrupt at any step returns None."""
-        with patch("soloquest.commands.new_character.PromptSession") as mock_session_class:
+        with patch("wyrd.commands.new_character.PromptSession") as mock_session_class:
             mock_session = MagicMock()
             mock_session.prompt.side_effect = KeyboardInterrupt
             mock_session_class.return_value = mock_session
@@ -287,7 +287,7 @@ class TestRunNewCharacterFlow:
 
     def _make_truth_categories(self):
         """Return a minimal truth categories dict with one category."""
-        from soloquest.models.truths import TruthCategory, TruthOption
+        from wyrd.models.truths import TruthCategory, TruthOption
 
         option = TruthOption(
             roll_range=(1, 100),
@@ -305,7 +305,7 @@ class TestRunNewCharacterFlow:
 
     def test_truths_attached_to_character(self):
         """Truths returned by run_truths_wizard are attached to the character."""
-        from soloquest.models.truths import ChosenTruth
+        from wyrd.models.truths import ChosenTruth
 
         chosen = [ChosenTruth(category="The Cataclysm", option_summary="All is well")]
         truth_categories = self._make_truth_categories()
@@ -339,10 +339,10 @@ class TestRunNewCharacterFlow:
 
         with (
             patch(
-                "soloquest.commands.new_character.run_truths_wizard",
+                "wyrd.commands.new_character.run_truths_wizard",
                 return_value=chosen,
             ),
-            patch("soloquest.commands.new_character.PromptSession") as mock_session_class,
+            patch("wyrd.commands.new_character.PromptSession") as mock_session_class,
         ):
             mock_session = MagicMock()
             mock_session.prompt.side_effect = answers
@@ -358,7 +358,7 @@ class TestRunNewCharacterFlow:
         truth_categories = self._make_truth_categories()
 
         with patch(
-            "soloquest.commands.new_character.run_truths_wizard",
+            "wyrd.commands.new_character.run_truths_wizard",
             return_value=None,
         ):
             result = run_new_character_flow(DATA_DIR, truth_categories)
@@ -367,18 +367,18 @@ class TestRunNewCharacterFlow:
 
     def test_cancel_during_character_creation_returns_none(self):
         """Cancelling during character creation returns None."""
-        from soloquest.models.truths import ChosenTruth
+        from wyrd.models.truths import ChosenTruth
 
         chosen = [ChosenTruth(category="The Cataclysm", option_summary="All is well")]
         truth_categories = self._make_truth_categories()
 
         with (
             patch(
-                "soloquest.commands.new_character.run_truths_wizard",
+                "wyrd.commands.new_character.run_truths_wizard",
                 return_value=chosen,
             ),
             patch(
-                "soloquest.commands.new_character.run_creation_wizard",
+                "wyrd.commands.new_character.run_creation_wizard",
                 return_value=None,
             ),
         ):

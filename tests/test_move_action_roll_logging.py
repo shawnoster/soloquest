@@ -2,10 +2,10 @@
 
 from unittest.mock import MagicMock
 
-from soloquest.commands.move import _log_move
-from soloquest.engine.moves import MoveResult, OutcomeTier
-from soloquest.models.character import Character, Stats
-from soloquest.models.session import Session
+from wyrd.commands.move import _log_move
+from wyrd.engine.moves import MoveResult, OutcomeTier
+from wyrd.models.character import Character, Stats
+from wyrd.models.session import Session
 
 
 class TestLogMove:

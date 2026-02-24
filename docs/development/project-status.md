@@ -74,7 +74,7 @@ See [CHANGELOG.md](../../CHANGELOG.md) for complete history.
 The project follows a clean separation of concerns:
 
 ```
-soloquest/
+wyrd/
 ├── commands/    # Command handlers (UI layer)
 ├── engine/      # Game mechanics (business logic)
 ├── models/      # Data models
@@ -90,7 +90,7 @@ See [ADR-001](../adr/001-repo-workflow-and-conventions.md) for architectural dec
 
 ## Active Development
 
-### Current Focus: Co-op Play ([#79](https://github.com/shawnoster/soloquest/issues/79))
+### Current Focus: Co-op Play ([#79](https://github.com/shawnoster/wyrd/issues/79))
 
 Designing two-player cooperative play using a hexagonal architecture (port/adapter pattern) so the sync mechanism is swappable without touching game logic. Single-player remains the default zero-friction experience.
 
@@ -108,13 +108,13 @@ Designing two-player cooperative play using a hexagonal architecture (port/adapt
 
 | # | Issue | Status |
 |---|-------|--------|
-| [#80](https://github.com/shawnoster/soloquest/issues/80) | SyncPort interface + LocalAdapter | Planned |
-| [#81](https://github.com/shawnoster/soloquest/issues/81) | Event model + per-player JSONL log | Planned |
-| [#82](https://github.com/shawnoster/soloquest/issues/82) | CampaignState model + `/campaign` commands | Planned |
-| [#83](https://github.com/shawnoster/soloquest/issues/83) | Player attribution on LogEntry | Planned |
-| [#84](https://github.com/shawnoster/soloquest/issues/84) | Truth negotiation (propose/accept/counter) | Planned |
-| [#85](https://github.com/shawnoster/soloquest/issues/85) | Oracle interpretation (`/interpret` + `/accept`) | Planned |
-| [#86](https://github.com/shawnoster/soloquest/issues/86) | Shared vows with single progress track | Planned |
+| [#80](https://github.com/shawnoster/wyrd/issues/80) | SyncPort interface + LocalAdapter | Planned |
+| [#81](https://github.com/shawnoster/wyrd/issues/81) | Event model + per-player JSONL log | Planned |
+| [#82](https://github.com/shawnoster/wyrd/issues/82) | CampaignState model + `/campaign` commands | Planned |
+| [#83](https://github.com/shawnoster/wyrd/issues/83) | Player attribution on LogEntry | Planned |
+| [#84](https://github.com/shawnoster/wyrd/issues/84) | Truth negotiation (propose/accept/counter) | Planned |
+| [#85](https://github.com/shawnoster/wyrd/issues/85) | Oracle interpretation (`/interpret` + `/accept`) | Planned |
+| [#86](https://github.com/shawnoster/wyrd/issues/86) | Shared vows with single progress track | Planned |
 
 ### Other Open Questions
 
@@ -132,7 +132,7 @@ These are **intentionally out of scope** for the current phase:
 - ❌ Full sector/star map generation
 - ❌ NPC relationship web
 - ❌ Campaign threat tracking
-- 🔄 Co-op play (in design — [#79](https://github.com/shawnoster/soloquest/issues/79))
+- 🔄 Co-op play (in design — [#79](https://github.com/shawnoster/wyrd/issues/79))
 - ❌ Web or GUI frontend
 - ❌ Audio/sound hooks
 
@@ -152,8 +152,8 @@ The project welcomes contributions! See:
 
 ## Questions or Feedback?
 
-- **Bug reports:** [GitHub Issues](https://github.com/shawnoster/soloquest/issues)
-- **Feature requests:** [GitHub Issues](https://github.com/shawnoster/soloquest/issues)
+- **Bug reports:** [GitHub Issues](https://github.com/shawnoster/wyrd/issues)
+- **Feature requests:** [GitHub Issues](https://github.com/shawnoster/wyrd/issues)
 - **General questions:** [Ironsworn Discord](https://discord.gg/ironsworn)
 
 ---

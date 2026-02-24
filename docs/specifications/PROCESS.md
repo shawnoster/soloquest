@@ -86,7 +86,7 @@ Add entry to `docs/specifications/systems/README.md`:
 
 **3.1 Create Data Directory**
 ```bash
-mkdir -p soloquest/data/[system-name]
+mkdir -p wyrd/data/[system-name]
 ```
 
 **3.2 Add Data Files**
@@ -100,7 +100,7 @@ Follow existing TOML structure from other systems.
 
 **3.3 Vendor External Data (if applicable)**
 ```bash
-mkdir -p soloquest/data/[system-name]/vendor
+mkdir -p wyrd/data/[system-name]/vendor
 # Add vendored data with LICENSE.md
 ```
 
@@ -108,7 +108,7 @@ mkdir -p soloquest/data/[system-name]/vendor
 
 **4.1 Create System Models**
 
-Add models in `soloquest/models/`:
+Add models in `wyrd/models/`:
 
 ```python
 # models/[system]_character.py
@@ -144,10 +144,10 @@ blades_stress: int | None = None
 
 **5.1 Create Engine Modules**
 
-Add system logic in `soloquest/engine/`:
+Add system logic in `wyrd/engine/`:
 
 ```bash
-mkdir -p soloquest/engine/[system-name]
+mkdir -p wyrd/engine/[system-name]
 ```
 
 Create core mechanics:
@@ -176,11 +176,11 @@ def load_[system]_data(path: Path) -> [System]Data:
 
 **6.1 Create Command Handlers**
 
-Add commands in `soloquest/commands/`:
+Add commands in `wyrd/commands/`:
 
 ```python
 # commands/[system].py
-from soloquest.loop import GameState
+from wyrd.loop import GameState
 
 def handle_[command](state: GameState, args: str) -> None:
     """Handle /[command] for [System]."""
@@ -292,8 +292,8 @@ Use template:
 - [Brief feature list]
 
 ## Implementation
-- Data files in `soloquest/data/[system]/`
-- Engine logic in `soloquest/engine/[system]/`
+- Data files in `wyrd/data/[system]/`
+- Engine logic in `wyrd/engine/[system]/`
 - Commands: /[command1], /[command2]
 - [X] tests, [Y]% coverage
 
@@ -440,7 +440,7 @@ Add "Integration Points" section to each affected system spec documenting:
 
 ### Step 3: Implement Integration Layer
 
-Create `soloquest/integration/` module:
+Create `wyrd/integration/` module:
 ```python
 # integration/[system-a]_[system-b].py
 def integrate_[systems](state: GameState) -> IntegratedState:
@@ -529,10 +529,10 @@ tests/
 ### New System
 - [ ] Research & verify licensing
 - [ ] Create system spec in `systems/`
-- [ ] Add data files in `soloquest/data/[system]/`
-- [ ] Create models in `soloquest/models/`
-- [ ] Implement engine in `soloquest/engine/[system]/`
-- [ ] Add commands in `soloquest/commands/`
+- [ ] Add data files in `wyrd/data/[system]/`
+- [ ] Create models in `wyrd/models/`
+- [ ] Implement engine in `wyrd/engine/[system]/`
+- [ ] Add commands in `wyrd/commands/`
 - [ ] Write comprehensive tests (80%+ coverage)
 - [ ] Update all documentation
 - [ ] Create PR with full description
@@ -559,9 +559,9 @@ tests/
 ### Example: Adding Mythic GME
 
 1. Create `docs/specifications/systems/mythic-gme.md`
-2. Add `soloquest/data/mythic/fate-chart.toml`
-3. Create `soloquest/engine/mythic/fate_chart.py`
-4. Add `soloquest/commands/mythic.py` with `/fate` command
+2. Add `wyrd/data/mythic/fate-chart.toml`
+3. Create `wyrd/engine/mythic/fate_chart.py`
+4. Add `wyrd/commands/mythic.py` with `/fate` command
 5. Write `tests/mythic/test_fate_chart.py`
 6. Update `docs/user-guide/mythic-guide.md`
 7. PR: `feat: add Mythic GME support`
@@ -569,8 +569,8 @@ tests/
 ### Example: Adding Asset Abilities (Starforged Feature)
 
 1. Create `docs/specifications/features/starforged/asset-abilities.md`
-2. Extend `soloquest/models/asset.py`
-3. Update `soloquest/engine/assets.py`
+2. Extend `wyrd/models/asset.py`
+3. Update `wyrd/engine/assets.py`
 4. Enhance `/asset` command
 5. Write `tests/test_asset_abilities.py`
 6. Update getting started guide
@@ -580,7 +580,7 @@ tests/
 
 1. Create `docs/specifications/integration/mythic-ironsworn.md`
 2. Add "Integration Points" to both system specs
-3. Create `soloquest/integration/mythic_ironsworn.py`
+3. Create `wyrd/integration/mythic_ironsworn.py`
 4. Add system selection to `/settings`
 5. Write integration tests
 6. Update user guides with examples

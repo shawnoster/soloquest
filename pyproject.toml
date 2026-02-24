@@ -1,5 +1,5 @@
 [project]
-name = "soloquest"
+name = "wyrd"
 version = "2.32.0"
 description = "A solo journaling CLI for tabletop RPGs (Ironsworn: Starforged, Mythic GME, and more)"
 readme = "README.md"
@@ -10,7 +10,7 @@ dependencies = [
 ]
 
 [project.scripts]
-soloquest = "soloquest.main:main"
+wyrd = "wyrd.main:main"
 
 [build-system]
 requires = ["hatchling"]
@@ -33,7 +33,7 @@ select = ["E", "F", "I", "UP", "B", "SIM"]
 ignore = ["E501"]
 
 [tool.ruff.lint.isort]
-known-first-party = ["soloquest"]
+known-first-party = ["wyrd"]
 
 [tool.ruff.format]
 quote-style = "double"
@@ -41,14 +41,14 @@ indent-style = "space"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "--cov=soloquest --cov-report=term-missing -v"
+addopts = "--cov=wyrd --cov-report=term-missing -v"
 
 [tool.coverage.run]
-source = ["soloquest"]
+source = ["wyrd"]
 omit = ["tests/*"]
 
 [tool.hatch.build.targets.wheel]
-packages = ["soloquest"]
+packages = ["wyrd"]
 
 [tool.semantic_release]
 version_toml = ["pyproject.toml:project.version"]

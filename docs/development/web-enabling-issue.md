@@ -5,13 +5,13 @@ This document contains the content for a GitHub issue to track brainstorming abo
 ## How to Create the Issue
 
 **Option 1: Use the Issue Template**
-1. Go to https://github.com/shawnoster/soloquest/issues/new/choose
+1. Go to https://github.com/shawnoster/wyrd/issues/new/choose
 2. Select "💭 Web-Enabling Brainstorm" template
 3. Review and adjust the pre-filled content
 4. Click "Submit new issue"
 
 **Option 2: Create Manually**
-1. Go to https://github.com/shawnoster/soloquest/issues/new
+1. Go to https://github.com/shawnoster/wyrd/issues/new
 2. Copy the content from `.github/ISSUE_TEMPLATE/web-enabling-brainstorm.md`
 3. Paste into the issue description
 4. Set title: `Brainstorm: Web-enabling for desktop/CLI/mobile session continuity`
@@ -23,11 +23,11 @@ This document contains the content for a GitHub issue to track brainstorming abo
 The issue covers:
 
 ### Problem
-Users want to continue sessions across desktop CLI, web browser, and mobile devices. Current local-only storage (`~/soloquest-adventures/`) prevents this.
+Users want to continue sessions across desktop CLI, web browser, and mobile devices. Current local-only storage (`~/wyrd-adventures/`) prevents this.
 
 ### Current State
 - **Storage:** JSON saves + Markdown journals in local directory
-- **Existing Sync Infrastructure:** Hexagonal architecture with `SyncPort` interface already designed for co-op play ([#79](https://github.com/shawnoster/soloquest/issues/79))
+- **Existing Sync Infrastructure:** Hexagonal architecture with `SyncPort` interface already designed for co-op play ([#79](https://github.com/shawnoster/wyrd/issues/79))
 - **Models:** All models have `to_dict()`/`from_dict()` for serialization
 
 ### Architecture Options Explored

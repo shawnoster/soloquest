@@ -49,14 +49,14 @@ The issue leverages existing project infrastructure:
 You have two options:
 
 **Option 1: Use the Issue Template (Recommended)**
-1. Go to https://github.com/shawnoster/soloquest/issues/new/choose
+1. Go to https://github.com/shawnoster/wyrd/issues/new/choose
 2. You should see "💭 Web-Enabling Brainstorm" in the template list
 3. Click "Get started" next to it
 4. Review the pre-filled content and adjust if needed
 5. Click "Submit new issue"
 
 **Option 2: Manual Creation**
-1. Go to https://github.com/shawnoster/soloquest/issues/new
+1. Go to https://github.com/shawnoster/wyrd/issues/new
 2. Copy content from `.github/ISSUE_TEMPLATE/web-enabling-brainstorm.md`
 3. Paste into issue description
 4. Set title: `Brainstorm: Web-enabling for desktop/CLI/mobile session continuity`

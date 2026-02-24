@@ -4,14 +4,14 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
 
-from soloquest.models.campaign import CampaignState
-from soloquest.models.session import EntryKind, Session
-from soloquest.sync import LocalAdapter
-from soloquest.sync.models import Event
+from wyrd.models.campaign import CampaignState
+from wyrd.models.session import EntryKind, Session
+from wyrd.sync import LocalAdapter
+from wyrd.sync.models import Event
 
 
 def _make_state(campaign=None, last_oracle_event_id=None):
-    from soloquest.loop import GameState
+    from wyrd.loop import GameState
 
     character = MagicMock()
     character.name = "Kira"
@@ -41,15 +41,15 @@ def _make_state(campaign=None, last_oracle_event_id=None):
 
 class TestHandleInterpret:
     def test_no_args_warns(self):
-        from soloquest.commands.interpret import handle_interpret
+        from wyrd.commands.interpret import handle_interpret
 
         state = _make_state()
-        with patch("soloquest.commands.interpret.display") as mock_display:
+        with patch("wyrd.commands.interpret.display") as mock_display:
             handle_interpret(state, [], set())
         mock_display.warn.assert_called_once()
 
     def test_logs_note_to_session(self):
-        from soloquest.commands.interpret import handle_interpret
+        from wyrd.commands.interpret import handle_interpret
 
         state = _make_state()
         handle_interpret(state, ["the", "blacksmith", "arms", "rebels"], set())
@@ -60,14 +60,14 @@ class TestHandleInterpret:
         assert "[Interpretation]" in entries[0].text
 
     def test_note_has_player_attribution(self):
-        from soloquest.commands.interpret import handle_interpret
+        from wyrd.commands.interpret import handle_interpret
 
         state = _make_state()
         handle_interpret(state, ["arm", "rebels"], set())
         assert state.session.entries[0].player == "Kira"
 
     def test_solo_does_not_publish_event(self):
-        from soloquest.commands.interpret import handle_interpret
+        from wyrd.commands.interpret import handle_interpret
 
         state = _make_state(campaign=None)
         mock_sync = MagicMock()
@@ -76,7 +76,7 @@ class TestHandleInterpret:
         mock_sync.publish.assert_not_called()
 
     def test_coop_publishes_interpret_event(self):
-        from soloquest.commands.interpret import handle_interpret
+        from wyrd.commands.interpret import handle_interpret
 
         campaign = MagicMock(spec=CampaignState)
         state = _make_state(campaign=campaign)
@@ -89,7 +89,7 @@ class TestHandleInterpret:
         assert event.data["text"] == "something"
 
     def test_coop_includes_oracle_ref_when_available(self):
-        from soloquest.commands.interpret import handle_interpret
+        from wyrd.commands.interpret import handle_interpret
 
         campaign = MagicMock(spec=CampaignState)
         state = _make_state(campaign=campaign, last_oracle_event_id="oracle-uuid-123")
@@ -100,7 +100,7 @@ class TestHandleInterpret:
         assert event.data["ref"] == "oracle-uuid-123"
 
     def test_coop_no_ref_when_no_oracle_yet(self):
-        from soloquest.commands.interpret import handle_interpret
+        from wyrd.commands.interpret import handle_interpret
 
         campaign = MagicMock(spec=CampaignState)
         state = _make_state(campaign=campaign, last_oracle_event_id=None)
@@ -118,25 +118,25 @@ class TestHandleInterpret:
 
 class TestHandleAccept:
     def test_solo_mode_shows_info(self):
-        from soloquest.commands.interpret import handle_accept
+        from wyrd.commands.interpret import handle_accept
 
         state = _make_state(campaign=None)
-        with patch("soloquest.commands.interpret.display") as mock_display:
+        with patch("wyrd.commands.interpret.display") as mock_display:
             handle_accept(state, [], set())
         mock_display.info.assert_called_once()
 
     def test_no_pending_interpretation_shows_info(self):
-        from soloquest.commands.interpret import handle_accept
+        from wyrd.commands.interpret import handle_accept
 
         campaign = MagicMock(spec=CampaignState)
         state = _make_state(campaign=campaign)
         state.pending_partner_interpretation = None
-        with patch("soloquest.commands.interpret.display") as mock_display:
+        with patch("wyrd.commands.interpret.display") as mock_display:
             handle_accept(state, [], set())
         mock_display.info.assert_called_once()
 
     def test_accept_logs_note_to_session(self):
-        from soloquest.commands.interpret import handle_accept
+        from wyrd.commands.interpret import handle_accept
 
         campaign = MagicMock(spec=CampaignState)
         state = _make_state(campaign=campaign)
@@ -153,7 +153,7 @@ class TestHandleAccept:
         assert "the blacksmith arms rebels" in entries[0].text
 
     def test_accept_publishes_acceptance_event(self):
-        from soloquest.commands.interpret import handle_accept
+        from wyrd.commands.interpret import handle_accept
 
         campaign = MagicMock(spec=CampaignState)
         state = _make_state(campaign=campaign)
@@ -172,7 +172,7 @@ class TestHandleAccept:
         assert published.data["ref"] == partner_event.id
 
     def test_accept_clears_pending_interpretation(self):
-        from soloquest.commands.interpret import handle_accept
+        from wyrd.commands.interpret import handle_accept
 
         campaign = MagicMock(spec=CampaignState)
         state = _make_state(campaign=campaign)
@@ -183,7 +183,7 @@ class TestHandleAccept:
         assert state.pending_partner_interpretation is None
 
     def test_accept_logs_with_player_attribution(self):
-        from soloquest.commands.interpret import handle_accept
+        from wyrd.commands.interpret import handle_accept
 
         campaign = MagicMock(spec=CampaignState)
         state = _make_state(campaign=campaign)

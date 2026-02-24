@@ -1,6 +1,6 @@
 """Tests for move resolution logic."""
 
-from soloquest.engine.moves import (
+from wyrd.engine.moves import (
     OutcomeTier,
     check_match,
     momentum_burn_outcome,

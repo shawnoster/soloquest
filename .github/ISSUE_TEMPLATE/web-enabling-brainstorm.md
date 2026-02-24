@@ -13,23 +13,23 @@ Users want to continue their Soloquest sessions seamlessly across different devi
 - **Web browser** - Quick access from any device without installation
 - **Mobile** - On-the-go journaling, oracle lookups, character reference
 
-Currently, all session data is stored locally in `~/soloquest-adventures/`, making cross-device continuity impossible without manual file syncing.
+Currently, all session data is stored locally in `~/wyrd-adventures/`, making cross-device continuity impossible without manual file syncing.
 
 ## Current Architecture
 
 ### Storage Layer
-- **Location:** `~/soloquest-adventures/` (configurable via `-d` flag or `SOLOQUEST_ADVENTURES_DIR`)
+- **Location:** `~/wyrd-adventures/` (configurable via `-d` flag or `SOLOQUEST_ADVENTURES_DIR`)
 - **Format:** JSON for character saves, Markdown for journals
 - **Structure:**
   ```
-  ~/soloquest-adventures/
+  ~/wyrd-adventures/
   ├── saves/          # Character saves (kael.json, maya_okonkwo.json)
   ├── sessions/       # Per-session markdown exports
   └── journal/        # Cumulative character journals
   ```
 
 ### Existing Sync Infrastructure (Co-op Play)
-The project already has a **hexagonal sync architecture** designed for co-op play ([#79](https://github.com/shawnoster/soloquest/issues/79)):
+The project already has a **hexagonal sync architecture** designed for co-op play ([#79](https://github.com/shawnoster/wyrd/issues/79)):
 
 - **`SyncPort` interface** - Abstract sync protocol
 - **`LocalAdapter`** - No-op single-player (zero overhead)
@@ -39,7 +39,7 @@ The project already has a **hexagonal sync architecture** designed for co-op pla
 This architecture could potentially be extended with new adapters for cloud sync.
 
 ### Data Models
-See `soloquest/models/`:
+See `wyrd/models/`:
 - `Character` - Stats, tracks, assets
 - `Session` - Log entries (journal, move results, oracle rolls)
 - `Vow` - Progress tracking
@@ -179,8 +179,8 @@ This is a brainstorming issue to explore options. Expected outcomes:
 4. Create follow-up issues for specific components
 
 **Related Issues:**
-- [#79](https://github.com/shawnoster/soloquest/issues/79) - Co-op play (shared campaigns)
-- Sync infrastructure already exists in `soloquest/sync/`
+- [#79](https://github.com/shawnoster/wyrd/issues/79) - Co-op play (shared campaigns)
+- Sync infrastructure already exists in `wyrd/sync/`
 
 **Discussion Welcome!**
 Please share your thoughts on:

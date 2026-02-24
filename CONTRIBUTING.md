@@ -1,6 +1,6 @@
 # Contributing to Soloquest
 
-Thank you for your interest in contributing to soloquest! This document provides guidelines and instructions for contributing.
+Thank you for your interest in contributing to wyrd! This document provides guidelines and instructions for contributing.
 
 ---
 
@@ -15,7 +15,7 @@ Thank you for your interest in contributing to soloquest! This document provides
    - See [Development Setup Guide](docs/development/setup.md)
 
 3. **Check existing issues**
-   - Browse [open issues](https://github.com/yourusername/soloquest/issues)
+   - Browse [open issues](https://github.com/yourusername/wyrd/issues)
    - Look for issues tagged `good first issue` or `help wanted`
 
 ---
@@ -118,7 +118,7 @@ All new features should include tests:
 pytest
 
 # With coverage report
-pytest --cov=soloquest --cov-report=html
+pytest --cov=wyrd --cov-report=html
 
 # Or use just/make
 just test
@@ -197,9 +197,9 @@ Releases are automated via GitHub Actions:
 
 ## Getting Help
 
-- **Questions?** Open a [discussion](https://github.com/yourusername/soloquest/discussions)
-- **Bug reports?** Open an [issue](https://github.com/yourusername/soloquest/issues)
-- **Want to chat?** Join the [Ironsworn Discord](https://discord.gg/ironsworn) and mention soloquest
+- **Questions?** Open a [discussion](https://github.com/yourusername/wyrd/discussions)
+- **Bug reports?** Open an [issue](https://github.com/yourusername/wyrd/issues)
+- **Want to chat?** Join the [Ironsworn Discord](https://discord.gg/ironsworn) and mention wyrd
 
 ---
 
@@ -215,4 +215,4 @@ By contributing, you agree that your contributions will be licensed under the sa
 
 ---
 
-Thank you for contributing to soloquest! 🎲
+Thank you for contributing to wyrd! 🎲

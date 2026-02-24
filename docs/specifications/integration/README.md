@@ -94,7 +94,7 @@ When designing cross-system features:
 
 Community-contributed systems via plugins:
 ```
-~/.soloquest/plugins/
+~/.wyrd/plugins/
 ├── blades-in-the-dark/
 │   ├── manifest.toml
 │   ├── moves.toml

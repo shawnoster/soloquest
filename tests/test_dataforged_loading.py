@@ -2,10 +2,10 @@
 
 from pathlib import Path
 
-from soloquest.engine.assets import load_assets
-from soloquest.engine.oracles import load_dataforged_oracles, load_oracles
+from wyrd.engine.assets import load_assets
+from wyrd.engine.oracles import load_dataforged_oracles, load_oracles
 
-DATA_DIR = Path(__file__).parent.parent / "soloquest" / "data"
+DATA_DIR = Path(__file__).parent.parent / "wyrd" / "data"
 
 
 class TestDataforgedOracles:
@@ -52,14 +52,14 @@ class TestDataforgedOracles:
 
 class TestDataforgedMoves:
     def test_moves_loaded_from_json(self):
-        from soloquest.loop import load_dataforged_moves
+        from wyrd.loop import load_dataforged_moves
 
         moves = load_dataforged_moves()
         # Should load some moves from dataforged
         assert len(moves) > 0
 
     def test_move_has_basic_fields(self):
-        from soloquest.loop import load_dataforged_moves
+        from wyrd.loop import load_dataforged_moves
 
         moves = load_dataforged_moves()
         if moves:
