@@ -7,7 +7,13 @@ import sys
 from pathlib import Path
 
 from soloquest.models.session import Session
-from soloquest.state.save import list_saves, list_saves_paths, load_by_name, load_most_recent, saves_path
+from soloquest.state.save import (
+    list_saves,
+    list_saves_paths,
+    load_by_name,
+    load_most_recent,
+    saves_path,
+)
 from soloquest.state.truths_md import read_adventure_truths, read_truths_md, write_adventure_truths
 from soloquest.ui import display
 from soloquest.ui.strings import get_string

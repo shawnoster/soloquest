@@ -137,9 +137,7 @@ class TestHandleTruths:
     @patch("soloquest.commands.truths._show_truths")
     def test_handle_truths_no_args_with_existing_truths(self, mock_show, mock_state):
         """Test /truths with no args shows truths if they exist."""
-        mock_state.truths = [
-            ChosenTruth(category="Cataclysm", option_summary="The Sun Plague")
-        ]
+        mock_state.truths = [ChosenTruth(category="Cataclysm", option_summary="The Sun Plague")]
         handle_truths(mock_state, [], set())
         mock_show.assert_called_once_with(mock_state)
 

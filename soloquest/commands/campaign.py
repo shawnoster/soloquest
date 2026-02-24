@@ -86,7 +86,9 @@ def _handle_start(state: GameState) -> None:
 
 def _handle_start_solo(state: GameState) -> None:
     """Solo adventure: truths + character creation → save."""
-    result = run_new_character_flow(_DATA_DIR, state.truth_categories, include_truths=True, state=state)
+    result = run_new_character_flow(
+        _DATA_DIR, state.truth_categories, include_truths=True, state=state
+    )
     if result is None:
         display.warn("Campaign setup cancelled.")
         return
@@ -110,7 +112,9 @@ def _handle_start_create_coop(state: GameState) -> None:
         display.warn("Campaign name cannot be empty.")
         return
 
-    result = run_new_character_flow(_DATA_DIR, state.truth_categories, include_truths=True, state=state)
+    result = run_new_character_flow(
+        _DATA_DIR, state.truth_categories, include_truths=True, state=state
+    )
     if result is None:
         display.warn("Campaign setup cancelled.")
         return
@@ -177,7 +181,9 @@ def _handle_start_join_coop(state: GameState) -> None:
         display.error(f"Campaign '{choice}' not found.")
         return
 
-    result = run_new_character_flow(_DATA_DIR, state.truth_categories, include_truths=False, state=state)
+    result = run_new_character_flow(
+        _DATA_DIR, state.truth_categories, include_truths=False, state=state
+    )
     if result is None:
         display.warn("Character creation cancelled.")
         return
