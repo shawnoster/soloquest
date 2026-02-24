@@ -335,11 +335,12 @@ def run_new_character_flow(
     truth_categories: dict,
     include_truths: bool = True,
     state: GameState | None = None,
-) -> tuple[Character, list[Vow], DiceMode] | None:
+) -> tuple[Character, list[Vow], DiceMode, list] | None:
     """Run the full new-game flow: (optionally Truths →) character wizard.
 
-    Returns (character, vows, dice_mode) or None if cancelled.
+    Returns (character, vows, dice_mode, truths) or None if cancelled.
     Set include_truths=False for co-op joiners who skip world setup.
+    Truths are campaign-level; callers should store them in state.truths.
     """
     if include_truths:
         truths = run_truths_wizard(truth_categories, state=state)
@@ -353,8 +354,7 @@ def run_new_character_flow(
         return None  # cancelled during character creation
 
     character, vows, dice_mode = result
-    character.truths = truths
-    return character, vows, dice_mode
+    return character, vows, dice_mode, truths
 
 
 def run_creation_wizard(

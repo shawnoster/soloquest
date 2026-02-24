@@ -48,7 +48,7 @@ def _format_entry(entry) -> str:
         return f"\n{entry.text}\n"
 
 
-def export_session(session: Session, character: Character) -> Path:
+def export_session(session: Session, character: Character, truths: list | None = None) -> Path:
     """
     Export a single session to its own markdown file.
 
@@ -82,10 +82,11 @@ def export_session(session: Session, character: Character) -> Path:
     lines.append(f"# {title}\n")
 
     # Campaign Truths (if this is session 1 and truths are set)
-    if session.number == 1 and character.truths:
+    effective_truths = truths if truths is not None else []
+    if session.number == 1 and effective_truths:
         lines.append("\n## Campaign Setting\n")
         lines.append("\n*The fundamental truths of your version of the Forge:*\n\n")
-        for truth in character.truths:
+        for truth in effective_truths:
             display_text = truth.display_text()
             if display_text != "[To be determined]":
                 lines.append(f"- **{truth.category}:** {display_text}\n")

@@ -354,8 +354,8 @@ class TestRunNewCharacterFlow:
             result = run_new_character_flow(DATA_DIR, truth_categories)
 
         assert result is not None
-        character, vows, dice_mode = result
-        assert character.truths == chosen
+        character, vows, dice_mode, truths = result
+        assert truths == chosen
 
     def test_cancel_during_truths_returns_none(self):
         """Cancelling at the truths wizard returns None."""

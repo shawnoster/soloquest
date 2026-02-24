@@ -147,7 +147,7 @@ def handle_newsession(state: GameState, args: list[str], flags: set[str]) -> Non
 def _export_session(state: GameState) -> None:
     """Export current session to markdown files."""
     # Session markdown
-    session_path = export_session(state.session, state.character)
+    session_path = export_session(state.session, state.character, truths=state.truths)
     display.success(f"Session exported → {session_path}")
 
     # Append to full journal

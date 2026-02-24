@@ -44,7 +44,7 @@ def _handle_char_new(state: GameState) -> None:
         display.info("New character creation cancelled.")
         return
 
-    character, vows, dice_mode = result
+    character, vows, dice_mode, _truths = result
     state.character = character
     state.vows = vows
     state.session_count = 0

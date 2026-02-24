@@ -313,7 +313,7 @@ class TestHandleStart:
         with (
             patch(
                 "soloquest.commands.campaign.run_new_character_flow",
-                return_value=(new_char, new_vows, DiceMode.DIGITAL),
+                return_value=(new_char, new_vows, DiceMode.DIGITAL, []),
             ),
             patch("soloquest.commands.campaign.save_game") as mock_save,
         ):
@@ -357,7 +357,7 @@ class TestHandleStart:
         with (
             patch(
                 "soloquest.commands.campaign.run_new_character_flow",
-                return_value=(new_char, new_vows, DiceMode.DIGITAL),
+                return_value=(new_char, new_vows, DiceMode.DIGITAL, []),
             ),
             patch("rich.prompt.Prompt.ask", return_value="Iron Veil"),
             patch("soloquest.commands.campaign.save_game") as mock_save,
@@ -392,7 +392,7 @@ class TestHandleStart:
         with (
             patch(
                 "soloquest.commands.campaign.run_new_character_flow",
-                return_value=(new_char, new_vows, DiceMode.DIGITAL),
+                return_value=(new_char, new_vows, DiceMode.DIGITAL, []),
             ),
             patch("rich.prompt.Prompt.ask", return_value="1"),
             patch("soloquest.commands.campaign.save_game") as mock_save,
@@ -421,7 +421,7 @@ class TestHandleStart:
         with (
             patch(
                 "soloquest.commands.campaign.run_new_character_flow",
-                return_value=(new_char, [], DiceMode.DIGITAL),
+                return_value=(new_char, [], DiceMode.DIGITAL, []),
             ) as mock_flow,
             patch("rich.prompt.Prompt.ask", return_value="1"),
             patch("soloquest.commands.campaign.save_game"),

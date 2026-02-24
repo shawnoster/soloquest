@@ -33,7 +33,7 @@ def mock_state():
         homeworld="Test World",
         stats=Stats(edge=2, heart=1, iron=3, shadow=2, wits=3),
     )
-    state.character.truths = []
+    state.truths = []
     state.session = Session(number=1)
     state.truth_categories = _make_test_categories()
     state.campaign = None
@@ -137,7 +137,7 @@ class TestHandleTruths:
     @patch("soloquest.commands.truths._show_truths")
     def test_handle_truths_no_args_with_existing_truths(self, mock_show, mock_state):
         """Test /truths with no args shows truths if they exist."""
-        mock_state.character.truths = [
+        mock_state.truths = [
             ChosenTruth(category="Cataclysm", option_summary="The Sun Plague")
         ]
         handle_truths(mock_state, [], set())
@@ -146,7 +146,7 @@ class TestHandleTruths:
     @patch("soloquest.commands.truths._prompt_to_start_wizard")
     def test_handle_truths_no_args_without_truths(self, mock_prompt, mock_state):
         """Test /truths with no args prompts to start wizard if no truths."""
-        mock_state.character.truths = []
+        mock_state.truths = []
         handle_truths(mock_state, [], set())
         mock_prompt.assert_called_once_with(mock_state)
 
@@ -211,7 +211,7 @@ class TestStartTruthsWizard:
         mock_run_wizard.assert_called_once_with(
             mock_state.truth_categories, existing_truths=None, on_truth_saved=ANY, state=mock_state
         )
-        assert mock_state.character.truths == chosen_truths
+        assert mock_state.truths == chosen_truths
         mock_display.success.assert_called_once()
 
     @patch("soloquest.commands.truths.run_truths_wizard")
@@ -221,7 +221,7 @@ class TestStartTruthsWizard:
         self, mock_confirm, mock_display, mock_run_wizard, mock_state
     ):
         """Test starting wizard with existing truths and confirming overwrite."""
-        mock_state.character.truths = [ChosenTruth(category="Old", option_summary="Old truth")]
+        mock_state.truths = [ChosenTruth(category="Old", option_summary="Old truth")]
         new_truths = [ChosenTruth(category="Cataclysm", option_summary="The Sun Plague")]
         mock_run_wizard.return_value = new_truths
 
@@ -229,7 +229,7 @@ class TestStartTruthsWizard:
 
         mock_confirm.assert_called_once()
         mock_run_wizard.assert_called_once()
-        assert mock_state.character.truths == new_truths
+        assert mock_state.truths == new_truths
 
     @patch("soloquest.commands.truths.display")
     @patch("soloquest.commands.truths.Confirm.ask", return_value=False)
@@ -238,14 +238,14 @@ class TestStartTruthsWizard:
     ):
         """Test declining to resume and declining to start over keeps existing truths."""
         original_truths = [ChosenTruth(category="Old", option_summary="Old truth")]
-        mock_state.character.truths = original_truths.copy()
+        mock_state.truths = original_truths.copy()
 
         _start_truths_wizard(mock_state)
 
         # is_partial path: "Resume?" (False) → "Start over?" (False) → keep truths
         assert mock_confirm.call_count == 2
         mock_display.info.assert_called_once()
-        assert mock_state.character.truths == original_truths
+        assert mock_state.truths == original_truths
 
     @patch("soloquest.commands.truths.display")
     @patch("soloquest.commands.truths.Confirm.ask", side_effect=KeyboardInterrupt)
@@ -254,24 +254,24 @@ class TestStartTruthsWizard:
     ):
         """Test keyboard interrupt during resume/overwrite prompt keeps existing truths."""
         original_truths = [ChosenTruth(category="Old", option_summary="Old truth")]
-        mock_state.character.truths = original_truths.copy()
+        mock_state.truths = original_truths.copy()
 
         _start_truths_wizard(mock_state)
 
         mock_display.info.assert_called_once_with("Keeping existing truths.")
-        assert mock_state.character.truths == original_truths
+        assert mock_state.truths == original_truths
 
     @patch("soloquest.commands.truths.run_truths_wizard", return_value=None)
     @patch("soloquest.commands.truths.display")
     def test_start_wizard_cancelled_during_wizard(self, mock_display, mock_run_wizard, mock_state):
         """Test wizard returning None (cancelled)."""
         original_truths = []
-        mock_state.character.truths = original_truths
+        mock_state.truths = original_truths
 
         _start_truths_wizard(mock_state)
 
         # Truths should remain unchanged
-        assert mock_state.character.truths == original_truths
+        assert mock_state.truths == original_truths
         # Success should not be called
         mock_display.success.assert_not_called()
 
@@ -609,7 +609,7 @@ class TestShowTruths:
     @patch("soloquest.commands.truths.display")
     def test_show_truths_with_no_truths(self, mock_display, mock_state):
         """Test showing truths when none are set."""
-        mock_state.character.truths = []
+        mock_state.truths = []
 
         _show_truths(mock_state)
 
@@ -618,7 +618,7 @@ class TestShowTruths:
     @patch("soloquest.commands.truths.display")
     def test_show_truths_with_truths(self, mock_display, mock_state):
         """Test showing truths when they exist."""
-        mock_state.character.truths = [
+        mock_state.truths = [
             ChosenTruth(category="Cataclysm", option_summary="The Sun Plague"),
             ChosenTruth(
                 category="Exodus",

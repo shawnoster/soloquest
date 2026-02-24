@@ -7,7 +7,8 @@ import sys
 from pathlib import Path
 
 from soloquest.models.session import Session
-from soloquest.state.save import list_saves, list_saves_paths, load_by_name, load_most_recent
+from soloquest.state.save import list_saves, list_saves_paths, load_by_name, load_most_recent, saves_path
+from soloquest.state.truths_md import read_adventure_truths, read_truths_md, write_adventure_truths
 from soloquest.ui import display
 from soloquest.ui.strings import get_string
 
@@ -132,10 +133,17 @@ def main() -> None:
         display.console.print(get_string("startup.no_save_line2"))
         display.console.print()
 
+    # Load truths from adventure directory (campaign-level); migrate from old character save if needed
+    truths = read_adventure_truths(config.adventures_dir)
+    if truths is None:
+        truths = read_truths_md(saves_path(character.name)) or character.truths or []
+        if truths:
+            write_adventure_truths(truths, config.adventures_dir, character.name)
+
     # Start the session
     from soloquest.loop import run_session
 
-    run_session(character, vows, session_count, dice_mode, session)
+    run_session(character, vows, session_count, dice_mode, session, truths=truths)
 
 
 if __name__ == "__main__":

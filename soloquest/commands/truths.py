@@ -58,7 +58,7 @@ def handle_truths(state: GameState, args: list[str], flags: set[str]) -> None:
         return
 
     # Default behavior: show truths if set, otherwise start wizard
-    if state.character.truths:
+    if state.truths:
         _show_truths(state)
     else:
         _prompt_to_start_wizard(state)
@@ -196,7 +196,7 @@ def run_truths_wizard(
 def _start_truths_wizard(state: GameState) -> None:
     """Start or resume the interactive truths wizard."""
     all_categories = get_ordered_categories(state.truth_categories)
-    existing = state.character.truths or []
+    existing = state.truths or []
     done_names = {t.category for t in existing}
     is_partial = 0 < len(done_names) < len(all_categories)
     is_complete = len(done_names) >= len(all_categories)
@@ -236,11 +236,17 @@ def _start_truths_wizard(state: GameState) -> None:
 
     def _on_truth_saved(truth: ChosenTruth) -> None:
         """Persist each truth immediately so progress survives an early exit."""
-        _apply_truth_to_character(state, truth)
+        import contextlib
+
+        from soloquest.config import config
         from soloquest.state.campaign import player_save_path
         from soloquest.state.save import autosave
+        from soloquest.state.truths_md import write_adventure_truths
+
+        _apply_truth(state, truth)
 
         save_path = None
+        truths_dir = state.campaign_dir if state.campaign_dir is not None else config.adventures_dir
         if state.campaign_dir is not None:
             save_path = player_save_path(state.campaign_dir, state.character.name)
         autosave(
@@ -251,6 +257,8 @@ def _start_truths_wizard(state: GameState) -> None:
             state.session,
             save_path=save_path,
         )
+        with contextlib.suppress(Exception):
+            write_adventure_truths(state.truths, truths_dir, state.character.name)
         display.autosaved()
 
     result = run_truths_wizard(
@@ -260,7 +268,7 @@ def _start_truths_wizard(state: GameState) -> None:
         state=state,
     )
     if result is not None:
-        state.character.truths = result
+        state.truths = result
         display.success("Campaign truths saved!")
         display.console.print()
         state.session.add_note(f"Campaign truths established ({len(result)} categories)")
@@ -522,12 +530,17 @@ def _show_summary(truths: list[ChosenTruth]) -> None:
     display.rule("Your Campaign Truths")
     display.console.print()
 
+    indent = "    "
+    raw_width = display.console.width
+    width = max(40, raw_width) if isinstance(raw_width, int) else 80
     for truth in truths:
         base = truth.custom_text or truth.option_summary
         display.console.print(f"  [bold]• {truth.category}:[/bold] {base}")
-        indent = " " * (6 + len(truth.category))
-        raw_width = display.console.width
-        width = max(40, raw_width) if isinstance(raw_width, int) else 80
+        if truth.option_text and not truth.custom_text:
+            wrapped_desc = textwrap.fill(
+                truth.option_text, width=width, initial_indent=indent, subsequent_indent=indent
+            )
+            display.console.print(f"[dim]{wrapped_desc}[/dim]")
         if truth.subchoice:
             wrapped_sub = textwrap.fill(
                 truth.subchoice, width=width, initial_indent=indent, subsequent_indent=indent
@@ -537,37 +550,42 @@ def _show_summary(truths: list[ChosenTruth]) -> None:
             wrapped_note = textwrap.fill(
                 truth.note, width=width, initial_indent=indent, subsequent_indent=indent
             )
-            display.console.print(f"[dim italic]{wrapped_note}[/dim italic]")
-
-    display.console.print()
+            display.console.print(f"[italic]{wrapped_note}[/italic]")
+        display.console.print()
 
 
 def _show_truths(state: GameState) -> None:
     """Display the character's current truths."""
-    if not state.character.truths:
+    if not state.truths:
         display.info("No truths set yet. Use /truths start to begin.")
         return
 
     display.rule("Your Campaign Truths")
     display.console.print()
 
-    for truth in state.character.truths:
-        display.console.print(f"  [bold]• {truth.category}:[/bold] {truth.display_text()}")
+    indent = "    "
+    raw_width = display.console.width
+    width = max(40, raw_width) if isinstance(raw_width, int) else 80
+    for truth in state.truths:
+        base = truth.custom_text or truth.option_summary
+        display.console.print(f"  [bold]• {truth.category}:[/bold] {base}")
+        if truth.option_text and not truth.custom_text:
+            wrapped_desc = textwrap.fill(
+                truth.option_text, width=width, initial_indent=indent, subsequent_indent=indent
+            )
+            display.console.print(f"[dim]{wrapped_desc}[/dim]")
+        if truth.subchoice:
+            wrapped_sub = textwrap.fill(
+                truth.subchoice, width=width, initial_indent=indent, subsequent_indent=indent
+            )
+            display.console.print(f"[dim]{wrapped_sub}[/dim]")
         if truth.note:
-            indent = " " * (6 + len(truth.category))
-            raw_width = display.console.width
-            width = max(40, raw_width) if isinstance(raw_width, int) else 80
-            wrapped = textwrap.fill(
+            wrapped_note = textwrap.fill(
                 truth.note, width=width, initial_indent=indent, subsequent_indent=indent
             )
-            display.console.print(f"[dim italic]{wrapped}[/dim italic]")
+            display.console.print(f"[italic]{wrapped_note}[/italic]")
+        display.console.print()
 
-    display.console.print()
-    display.console.print("  [dim]Commands:[/dim]")
-    display.console.print(
-        f"    [{HINT_COMMAND}]/truths start[/{HINT_COMMAND}] - Restart truth selection"
-    )
-    display.console.print()
 
 
 # ---------------------------------------------------------------------------
@@ -631,7 +649,7 @@ def _handle_truth_propose(state: GameState, args: list[str]) -> None:
 
     # Solo mode: auto-accept immediately
     if state.campaign is None:
-        _apply_truth_to_character(state, chosen_truth)
+        _apply_truth(state, chosen_truth)
         display.success(f"Truth set: [{category.name}] {chosen_truth.option_summary}")
         state.session.add_note(
             f"Truth established [{category.name}]: {chosen_truth.option_summary}"
@@ -739,7 +757,7 @@ def _handle_truth_accept(state: GameState, args: list[str]) -> None:
         option_summary=proposal.option_summary,
         custom_text=proposal.custom_text,
     )
-    _apply_truth_to_character(state, chosen)
+    _apply_truth(state, chosen)
 
     # Also record in campaign.truths
     state.campaign.truths = [t for t in state.campaign.truths if t.category != cat]
@@ -790,10 +808,10 @@ def _handle_truth_counter(state: GameState, args: list[str]) -> None:
     _handle_truth_propose(state, [cat_name])
 
 
-def _apply_truth_to_character(state: GameState, truth: object) -> None:
-    """Add or replace a ChosenTruth in character.truths."""
+def _apply_truth(state: GameState, truth: object) -> None:
+    """Add or replace a ChosenTruth in the campaign truths (state.truths)."""
     from soloquest.models.truths import ChosenTruth
 
     assert isinstance(truth, ChosenTruth)
-    state.character.truths = [t for t in state.character.truths if t.category != truth.category]
-    state.character.truths.append(truth)
+    state.truths = [t for t in state.truths if t.category != truth.category]
+    state.truths.append(truth)

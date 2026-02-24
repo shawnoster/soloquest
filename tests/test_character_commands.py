@@ -334,7 +334,7 @@ class TestHandleCharNew:
 
         with patch(
             "soloquest.commands.character.run_new_character_flow",
-            return_value=(new_char, new_vows, DiceMode.DIGITAL),
+            return_value=(new_char, new_vows, DiceMode.DIGITAL, []),
         ):
             handle_char(self.state, ["new"], set())
 

@@ -72,7 +72,7 @@ class Character:
     # Assets — instances with progression tracking
     assets: list[CharacterAsset] = field(default_factory=list)
 
-    # Campaign truths — chosen during setup
+    # Campaign truths — kept for migration from old saves; canonical store is {adventures_dir}/truths.md
     truths: list[ChosenTruth] = field(default_factory=list)
 
     # Narrative / flavour fields (all optional)
@@ -140,7 +140,6 @@ class Character:
             "momentum": self.momentum,
             "debilities": sorted(self.debilities),
             "assets": [a.to_dict() for a in self.assets],
-            "truths": [t.to_dict() for t in self.truths],
             "pronouns": self.pronouns,
             "callsign": self.callsign,
             "backstory": self.backstory,

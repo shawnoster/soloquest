@@ -48,6 +48,7 @@ from soloquest.engine.truths import TruthCategory, load_truth_categories
 from soloquest.models.campaign import CampaignState
 from soloquest.models.character import Character
 from soloquest.models.session import Session
+from soloquest.models.truths import ChosenTruth
 from soloquest.models.vow import Vow
 from soloquest.state.save import autosave
 from soloquest.sync import FileLogAdapter, LocalAdapter, SyncPort
@@ -95,6 +96,7 @@ class GameState:
     sync: SyncPort = field(default_factory=lambda: LocalAdapter("solo"), repr=False)
     campaign: CampaignState | None = field(default=None, repr=False)
     campaign_dir: Path | None = field(default=None, repr=False)
+    truths: list[ChosenTruth] = field(default_factory=list)
     last_oracle_event_id: str | None = field(default=None, repr=False)
     pending_partner_interpretation: object = field(default=None, repr=False)  # Event | None
     last_proposed_truth_category: str | None = field(default=None, repr=False)
@@ -255,6 +257,7 @@ def _build_game_state(
     session: Session,
     campaign=None,
     campaign_dir: Path | None = None,
+    truths: list[ChosenTruth] | None = None,
 ) -> GameState:
     """Load all game data and return an initialized GameState. No I/O beyond data loading."""
     moves = load_move_data()
@@ -283,6 +286,7 @@ def _build_game_state(
         sync=sync,
         campaign=campaign,
         campaign_dir=campaign_dir,
+        truths=truths or [],
     )
 
 
@@ -385,6 +389,7 @@ def run_session(
     session: Session | None = None,
     campaign=None,
     campaign_dir: Path | None = None,
+    truths: list[ChosenTruth] | None = None,
 ) -> None:
     # If no session provided, create a new one
     if session is None:
@@ -395,7 +400,8 @@ def run_session(
         pass
 
     state = _build_game_state(
-        character, vows, session_count, dice_mode, session, campaign, campaign_dir
+        character, vows, session_count, dice_mode, session, campaign, campaign_dir,
+        truths=truths,
     )
 
     is_new_session = session.number == session_count and len(session.entries) == 0
@@ -542,19 +548,23 @@ def _apply_accepted_truth_to_character(state: GameState, event: object) -> None:
         return
 
     # Only apply if we don't already have this truth set
-    existing = [t for t in state.character.truths if t.category == cat]
+    existing = [t for t in state.truths if t.category == cat]
     if existing:
         return
 
     from soloquest.models.truths import ChosenTruth
 
     truth = ChosenTruth(category=cat, option_summary=summary)
-    state.character.truths.append(truth)
+    state.truths.append(truth)
 
 
 def _autosave_state(state: GameState) -> None:
     """Autosave using campaign-aware save path."""
+    import contextlib
+
+    from soloquest.config import config
     from soloquest.state.campaign import player_save_path
+    from soloquest.state.truths_md import write_adventure_truths
 
     save_path = None
     if state.campaign_dir is not None:
@@ -568,6 +578,11 @@ def _autosave_state(state: GameState) -> None:
         state.session,
         save_path=save_path,
     )
+
+    if state.truths:
+        truths_dir = state.campaign_dir if state.campaign_dir is not None else config.adventures_dir
+        with contextlib.suppress(Exception):
+            write_adventure_truths(state.truths, truths_dir, state.character.name)
 
 
 def _handle_interrupt(state: GameState) -> None:

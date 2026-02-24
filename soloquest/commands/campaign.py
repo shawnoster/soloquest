@@ -91,12 +91,13 @@ def _handle_start_solo(state: GameState) -> None:
         display.warn("Campaign setup cancelled.")
         return
 
-    character, vows, dice_mode = result
+    character, vows, dice_mode, truths = result
     state.character = character
     state.vows = vows
     state.dice_mode = dice_mode
     state.dice = make_dice_provider(dice_mode)
     state.session_count = 0
+    state.truths = truths
 
     save_game(character, vows, 0, dice_mode)
     display.success(f"Adventure begun as {character.name}!")
@@ -114,7 +115,7 @@ def _handle_start_create_coop(state: GameState) -> None:
         display.warn("Campaign setup cancelled.")
         return
 
-    character, vows, dice_mode = result
+    character, vows, dice_mode, truths = result
 
     try:
         campaign, campaign_dir = create_campaign(name.strip(), character.name)
@@ -127,6 +128,7 @@ def _handle_start_create_coop(state: GameState) -> None:
     state.dice_mode = dice_mode
     state.dice = make_dice_provider(dice_mode)
     state.session_count = 0
+    state.truths = truths
     state.campaign = campaign
     state.campaign_dir = campaign_dir
     state.sync = FileLogAdapter(campaign_dir, character.name)
@@ -180,7 +182,7 @@ def _handle_start_join_coop(state: GameState) -> None:
         display.warn("Character creation cancelled.")
         return
 
-    character, vows, dice_mode = result
+    character, vows, dice_mode, _truths = result
     target_dir = campaign_path(slug)
 
     try:

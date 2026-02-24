@@ -28,7 +28,6 @@ def _make_state(campaign=None, campaign_dir=None):
 
     character = MagicMock()
     character.name = "Kira"
-    character.truths = []
 
     state = GameState(
         character=character,
@@ -157,8 +156,8 @@ class TestHandleTruthPropose:
         with patch("soloquest.commands.truths._get_truth_choice", return_value=chosen):
             _handle_truth_propose(state, ["Cataclysm"])
 
-        assert len(state.character.truths) == 1
-        assert state.character.truths[0].option_summary == "The Sun Plague"
+        assert len(state.truths) == 1
+        assert state.truths[0].option_summary == "The Sun Plague"
 
     def test_coop_creates_pending_proposal(self, tmp_path):
         from soloquest.commands.truths import _handle_truth_propose
@@ -191,7 +190,7 @@ class TestHandleTruthPropose:
         ):
             _handle_truth_propose(state, ["Cataclysm"])
 
-        assert state.character.truths == []
+        assert state.truths == []
 
     def test_coop_publishes_propose_truth_event(self, tmp_path):
         from soloquest.commands.truths import _handle_truth_propose
@@ -302,8 +301,8 @@ class TestHandleTruthAccept:
         with patch("soloquest.state.campaign.save_campaign"):
             _handle_truth_accept(state, ["Cataclysm"])
 
-        assert len(state.character.truths) == 1
-        assert state.character.truths[0].option_summary == "The Sun Plague"
+        assert len(state.truths) == 1
+        assert state.truths[0].option_summary == "The Sun Plague"
 
     def test_accept_removes_from_pending(self, tmp_path):
         from soloquest.commands.truths import _handle_truth_accept
@@ -406,8 +405,8 @@ class TestPollAppliesAcceptedTruth:
         with patch("soloquest.loop.display"):
             _poll_and_display(state, explicit=False)
 
-        assert len(state.character.truths) == 1
-        assert state.character.truths[0].option_summary == "The Sun Plague"
+        assert len(state.truths) == 1
+        assert state.truths[0].option_summary == "The Sun Plague"
 
     def test_accept_truth_from_self_not_applied_again(self):
         """When we accept our own truth (shouldn't happen), don't double-apply."""
@@ -431,7 +430,7 @@ class TestPollAppliesAcceptedTruth:
             _poll_and_display(state, explicit=False)
 
         # Not applied (same player)
-        assert state.character.truths == []
+        assert state.truths == []
 
     def test_accept_truth_not_applied_if_already_have_it(self):
         """If we already have a truth for this category, don't overwrite it."""
@@ -441,7 +440,7 @@ class TestPollAppliesAcceptedTruth:
 
         campaign = _make_campaign()
         state = _make_state(campaign=campaign)
-        state.character.truths = [ChosenTruth(category="Cataclysm", option_summary="My Own Truth")]
+        state.truths = [ChosenTruth(category="Cataclysm", option_summary="My Own Truth")]
 
         accept_event = Event(
             player="Dax",
@@ -457,4 +456,4 @@ class TestPollAppliesAcceptedTruth:
             _poll_and_display(state, explicit=False)
 
         # Still has original truth
-        assert state.character.truths[0].option_summary == "My Own Truth"
+        assert state.truths[0].option_summary == "My Own Truth"
