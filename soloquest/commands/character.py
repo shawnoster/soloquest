@@ -39,7 +39,7 @@ def _handle_char_new(state: GameState) -> None:
         return
 
     data_dir = Path(__file__).parent.parent / "data"
-    result = run_new_character_flow(data_dir, state.truth_categories, include_truths=False)
+    result = run_new_character_flow(data_dir, state.truth_categories, include_truths=False, state=state)
     if result is None:
         display.info("New character creation cancelled.")
         return
