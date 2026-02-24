@@ -22,8 +22,8 @@ coverage.xml
 # ruff
 .ruff_cache/
 
-# Adventures directory (now configurable via SOLOQUEST_ADVENTURES_DIR)
-# Default location: ~/soloquest-adventures/
+# Adventures directory (configurable via -d / --adventures-dir flag)
+# Default location: ~/wyrd-adventures/
 # These are only here if someone runs from repo root without config
 /saves/
 /sessions/

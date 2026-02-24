@@ -533,12 +533,7 @@ When you end a session with `/end`, the CLI creates a markdown file in your adve
 **Configuring adventures directory:**
 
 ```bash
-# Option 1: Command-line argument (recommended)
 wyrd -d ~/Documents/ObsidianVault/Starforged
-
-# Option 2: Environment variable
-export SOLOQUEST_ADVENTURES_DIR="$HOME/Documents/ObsidianVault/Starforged"
-wyrd
 ```
 
 See [Adventures Directory Configuration](adventures-directory.md) for more details.
