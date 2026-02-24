@@ -35,6 +35,7 @@ docs/Ironsworn-Starforged-Rulebook.pdf
 
 # Claude Code
 .claude/settings.local.json
+.claude/worktrees/
 
 # Editor
 .vscode/
