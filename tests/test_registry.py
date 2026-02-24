@@ -1,6 +1,6 @@
 """Tests for command registry — parsing and command matching."""
 
-from soloquest.commands.registry import (
+from wyrd.commands.registry import (
     COMMAND_ALIASES,
     fuzzy_match_command,
     parse_command,

@@ -2,8 +2,8 @@
 
 from unittest.mock import patch
 
-from soloquest.models.session import EntryKind, LogEntry
-from soloquest.ui.display import recent_log
+from wyrd.models.session import EntryKind, LogEntry
+from wyrd.ui.display import recent_log
 
 
 class TestRecentLog:
@@ -19,7 +19,7 @@ class TestRecentLog:
             LogEntry(kind=EntryKind.JOURNAL, text="The enemy falls."),
         ]
 
-        with patch("soloquest.ui.display.console") as mock_console:
+        with patch("wyrd.ui.display.console") as mock_console:
             recent_log(entries, n=5)
 
         # Should call console.print multiple times (rule, entries, empty line)
@@ -41,7 +41,7 @@ class TestRecentLog:
             LogEntry(kind=EntryKind.JOURNAL, text="We advance cautiously."),
         ]
 
-        with patch("soloquest.ui.display.console") as mock_console:
+        with patch("wyrd.ui.display.console") as mock_console:
             recent_log(entries, n=5)
 
         printed_outputs = [
@@ -59,7 +59,7 @@ class TestRecentLog:
             LogEntry(kind=EntryKind.JOURNAL, text="I prepare for battle."),
         ]
 
-        with patch("soloquest.ui.display.console") as mock_console:
+        with patch("wyrd.ui.display.console") as mock_console:
             recent_log(entries, n=5)
 
         printed_outputs = [
@@ -75,7 +75,7 @@ class TestRecentLog:
             LogEntry(kind=EntryKind.JOURNAL, text="I continue exploring."),
         ]
 
-        with patch("soloquest.ui.display.console") as mock_console:
+        with patch("wyrd.ui.display.console") as mock_console:
             recent_log(entries, n=5)
 
         printed_outputs = [
@@ -94,7 +94,7 @@ class TestRecentLog:
             LogEntry(kind=EntryKind.ORACLE, text="Entry 5 Oracle"),
         ]
 
-        with patch("soloquest.ui.display.console") as mock_console:
+        with patch("wyrd.ui.display.console") as mock_console:
             recent_log(entries, n=2)
 
         # Get all calls to console.print
@@ -121,7 +121,7 @@ class TestRecentLog:
 
     def test_recent_log_empty_entries(self):
         """recent_log should handle empty entries list gracefully."""
-        with patch("soloquest.ui.display.console") as mock_console:
+        with patch("wyrd.ui.display.console") as mock_console:
             recent_log([], n=5)
 
         # Should not print anything for empty list
@@ -140,7 +140,7 @@ class TestRecentLog:
             LogEntry(kind=EntryKind.JOURNAL, text="I discover a hidden passage."),
         ]
 
-        with patch("soloquest.ui.display.console") as mock_console:
+        with patch("wyrd.ui.display.console") as mock_console:
             recent_log(entries, n=10)
 
         # Collect all printed content

@@ -4,14 +4,14 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
 
-from soloquest.models.campaign import CampaignState
-from soloquest.models.session import Session
-from soloquest.models.vow import Vow, VowRank
-from soloquest.sync import LocalAdapter
+from wyrd.models.campaign import CampaignState
+from wyrd.models.session import Session
+from wyrd.models.vow import Vow, VowRank
+from wyrd.sync import LocalAdapter
 
 
 def _make_state(campaign=None, campaign_dir=None, vows=None):
-    from soloquest.loop import GameState
+    from wyrd.loop import GameState
 
     character = MagicMock()
     character.name = "Kira"
@@ -121,23 +121,23 @@ class TestCampaignStateSharedVows:
 
 class TestHandleVowShared:
     def test_shared_without_campaign_warns(self):
-        from soloquest.commands.vow import handle_vow
+        from wyrd.commands.vow import handle_vow
 
         state = _make_state(campaign=None)
-        with patch("soloquest.commands.vow.display") as mock_display:
+        with patch("wyrd.commands.vow.display") as mock_display:
             handle_vow(state, ["dangerous", "save", "the", "colony"], {"shared"})
         mock_display.warn.assert_called_once()
         assert state.vows == []
 
     def test_shared_adds_to_campaign_shared_vows(self, tmp_path):
-        from soloquest.commands.vow import handle_vow
+        from wyrd.commands.vow import handle_vow
 
         campaign = _make_campaign()
         state = _make_state(campaign=campaign, campaign_dir=tmp_path)
         # Create necessary subdirectory structure
         (tmp_path / "events").mkdir()
 
-        with patch("soloquest.state.campaign.save_campaign"):
+        with patch("wyrd.state.campaign.save_campaign"):
             handle_vow(state, ["dangerous", "save", "colony"], {"shared"})
 
         assert len(state.campaign.shared_vows) == 1
@@ -147,25 +147,25 @@ class TestHandleVowShared:
         assert vow.shared is True
 
     def test_shared_does_not_add_to_personal_vows(self, tmp_path):
-        from soloquest.commands.vow import handle_vow
+        from wyrd.commands.vow import handle_vow
 
         campaign = _make_campaign()
         state = _make_state(campaign=campaign, campaign_dir=tmp_path)
 
-        with patch("soloquest.state.campaign.save_campaign"):
+        with patch("wyrd.state.campaign.save_campaign"):
             handle_vow(state, ["dangerous", "save", "colony"], {"shared"})
 
         assert state.vows == []
 
     def test_shared_publishes_event(self, tmp_path):
-        from soloquest.commands.vow import handle_vow
+        from wyrd.commands.vow import handle_vow
 
         campaign = _make_campaign()
         state = _make_state(campaign=campaign, campaign_dir=tmp_path)
         mock_sync = MagicMock()
         state.sync = mock_sync
 
-        with patch("soloquest.state.campaign.save_campaign"):
+        with patch("wyrd.state.campaign.save_campaign"):
             handle_vow(state, ["formidable", "find", "the", "relic"], {"shared"})
 
         mock_sync.publish.assert_called_once()
@@ -175,7 +175,7 @@ class TestHandleVowShared:
         assert event.data["rank"] == "formidable"
 
     def test_unshared_vow_works_as_before(self):
-        from soloquest.commands.vow import handle_vow
+        from wyrd.commands.vow import handle_vow
 
         state = _make_state()
         handle_vow(state, ["dangerous", "save", "colony"], set())
@@ -190,21 +190,21 @@ class TestHandleVowShared:
 
 class TestHandleProgressSharedVows:
     def test_progress_on_shared_vow(self, tmp_path):
-        from soloquest.commands.vow import handle_progress
+        from wyrd.commands.vow import handle_progress
 
         campaign = _make_campaign()
         vow = Vow(description="Find the relic", rank=VowRank.DANGEROUS, shared=True)
         campaign.shared_vows.append(vow)
         state = _make_state(campaign=campaign, campaign_dir=tmp_path)
 
-        with patch("soloquest.state.campaign.save_campaign") as mock_save:
+        with patch("wyrd.state.campaign.save_campaign") as mock_save:
             handle_progress(state, ["relic"], set())
 
         assert vow.ticks > 0
         mock_save.assert_called_once()
 
     def test_progress_on_shared_vow_publishes_event(self, tmp_path):
-        from soloquest.commands.vow import handle_progress
+        from wyrd.commands.vow import handle_progress
 
         campaign = _make_campaign()
         vow = Vow(description="Find the relic", rank=VowRank.DANGEROUS, shared=True)
@@ -213,7 +213,7 @@ class TestHandleProgressSharedVows:
         mock_sync = MagicMock()
         state.sync = mock_sync
 
-        with patch("soloquest.state.campaign.save_campaign"):
+        with patch("wyrd.state.campaign.save_campaign"):
             handle_progress(state, ["relic"], set())
 
         mock_sync.publish.assert_called_once()
@@ -221,18 +221,18 @@ class TestHandleProgressSharedVows:
         assert event.type == "shared_vow_progress"
 
     def test_progress_on_personal_vow_does_not_save_campaign(self):
-        from soloquest.commands.vow import handle_progress
+        from wyrd.commands.vow import handle_progress
 
         vow = Vow(description="Personal goal", rank=VowRank.DANGEROUS)
         state = _make_state(vows=[vow])
 
-        with patch("soloquest.state.campaign.save_campaign") as mock_save:
+        with patch("wyrd.state.campaign.save_campaign") as mock_save:
             handle_progress(state, ["personal"], set())
 
         mock_save.assert_not_called()
 
     def test_shared_vow_shown_in_active_pool(self):
-        from soloquest.commands.vow import handle_progress
+        from wyrd.commands.vow import handle_progress
 
         campaign = _make_campaign()
         shared_vow = Vow(description="Shared goal", rank=VowRank.DANGEROUS, shared=True)
@@ -241,7 +241,7 @@ class TestHandleProgressSharedVows:
         state = _make_state(campaign=campaign, vows=[personal_vow])
 
         # Both vows should be visible; resolve "shared" query matches shared vow
-        with patch("soloquest.state.campaign.save_campaign"):
+        with patch("wyrd.state.campaign.save_campaign"):
             handle_progress(state, ["shared"], set())
 
         assert shared_vow.ticks > 0

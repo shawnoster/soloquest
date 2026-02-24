@@ -6,8 +6,8 @@ from pathlib import Path
 
 import pytest
 
-from soloquest.models.truths import ChosenTruth
-from soloquest.state.truths_md import (
+from wyrd.models.truths import ChosenTruth
+from wyrd.state.truths_md import (
     read_adventure_truths,
     read_truths_md,
     truths_from_markdown,
@@ -263,10 +263,10 @@ class TestSaveLoadIntegration:
         """save_game should not write a character-level .truths.md any more."""
         import unittest.mock as mock
 
-        from soloquest.engine.dice import DiceMode
-        from soloquest.models.character import Character
-        from soloquest.state import save as save_module
-        from soloquest.state.save import save_game
+        from wyrd.engine.dice import DiceMode
+        from wyrd.models.character import Character
+        from wyrd.state import save as save_module
+        from wyrd.state.save import save_game
 
         char = Character(name="Kira")
         saves_dir = tmp_path / "saves"

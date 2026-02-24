@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from soloquest.models.asset import CharacterAsset
+from wyrd.models.asset import CharacterAsset
 
 
 class TestAdjustTrack:

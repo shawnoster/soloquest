@@ -33,9 +33,9 @@
 ## Dataforged Integration
 
 - Game data (oracles, moves, assets) sourced from [dataforged](https://github.com/rsek/dataforged)
-- JSON files vendored in `soloquest/data/dataforged/`
-- Custom TOML files in `soloquest/data/` take priority (allow overrides)
-- License: CC BY 4.0 / CC BY-NC 4.0 / MIT (see `soloquest/data/dataforged/LICENSE.md`)
+- JSON files vendored in `wyrd/data/dataforged/`
+- Custom TOML files in `wyrd/data/` take priority (allow overrides)
+- License: CC BY 4.0 / CC BY-NC 4.0 / MIT (see `wyrd/data/dataforged/LICENSE.md`)
 - Attribution: Game content © Shawn Tomkin
 
 ## Documentation Structure

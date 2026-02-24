@@ -6,7 +6,7 @@ from unittest.mock import ANY, MagicMock, patch
 
 import pytest
 
-from soloquest.commands.truths import (
+from wyrd.commands.truths import (
     _create_chosen_truth,
     _get_subchoice,
     _get_truth_choice,
@@ -19,9 +19,9 @@ from soloquest.commands.truths import (
     handle_truths,
     run_truths_wizard,
 )
-from soloquest.models.character import Character, Stats
-from soloquest.models.session import Session
-from soloquest.models.truths import ChosenTruth, TruthCategory, TruthOption
+from wyrd.models.character import Character, Stats
+from wyrd.models.session import Session
+from wyrd.models.truths import ChosenTruth, TruthCategory, TruthOption
 
 
 @pytest.fixture
@@ -98,50 +98,50 @@ def _make_test_categories() -> dict[str, TruthCategory]:
 class TestHandleTruths:
     """Test the main handle_truths command router."""
 
-    @patch("soloquest.commands.truths._start_truths_wizard")
+    @patch("wyrd.commands.truths._start_truths_wizard")
     def test_handle_truths_start_subcommand(self, mock_start, mock_state):
         """Test /truths start calls wizard."""
         handle_truths(mock_state, ["start"], set())
         mock_start.assert_called_once_with(mock_state)
 
-    @patch("soloquest.commands.truths._show_truths")
+    @patch("wyrd.commands.truths._show_truths")
     def test_handle_truths_show_subcommand(self, mock_show, mock_state):
         """Test /truths show displays truths."""
         handle_truths(mock_state, ["show"], set())
         mock_show.assert_called_once_with(mock_state)
 
-    @patch("soloquest.commands.truths._handle_truth_propose")
+    @patch("wyrd.commands.truths._handle_truth_propose")
     def test_handle_truths_propose_subcommand(self, mock_propose, mock_state):
         """Test /truths propose routes correctly."""
         handle_truths(mock_state, ["propose", "Cataclysm"], set())
         mock_propose.assert_called_once_with(mock_state, ["Cataclysm"])
 
-    @patch("soloquest.commands.truths._handle_truth_review")
+    @patch("wyrd.commands.truths._handle_truth_review")
     def test_handle_truths_review_subcommand(self, mock_review, mock_state):
         """Test /truths review routes correctly."""
         handle_truths(mock_state, ["review"], set())
         mock_review.assert_called_once_with(mock_state)
 
-    @patch("soloquest.commands.truths._handle_truth_accept")
+    @patch("wyrd.commands.truths._handle_truth_accept")
     def test_handle_truths_accept_subcommand(self, mock_accept, mock_state):
         """Test /truths accept routes correctly."""
         handle_truths(mock_state, ["accept", "Cataclysm"], set())
         mock_accept.assert_called_once_with(mock_state, ["Cataclysm"])
 
-    @patch("soloquest.commands.truths._handle_truth_counter")
+    @patch("wyrd.commands.truths._handle_truth_counter")
     def test_handle_truths_counter_subcommand(self, mock_counter, mock_state):
         """Test /truths counter routes correctly."""
         handle_truths(mock_state, ["counter", "option"], set())
         mock_counter.assert_called_once_with(mock_state, ["option"])
 
-    @patch("soloquest.commands.truths._show_truths")
+    @patch("wyrd.commands.truths._show_truths")
     def test_handle_truths_no_args_with_existing_truths(self, mock_show, mock_state):
         """Test /truths with no args shows truths if they exist."""
         mock_state.truths = [ChosenTruth(category="Cataclysm", option_summary="The Sun Plague")]
         handle_truths(mock_state, [], set())
         mock_show.assert_called_once_with(mock_state)
 
-    @patch("soloquest.commands.truths._prompt_to_start_wizard")
+    @patch("wyrd.commands.truths._prompt_to_start_wizard")
     def test_handle_truths_no_args_without_truths(self, mock_prompt, mock_state):
         """Test /truths with no args prompts to start wizard if no truths."""
         mock_state.truths = []
@@ -155,17 +155,17 @@ class TestHandleTruths:
 class TestPromptToStartWizard:
     """Test the initial prompt to start the truths wizard."""
 
-    @patch("soloquest.commands.truths.display")
-    @patch("soloquest.commands.truths.Confirm.ask", return_value=False)
+    @patch("wyrd.commands.truths.display")
+    @patch("wyrd.commands.truths.Confirm.ask", return_value=False)
     def test_prompt_to_start_wizard_declined(self, mock_confirm, mock_display, mock_state):
         """Test declining to start wizard shows info message."""
         _prompt_to_start_wizard(mock_state)
         mock_confirm.assert_called_once()
         mock_display.info.assert_called_once()
 
-    @patch("soloquest.commands.truths._start_truths_wizard")
-    @patch("soloquest.commands.truths.display")
-    @patch("soloquest.commands.truths.Confirm.ask", return_value=True)
+    @patch("wyrd.commands.truths._start_truths_wizard")
+    @patch("wyrd.commands.truths.display")
+    @patch("wyrd.commands.truths.Confirm.ask", return_value=True)
     def test_prompt_to_start_wizard_accepted(
         self, mock_confirm, mock_display, mock_start, mock_state
     ):
@@ -174,8 +174,8 @@ class TestPromptToStartWizard:
         mock_confirm.assert_called_once()
         mock_start.assert_called_once_with(mock_state)
 
-    @patch("soloquest.commands.truths.display")
-    @patch("soloquest.commands.truths.Confirm.ask", side_effect=KeyboardInterrupt)
+    @patch("wyrd.commands.truths.display")
+    @patch("wyrd.commands.truths.Confirm.ask", side_effect=KeyboardInterrupt)
     def test_prompt_to_start_wizard_keyboard_interrupt(
         self, mock_confirm, mock_display, mock_state
     ):
@@ -183,8 +183,8 @@ class TestPromptToStartWizard:
         _prompt_to_start_wizard(mock_state)
         mock_display.info.assert_called_once()
 
-    @patch("soloquest.commands.truths.display")
-    @patch("soloquest.commands.truths.Confirm.ask", side_effect=EOFError)
+    @patch("wyrd.commands.truths.display")
+    @patch("wyrd.commands.truths.Confirm.ask", side_effect=EOFError)
     def test_prompt_to_start_wizard_eof_error(self, mock_confirm, mock_display, mock_state):
         """Test EOF error during prompt."""
         _prompt_to_start_wizard(mock_state)
@@ -197,8 +197,8 @@ class TestPromptToStartWizard:
 class TestStartTruthsWizard:
     """Test starting the truths wizard."""
 
-    @patch("soloquest.commands.truths.run_truths_wizard")
-    @patch("soloquest.commands.truths.display")
+    @patch("wyrd.commands.truths.run_truths_wizard")
+    @patch("wyrd.commands.truths.display")
     def test_start_wizard_with_no_existing_truths(self, mock_display, mock_run_wizard, mock_state):
         """Test starting wizard when no truths exist."""
         chosen_truths = [ChosenTruth(category="Cataclysm", option_summary="The Sun Plague")]
@@ -212,9 +212,9 @@ class TestStartTruthsWizard:
         assert mock_state.truths == chosen_truths
         mock_display.success.assert_called_once()
 
-    @patch("soloquest.commands.truths.run_truths_wizard")
-    @patch("soloquest.commands.truths.display")
-    @patch("soloquest.commands.truths.Confirm.ask", return_value=True)
+    @patch("wyrd.commands.truths.run_truths_wizard")
+    @patch("wyrd.commands.truths.display")
+    @patch("wyrd.commands.truths.Confirm.ask", return_value=True)
     def test_start_wizard_with_existing_truths_overwrite_confirmed(
         self, mock_confirm, mock_display, mock_run_wizard, mock_state
     ):
@@ -229,8 +229,8 @@ class TestStartTruthsWizard:
         mock_run_wizard.assert_called_once()
         assert mock_state.truths == new_truths
 
-    @patch("soloquest.commands.truths.display")
-    @patch("soloquest.commands.truths.Confirm.ask", return_value=False)
+    @patch("wyrd.commands.truths.display")
+    @patch("wyrd.commands.truths.Confirm.ask", return_value=False)
     def test_start_wizard_with_existing_truths_overwrite_declined(
         self, mock_confirm, mock_display, mock_state
     ):
@@ -245,8 +245,8 @@ class TestStartTruthsWizard:
         mock_display.info.assert_called_once()
         assert mock_state.truths == original_truths
 
-    @patch("soloquest.commands.truths.display")
-    @patch("soloquest.commands.truths.Confirm.ask", side_effect=KeyboardInterrupt)
+    @patch("wyrd.commands.truths.display")
+    @patch("wyrd.commands.truths.Confirm.ask", side_effect=KeyboardInterrupt)
     def test_start_wizard_keyboard_interrupt_on_overwrite_prompt(
         self, mock_confirm, mock_display, mock_state
     ):
@@ -259,8 +259,8 @@ class TestStartTruthsWizard:
         mock_display.info.assert_called_once_with("Keeping existing truths.")
         assert mock_state.truths == original_truths
 
-    @patch("soloquest.commands.truths.run_truths_wizard", return_value=None)
-    @patch("soloquest.commands.truths.display")
+    @patch("wyrd.commands.truths.run_truths_wizard", return_value=None)
+    @patch("wyrd.commands.truths.display")
     def test_start_wizard_cancelled_during_wizard(self, mock_display, mock_run_wizard, mock_state):
         """Test wizard returning None (cancelled)."""
         original_truths = []
@@ -304,10 +304,10 @@ class TestGetTruthChoice:
             ],
         )
 
-    @patch("soloquest.commands.truths.Prompt.ask", return_value="1")
-    @patch("soloquest.commands.truths._show_option_details", return_value="")
-    @patch("soloquest.commands.truths._prompt_note", return_value="")
-    @patch("soloquest.commands.truths.display")
+    @patch("wyrd.commands.truths.Prompt.ask", return_value="1")
+    @patch("wyrd.commands.truths._show_option_details", return_value="")
+    @patch("wyrd.commands.truths._prompt_note", return_value="")
+    @patch("wyrd.commands.truths.display")
     def test_get_truth_choice_numbered_option_1(
         self, mock_display, mock_note, mock_details, mock_prompt
     ):
@@ -320,10 +320,10 @@ class TestGetTruthChoice:
         mock_details.assert_called_once()
         mock_note.assert_called_once()
 
-    @patch("soloquest.commands.truths.Prompt.ask", return_value="2")
-    @patch("soloquest.commands.truths._show_option_details", return_value="")
-    @patch("soloquest.commands.truths._prompt_note", return_value="My note")
-    @patch("soloquest.commands.truths.display")
+    @patch("wyrd.commands.truths.Prompt.ask", return_value="2")
+    @patch("wyrd.commands.truths._show_option_details", return_value="")
+    @patch("wyrd.commands.truths._prompt_note", return_value="My note")
+    @patch("wyrd.commands.truths.display")
     def test_get_truth_choice_numbered_option_2_with_note(
         self, mock_display, mock_note, mock_details, mock_prompt
     ):
@@ -334,10 +334,10 @@ class TestGetTruthChoice:
         assert result.option_summary == "Entities"
         assert result.note == "My note"
 
-    @patch("soloquest.commands.truths.Prompt.ask", return_value="3")
-    @patch("soloquest.commands.truths._show_option_details", return_value="subchoice text")
-    @patch("soloquest.commands.truths._prompt_note", return_value="")
-    @patch("soloquest.commands.truths.display")
+    @patch("wyrd.commands.truths.Prompt.ask", return_value="3")
+    @patch("wyrd.commands.truths._show_option_details", return_value="subchoice text")
+    @patch("wyrd.commands.truths._prompt_note", return_value="")
+    @patch("wyrd.commands.truths.display")
     def test_get_truth_choice_numbered_option_3_with_subchoice(
         self, mock_display, mock_note, mock_details, mock_prompt
     ):
@@ -348,8 +348,8 @@ class TestGetTruthChoice:
         assert result.option_summary == "War"
         assert result.subchoice == "subchoice text"
 
-    @patch("soloquest.commands.truths.Prompt.ask", return_value="s")
-    @patch("soloquest.commands.truths.display")
+    @patch("wyrd.commands.truths.Prompt.ask", return_value="s")
+    @patch("wyrd.commands.truths.display")
     def test_get_truth_choice_skip(self, mock_display, mock_prompt):
         """Test skipping a truth."""
         result = _get_truth_choice(self.category)
@@ -363,9 +363,9 @@ class TestGetTruthChoice:
         """Test entering a custom truth."""
         # Mock Prompt.ask to return "c" first (for choice), then the custom text
         with (
-            patch("soloquest.commands.truths.Prompt.ask") as mock_ask,
-            patch("soloquest.commands.truths._prompt_note", return_value="Custom note"),
-            patch("soloquest.commands.truths.display"),
+            patch("wyrd.commands.truths.Prompt.ask") as mock_ask,
+            patch("wyrd.commands.truths._prompt_note", return_value="Custom note"),
+            patch("wyrd.commands.truths.display"),
         ):
             mock_ask.side_effect = ["c", "My custom truth"]
 
@@ -377,13 +377,13 @@ class TestGetTruthChoice:
             assert result.custom_text == "My custom truth"
             assert result.note == "Custom note"
 
-    @patch("soloquest.commands.truths._prompt_note", return_value="")
-    @patch("soloquest.commands.truths.display")
+    @patch("wyrd.commands.truths._prompt_note", return_value="")
+    @patch("wyrd.commands.truths.display")
     def test_get_truth_choice_custom_empty_retry(self, mock_display, mock_note):
         """Test entering empty custom truth retries."""
         # First return "c" for custom, then empty string triggers error,
         # then "c" again, then valid custom text
-        with patch("soloquest.commands.truths.Prompt.ask") as mock_ask:
+        with patch("wyrd.commands.truths.Prompt.ask") as mock_ask:
             mock_ask.side_effect = ["c", "", "c", "Valid custom text"]
 
             result = _get_truth_choice(self.category)
@@ -392,11 +392,11 @@ class TestGetTruthChoice:
             assert result.custom_text == "Valid custom text"
             mock_display.error.assert_called_once()
 
-    @patch("soloquest.commands.truths.Prompt.ask", return_value="r")
-    @patch("soloquest.commands.truths.random.randint", return_value=50)
-    @patch("soloquest.commands.truths._show_option_details", return_value="")
-    @patch("soloquest.commands.truths._prompt_note", return_value="")
-    @patch("soloquest.commands.truths.display")
+    @patch("wyrd.commands.truths.Prompt.ask", return_value="r")
+    @patch("wyrd.commands.truths.random.randint", return_value=50)
+    @patch("wyrd.commands.truths._show_option_details", return_value="")
+    @patch("wyrd.commands.truths._prompt_note", return_value="")
+    @patch("wyrd.commands.truths.display")
     def test_get_truth_choice_roll(
         self, mock_display, mock_note, mock_details, mock_randint, mock_prompt
     ):
@@ -407,11 +407,11 @@ class TestGetTruthChoice:
         assert result.option_summary == "Entities"  # roll 50 matches 34-67
         mock_randint.assert_called_once_with(1, 100)
 
-    @patch("soloquest.commands.truths.Prompt.ask")
-    @patch("soloquest.commands.truths.random.randint")
-    @patch("soloquest.commands.truths._show_option_details", return_value="")
-    @patch("soloquest.commands.truths._prompt_note", return_value="")
-    @patch("soloquest.commands.truths.display")
+    @patch("wyrd.commands.truths.Prompt.ask")
+    @patch("wyrd.commands.truths.random.randint")
+    @patch("wyrd.commands.truths._show_option_details", return_value="")
+    @patch("wyrd.commands.truths._prompt_note", return_value="")
+    @patch("wyrd.commands.truths.display")
     def test_get_truth_choice_invalid_then_valid(
         self, mock_display, mock_note, mock_details, mock_randint, mock_prompt
     ):
@@ -424,8 +424,8 @@ class TestGetTruthChoice:
         assert result.option_summary == "The Sun Plague"
         mock_display.error.assert_called_once()
 
-    @patch("soloquest.commands.truths.Prompt.ask", side_effect=KeyboardInterrupt)
-    @patch("soloquest.commands.truths.display")
+    @patch("wyrd.commands.truths.Prompt.ask", side_effect=KeyboardInterrupt)
+    @patch("wyrd.commands.truths.display")
     def test_get_truth_choice_keyboard_interrupt(self, mock_display, mock_prompt):
         """Test keyboard interrupt raises exception."""
         with pytest.raises(KeyboardInterrupt):
@@ -446,25 +446,25 @@ class TestGetSubchoice:
             "Experiment gone wrong [76-100]",
         ]
 
-    @patch("soloquest.commands.truths.Prompt.ask", return_value="1")
-    @patch("soloquest.commands.truths.display")
+    @patch("wyrd.commands.truths.Prompt.ask", return_value="1")
+    @patch("wyrd.commands.truths.display")
     def test_get_subchoice_numbered_selection(self, mock_display, mock_prompt):
         """Test selecting a subchoice by number."""
         result = _get_subchoice(self.subchoices)
 
         assert result == "Temporal distortions"
 
-    @patch("soloquest.commands.truths.Prompt.ask", return_value="4")
-    @patch("soloquest.commands.truths.display")
+    @patch("wyrd.commands.truths.Prompt.ask", return_value="4")
+    @patch("wyrd.commands.truths.display")
     def test_get_subchoice_last_option(self, mock_display, mock_prompt):
         """Test selecting the last subchoice."""
         result = _get_subchoice(self.subchoices)
 
         assert result == "Experiment gone wrong"
 
-    @patch("soloquest.commands.truths.Prompt.ask", return_value="r")
-    @patch("soloquest.commands.truths.random.randint", return_value=30)
-    @patch("soloquest.commands.truths.display")
+    @patch("wyrd.commands.truths.Prompt.ask", return_value="r")
+    @patch("wyrd.commands.truths.random.randint", return_value=30)
+    @patch("wyrd.commands.truths.display")
     def test_get_subchoice_roll(self, mock_display, mock_randint, mock_prompt):
         """Test rolling for a subchoice."""
         result = _get_subchoice(self.subchoices)
@@ -472,26 +472,26 @@ class TestGetSubchoice:
         assert result == "Dark matter decay"  # roll 30 matches 26-50
         mock_randint.assert_called_once_with(1, 100)
 
-    @patch("soloquest.commands.truths.Prompt.ask", return_value="r")
-    @patch("soloquest.commands.truths.random.randint", return_value=1)
-    @patch("soloquest.commands.truths.display")
+    @patch("wyrd.commands.truths.Prompt.ask", return_value="r")
+    @patch("wyrd.commands.truths.random.randint", return_value=1)
+    @patch("wyrd.commands.truths.display")
     def test_get_subchoice_roll_first_range(self, mock_display, mock_randint, mock_prompt):
         """Test rolling matches first range."""
         result = _get_subchoice(self.subchoices)
 
         assert result == "Temporal distortions"
 
-    @patch("soloquest.commands.truths.Prompt.ask", return_value="r")
-    @patch("soloquest.commands.truths.random.randint", return_value=100)
-    @patch("soloquest.commands.truths.display")
+    @patch("wyrd.commands.truths.Prompt.ask", return_value="r")
+    @patch("wyrd.commands.truths.random.randint", return_value=100)
+    @patch("wyrd.commands.truths.display")
     def test_get_subchoice_roll_last_range(self, mock_display, mock_randint, mock_prompt):
         """Test rolling matches last range."""
         result = _get_subchoice(self.subchoices)
 
         assert result == "Experiment gone wrong"
 
-    @patch("soloquest.commands.truths.Prompt.ask")
-    @patch("soloquest.commands.truths.display")
+    @patch("wyrd.commands.truths.Prompt.ask")
+    @patch("wyrd.commands.truths.display")
     def test_get_subchoice_invalid_then_valid(self, mock_display, mock_prompt):
         """Test invalid choice followed by valid choice."""
         mock_prompt.side_effect = ["invalid", "2"]
@@ -501,8 +501,8 @@ class TestGetSubchoice:
         assert result == "Dark matter decay"
         mock_display.error.assert_called_once()
 
-    @patch("soloquest.commands.truths.Prompt.ask", side_effect=KeyboardInterrupt)
-    @patch("soloquest.commands.truths.display")
+    @patch("wyrd.commands.truths.Prompt.ask", side_effect=KeyboardInterrupt)
+    @patch("wyrd.commands.truths.display")
     def test_get_subchoice_keyboard_interrupt(self, mock_display, mock_prompt):
         """Test keyboard interrupt returns empty string."""
         result = _get_subchoice(self.subchoices)
@@ -516,28 +516,28 @@ class TestGetSubchoice:
 class TestPromptNote:
     """Test note prompt functionality."""
 
-    @patch("soloquest.commands.truths.Prompt.ask", return_value="My personal note")
+    @patch("wyrd.commands.truths.Prompt.ask", return_value="My personal note")
     def test_prompt_note_with_text(self, mock_prompt):
         """Test entering a note."""
         result = _prompt_note()
 
         assert result == "My personal note"
 
-    @patch("soloquest.commands.truths.Prompt.ask", return_value="")
+    @patch("wyrd.commands.truths.Prompt.ask", return_value="")
     def test_prompt_note_empty(self, mock_prompt):
         """Test skipping note entry."""
         result = _prompt_note()
 
         assert result == ""
 
-    @patch("soloquest.commands.truths.Prompt.ask", side_effect=KeyboardInterrupt)
+    @patch("wyrd.commands.truths.Prompt.ask", side_effect=KeyboardInterrupt)
     def test_prompt_note_keyboard_interrupt(self, mock_prompt):
         """Test keyboard interrupt returns empty string."""
         result = _prompt_note()
 
         assert result == ""
 
-    @patch("soloquest.commands.truths.Prompt.ask", side_effect=EOFError)
+    @patch("wyrd.commands.truths.Prompt.ask", side_effect=EOFError)
     def test_prompt_note_eof_error(self, mock_prompt):
         """Test EOF error returns empty string."""
         result = _prompt_note()
@@ -551,8 +551,8 @@ class TestPromptNote:
 class TestShowOptionDetails:
     """Test showing option details."""
 
-    @patch("soloquest.commands.truths._get_subchoice", return_value="chosen sub")
-    @patch("soloquest.commands.truths.display")
+    @patch("wyrd.commands.truths._get_subchoice", return_value="chosen sub")
+    @patch("wyrd.commands.truths.display")
     def test_show_option_details_with_subchoices_and_quest_starter(
         self, mock_display, mock_subchoice
     ):
@@ -570,7 +570,7 @@ class TestShowOptionDetails:
         assert result == "chosen sub"
         mock_subchoice.assert_called_once_with(option.subchoices, state=None, session=None)
 
-    @patch("soloquest.commands.truths.display")
+    @patch("wyrd.commands.truths.display")
     def test_show_option_details_without_subchoices(self, mock_display):
         """Test showing option without subchoices."""
         option = TruthOption(
@@ -584,7 +584,7 @@ class TestShowOptionDetails:
 
         assert result == ""
 
-    @patch("soloquest.commands.truths.display")
+    @patch("wyrd.commands.truths.display")
     def test_show_option_details_without_quest_starter(self, mock_display):
         """Test showing option without quest starter."""
         option = TruthOption(
@@ -604,7 +604,7 @@ class TestShowOptionDetails:
 class TestShowTruths:
     """Test displaying truths."""
 
-    @patch("soloquest.commands.truths.display")
+    @patch("wyrd.commands.truths.display")
     def test_show_truths_with_no_truths(self, mock_display, mock_state):
         """Test showing truths when none are set."""
         mock_state.truths = []
@@ -613,7 +613,7 @@ class TestShowTruths:
 
         mock_display.info.assert_called_once()
 
-    @patch("soloquest.commands.truths.display")
+    @patch("wyrd.commands.truths.display")
     def test_show_truths_with_truths(self, mock_display, mock_state):
         """Test showing truths when they exist."""
         mock_state.truths = [
@@ -636,7 +636,7 @@ class TestShowTruths:
 class TestShowSummary:
     """Test showing truth summary."""
 
-    @patch("soloquest.commands.truths.display")
+    @patch("wyrd.commands.truths.display")
     def test_show_summary_with_truths(self, mock_display):
         """Test showing summary of truths."""
         truths = [
@@ -699,7 +699,7 @@ class TestCreateChosenTruth:
 class TestRunTruthsWizard:
     """Test the full truths wizard flow."""
 
-    @patch("soloquest.commands.truths.display")
+    @patch("wyrd.commands.truths.display")
     def test_run_truths_wizard_no_categories(self, mock_display):
         """Test wizard with no categories returns None."""
         result = run_truths_wizard({})
@@ -707,9 +707,9 @@ class TestRunTruthsWizard:
         assert result is None
         mock_display.error.assert_called_once()
 
-    @patch("soloquest.commands.truths.Confirm.ask", return_value=False)
-    @patch("soloquest.commands.truths._get_truth_choice")
-    @patch("soloquest.commands.truths.display")
+    @patch("wyrd.commands.truths.Confirm.ask", return_value=False)
+    @patch("wyrd.commands.truths._get_truth_choice")
+    @patch("wyrd.commands.truths.display")
     def test_run_truths_wizard_declined_confirmation(
         self, mock_display, mock_get_choice, mock_confirm
     ):
@@ -722,10 +722,10 @@ class TestRunTruthsWizard:
         assert result is None
         mock_display.info.assert_called_once()
 
-    @patch("soloquest.commands.truths.Confirm.ask", return_value=True)
-    @patch("soloquest.commands.truths._get_truth_choice")
-    @patch("soloquest.commands.truths.display")
-    @patch("soloquest.commands.truths._show_introduction")
+    @patch("wyrd.commands.truths.Confirm.ask", return_value=True)
+    @patch("wyrd.commands.truths._get_truth_choice")
+    @patch("wyrd.commands.truths.display")
+    @patch("wyrd.commands.truths._show_introduction")
     def test_run_truths_wizard_success(
         self, mock_intro, mock_display, mock_get_choice, mock_confirm
     ):
@@ -745,9 +745,9 @@ class TestRunTruthsWizard:
         assert result[0].category == "Cataclysm"
         assert result[1].category == "Exodus"
 
-    @patch("soloquest.commands.truths._get_truth_choice", side_effect=KeyboardInterrupt)
-    @patch("soloquest.commands.truths.display")
-    @patch("soloquest.commands.truths._show_introduction")
+    @patch("wyrd.commands.truths._get_truth_choice", side_effect=KeyboardInterrupt)
+    @patch("wyrd.commands.truths.display")
+    @patch("wyrd.commands.truths._show_introduction")
     def test_run_truths_wizard_keyboard_interrupt(self, mock_intro, mock_display, mock_get_choice):
         """Test keyboard interrupt during wizard returns None."""
         categories = _make_test_categories()

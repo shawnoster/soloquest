@@ -55,7 +55,7 @@ Each category typically offers 3-4 options ranging from more optimistic to darke
 ### New Files
 
 ```
-soloquest/
+wyrd/
 ├── models/
 │   └── truths.py           # Truth and TruthCategory models
 ├── engine/
@@ -77,7 +77,7 @@ tests/
 ### Data Model
 
 ```python
-# soloquest/models/truths.py
+# wyrd/models/truths.py
 from dataclasses import dataclass
 
 @dataclass
@@ -118,12 +118,12 @@ class ChosenTruth:
 **Goal:** Obtain the 14 truth categories and their options.
 
 **Approach:**
-- Check if existing `soloquest/data/dataforged/*.json` files contain truths
+- Check if existing `wyrd/data/dataforged/*.json` files contain truths
 - If not, download/extract from [dataforged npm package](https://github.com/rsek/dataforged)
 - The truths data is in `dist/starforged/dataforged.json`
-- May need to add a separate JSON file: `soloquest/data/dataforged/truths.json`
+- May need to add a separate JSON file: `wyrd/data/dataforged/truths.json`
 
-**Deliverable:** Truth data available in `soloquest/data/dataforged/`
+**Deliverable:** Truth data available in `wyrd/data/dataforged/`
 
 ---
 
@@ -132,10 +132,10 @@ class ChosenTruth:
 **Goal:** Add Python models for truth data.
 
 **Files:**
-- `soloquest/models/truths.py` - TruthOption, TruthCategory, ChosenTruth
+- `wyrd/models/truths.py` - TruthOption, TruthCategory, ChosenTruth
 
 **Integration:**
-- Update `soloquest/models/character.py`:
+- Update `wyrd/models/character.py`:
   ```python
   @dataclass
   class Character:
@@ -151,7 +151,7 @@ class ChosenTruth:
 
 **Goal:** Load truth categories from dataforged.
 
-**File:** `soloquest/engine/truths.py`
+**File:** `wyrd/engine/truths.py`
 
 **Pattern:** Follow existing patterns in `engine/oracles.py` and `engine/moves.py`
 
@@ -172,7 +172,7 @@ def get_truth_category(name: str) -> TruthCategory | None:
 
 **Goal:** Implement `/truths` command with interactive flow.
 
-**File:** `soloquest/commands/truths.py`
+**File:** `wyrd/commands/truths.py`
 
 **Command Variants:**
 - `/truths` - Start the wizard (if no truths set) or show current truths
@@ -275,7 +275,7 @@ def get_truth_category(name: str) -> TruthCategory | None:
    - Add entry for version 2.2.0
    - Document new `/truths` command
 
-4. **Help System** (`soloquest/commands/help.py`):
+4. **Help System** (`wyrd/commands/help.py`):
    - Add `/truths` to command list
    - Add detailed help text
 
@@ -291,7 +291,7 @@ def get_truth_category(name: str) -> TruthCategory | None:
 ### New Character Creation
 
 ```
-$ soloquest
+$ wyrd
 
 Welcome to Soloquest!
 
@@ -377,8 +377,8 @@ Commands:
 
 Follow the existing pattern from CLAUDE.md:
 
-1. **Custom TOML** (`soloquest/data/truths.toml`) - User overrides
-2. **Dataforged JSON** (`soloquest/data/dataforged/truths.json`) - Official data
+1. **Custom TOML** (`wyrd/data/truths.toml`) - User overrides
+2. **Dataforged JSON** (`wyrd/data/dataforged/truths.json`) - Official data
 
 ### Storage Format
 
@@ -401,7 +401,7 @@ Store truths in character save JSON:
 
 ### Command Registry
 
-Register in `soloquest/commands/registry.py`:
+Register in `wyrd/commands/registry.py`:
 
 ```python
 COMMAND_HANDLERS = {

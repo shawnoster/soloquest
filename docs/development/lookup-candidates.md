@@ -10,13 +10,13 @@ should be moved to TOML data files, following the pattern established by:
 
 ## ~~1. `COMMAND_HELP` in `registry.py` → `commands.toml`~~ ✅ Done (PR #114)
 
-All command help strings moved to `soloquest/data/commands.toml`.
+All command help strings moved to `wyrd/data/commands.toml`.
 
 ---
 
 ## 2. Oracle display data in `oracle.py` → `oracles.toml`
 
-**Location:** `soloquest/commands/oracle.py:19-86`
+**Location:** `wyrd/commands/oracle.py:19-86`
 
 Two hardcoded structures drive the `/oracle` list display:
 
@@ -29,7 +29,7 @@ configuration data determining how the oracle list panel is rendered.
 Seven curated example combos shown at the bottom of `/oracle` with no args.
 These are editorial choices about useful prompts, not code.
 
-**Proposed addition to:** `soloquest/data/oracles.toml`
+**Proposed addition to:** `wyrd/data/oracles.toml`
 
 ```toml
 [display]
@@ -63,7 +63,7 @@ configuration that doesn't belong in `oracle.py`.
 
 ## 3. Game loop flowchart in `guide.py` → `guide.toml`
 
-**Location:** `soloquest/commands/guide.py:63-144` (`_show_game_loop`)
+**Location:** `wyrd/commands/guide.py:63-144` (`_show_game_loop`)
 
 The `/guide` overview (with no args) renders a flowchart entirely from
 hardcoded `console.print()` calls. The step detail content is already
@@ -75,7 +75,7 @@ Hardcoded content includes:
 - Outcome section (STRONG HIT / WEAK HIT / MISS descriptions and prompts)
 - Footer help link suggestions (`/guide envision`, `/guide oracle`, etc.)
 
-**Proposed addition to:** `soloquest/data/guide.toml`
+**Proposed addition to:** `wyrd/data/guide.toml`
 
 ```toml
 [overview]
@@ -129,7 +129,7 @@ them in `guide.toml` also makes the display logic in `guide.py` simpler.
 
 ## 4. Contextual suggestions in `guide.py` → `guide.toml`
 
-**Location:** `soloquest/commands/guide.py:147-189` (`_show_contextual_suggestions`)
+**Location:** `wyrd/commands/guide.py:147-189` (`_show_contextual_suggestions`)
 
 State-based suggestion messages are hardcoded in Python:
 
@@ -139,7 +139,7 @@ State-based suggestion messages are hardcoded in Python:
 - Low supply warning + command hint
 - New session welcome message
 
-**Proposed addition to:** `soloquest/data/guide.toml`
+**Proposed addition to:** `wyrd/data/guide.toml`
 
 ```toml
 [suggestions]
@@ -164,7 +164,7 @@ customization and keeps `guide.py` focused on logic.
 
 ## ~~5. Completion descriptions in `completion.py` → `commands.toml`~~ ✅ Done (PR #114)
 
-Guide and truths subcommand descriptions moved to `soloquest/data/commands.toml`
+Guide and truths subcommand descriptions moved to `wyrd/data/commands.toml`
 under `[guide.subcommands]` and `[truths.subcommands]`.
 
 ---

@@ -1,4 +1,4 @@
-# AGENTS.md — Agent Coding Guidelines for soloquest
+# AGENTS.md — Agent Coding Guidelines for wyrd
 
 This file provides guidance for AI agents working in this repository.
 
@@ -21,7 +21,7 @@ pytest tests/test_character.py   # Run specific test file
 pytest tests/test_character.py::TestCharacter::test_adjust_track_up  # Run specific test
 pytest -k "test_name"            # Run tests matching pattern
 pytest -v                        # Verbose output
-pytest --cov=soloquest --cov-report=term-missing  # With coverage
+pytest --cov=wyrd --cov-report=term-missing  # With coverage
 ```
 
 ### Linting and Formatting
@@ -139,11 +139,11 @@ class FixedDice:
 **Commands** (`test_move_commands.py`, `test_session_commands.py`):
 - Mock `display.console`, `Prompt.ask()`, `Confirm.ask()`, etc.
 - This is appropriate because we test command behavior, not rendering
-- Use `@patch("soloquest.commands.module.display")` to mock display layer
+- Use `@patch("wyrd.commands.module.display")` to mock display layer
 - Use `MagicMock()` for state objects when testing command handlers
 
 ```python
-@patch("soloquest.commands.session.display")
+@patch("wyrd.commands.session.display")
 def test_empty_session_shows_message(self, mock_display):
     handle_log(self.state, [], set())
     mock_display.info.assert_called_once_with("No entries in this session yet.")
@@ -152,9 +152,9 @@ def test_empty_session_shows_message(self, mock_display):
 ### Test File Organization
 
 #### Mirror Source Structure
-- `tests/test_character.py` → `soloquest/models/character.py`
-- `tests/test_move_commands.py` → `soloquest/commands/move.py`
-- `tests/engine/` → `soloquest/engine/`
+- `tests/test_character.py` → `wyrd/models/character.py`
+- `tests/test_move_commands.py` → `wyrd/commands/move.py`
+- `tests/engine/` → `wyrd/engine/`
 
 #### Use Class-Based Organization
 ```python
@@ -258,8 +258,8 @@ pytest -k "test_momentum"
 ## Project Structure
 
 ```
-soloquest/
-├── soloquest/           # Main package
+wyrd/
+├── wyrd/           # Main package
 │   ├── commands/        # CLI command handlers
 │   ├── engine/          # Game logic (dice, moves, oracles)
 │   ├── models/          # Data models (Character, Vow, Asset)

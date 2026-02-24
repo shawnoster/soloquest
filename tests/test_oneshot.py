@@ -8,12 +8,12 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from soloquest.engine.dice import DiceMode
-from soloquest.models.character import Character
-from soloquest.models.session import Session
-from soloquest.models.vow import Vow
-from soloquest.state import save as save_module
-from soloquest.state.save import list_saves_paths, load_by_name, save_game
+from wyrd.engine.dice import DiceMode
+from wyrd.models.character import Character
+from wyrd.models.session import Session
+from wyrd.models.vow import Vow
+from wyrd.state import save as save_module
+from wyrd.state.save import list_saves_paths, load_by_name, save_game
 
 # ---------------------------------------------------------------------------
 # Fixtures
@@ -112,7 +112,7 @@ class TestLoadByName:
         assert result is None
 
     def test_returns_vows_and_session_count(self, tmp_saves, sample_character):
-        from soloquest.models.vow import VowRank
+        from wyrd.models.vow import VowRank
 
         vow = Vow("Find the truth", VowRank.DANGEROUS)
         save_game(sample_character, [vow], 5, DiceMode.DIGITAL)
@@ -138,14 +138,14 @@ class TestRunOneshot:
         return character, vows, session_count, dice_mode, session
 
     def test_run_oneshot_oracle_calls_handle_oracle(self):
-        from soloquest.loop import run_oneshot
+        from wyrd.loop import run_oneshot
 
         character, vows, session_count, dice_mode, session = self._make_state_components()
 
         with (
-            patch("soloquest.loop._build_game_state") as mock_build,
-            patch("soloquest.loop._dispatch_command") as mock_dispatch,
-            patch("soloquest.loop._autosave_state"),
+            patch("wyrd.loop._build_game_state") as mock_build,
+            patch("wyrd.loop._dispatch_command") as mock_dispatch,
+            patch("wyrd.loop._autosave_state"),
         ):
             mock_state = MagicMock()
             mock_build.return_value = mock_state
@@ -158,14 +158,14 @@ class TestRunOneshot:
         mock_dispatch.assert_called_once_with(mock_state, "oracle", ["action"], set())
 
     def test_run_oneshot_roll_calls_handle_roll(self):
-        from soloquest.loop import run_oneshot
+        from wyrd.loop import run_oneshot
 
         character, vows, session_count, dice_mode, session = self._make_state_components()
 
         with (
-            patch("soloquest.loop._build_game_state") as mock_build,
-            patch("soloquest.loop._dispatch_command") as mock_dispatch,
-            patch("soloquest.loop._autosave_state"),
+            patch("wyrd.loop._build_game_state") as mock_build,
+            patch("wyrd.loop._dispatch_command") as mock_dispatch,
+            patch("wyrd.loop._autosave_state"),
         ):
             mock_state = MagicMock()
             mock_build.return_value = mock_state
@@ -178,14 +178,14 @@ class TestRunOneshot:
         mock_dispatch.assert_called_once_with(mock_state, "roll", ["d100"], set())
 
     def test_run_oneshot_forces_digital_dice(self):
-        from soloquest.loop import run_oneshot
+        from wyrd.loop import run_oneshot
 
         character, vows, session_count, _, session = self._make_state_components()
 
         with (
-            patch("soloquest.loop._build_game_state") as mock_build,
-            patch("soloquest.loop._dispatch_command"),
-            patch("soloquest.loop._autosave_state"),
+            patch("wyrd.loop._build_game_state") as mock_build,
+            patch("wyrd.loop._dispatch_command"),
+            patch("wyrd.loop._autosave_state"),
         ):
             mock_build.return_value = MagicMock()
 
@@ -205,14 +205,14 @@ class TestRunOneshot:
         assert dice_mode_used == DiceMode.DIGITAL
 
     def test_run_oneshot_autosaves(self):
-        from soloquest.loop import run_oneshot
+        from wyrd.loop import run_oneshot
 
         character, vows, session_count, dice_mode, session = self._make_state_components()
 
         with (
-            patch("soloquest.loop._build_game_state") as mock_build,
-            patch("soloquest.loop._dispatch_command"),
-            patch("soloquest.loop._autosave_state") as mock_autosave,
+            patch("wyrd.loop._build_game_state") as mock_build,
+            patch("wyrd.loop._dispatch_command"),
+            patch("wyrd.loop._autosave_state") as mock_autosave,
         ):
             mock_state = MagicMock()
             mock_build.return_value = mock_state
@@ -224,14 +224,14 @@ class TestRunOneshot:
         mock_autosave.assert_called_once_with(mock_state)
 
     def test_run_oneshot_creates_session_when_none(self):
-        from soloquest.loop import run_oneshot
+        from wyrd.loop import run_oneshot
 
         character, vows, session_count, dice_mode, _ = self._make_state_components()
 
         with (
-            patch("soloquest.loop._build_game_state") as mock_build,
-            patch("soloquest.loop._dispatch_command"),
-            patch("soloquest.loop._autosave_state"),
+            patch("wyrd.loop._build_game_state") as mock_build,
+            patch("wyrd.loop._dispatch_command"),
+            patch("wyrd.loop._autosave_state"),
         ):
             mock_build.return_value = MagicMock()
 
@@ -261,18 +261,18 @@ class TestMainOneshotDispatch:
         return MagicMock(adventures_dir=None, new=False, oneshot=oneshot, char=char)
 
     def test_main_calls_run_oneshot_for_oracle(self):
-        from soloquest.engine.dice import DiceMode
-        from soloquest.main import main
-        from soloquest.models.character import Character
+        from wyrd.engine.dice import DiceMode
+        from wyrd.main import main
+        from wyrd.models.character import Character
 
         character = Character("Wanderer")
 
         with (
-            patch("soloquest.main.parse_args") as mock_args,
-            patch("soloquest.main.load_most_recent") as mock_load,
-            patch("soloquest.main.load_by_name"),
-            patch("soloquest.main.list_saves_paths", return_value=[]),
-            patch("soloquest.loop.run_oneshot", return_value=0) as mock_oneshot,
+            patch("wyrd.main.parse_args") as mock_args,
+            patch("wyrd.main.load_most_recent") as mock_load,
+            patch("wyrd.main.load_by_name"),
+            patch("wyrd.main.list_saves_paths", return_value=[]),
+            patch("wyrd.loop.run_oneshot", return_value=0) as mock_oneshot,
         ):
             mock_args.return_value = self._mock_args(["oracle", "action"])
             mock_load.return_value = (character, [], 1, DiceMode.DIGITAL, None)
@@ -288,18 +288,18 @@ class TestMainOneshotDispatch:
         assert args == ["action"]
 
     def test_main_parses_flags_from_oneshot_tokens(self):
-        from soloquest.engine.dice import DiceMode
-        from soloquest.main import main
-        from soloquest.models.character import Character
+        from wyrd.engine.dice import DiceMode
+        from wyrd.main import main
+        from wyrd.models.character import Character
 
         character = Character("Wanderer")
 
         with (
-            patch("soloquest.main.parse_args") as mock_args,
-            patch("soloquest.main.load_most_recent") as mock_load,
-            patch("soloquest.main.load_by_name"),
-            patch("soloquest.main.list_saves_paths", return_value=[]),
-            patch("soloquest.loop.run_oneshot", return_value=0) as mock_oneshot,
+            patch("wyrd.main.parse_args") as mock_args,
+            patch("wyrd.main.load_most_recent") as mock_load,
+            patch("wyrd.main.load_by_name"),
+            patch("wyrd.main.list_saves_paths", return_value=[]),
+            patch("wyrd.loop.run_oneshot", return_value=0) as mock_oneshot,
         ):
             mock_args.return_value = self._mock_args(["roll", "d100", "--verbose"])
             mock_load.return_value = (character, [], 1, DiceMode.DIGITAL, None)
@@ -311,14 +311,14 @@ class TestMainOneshotDispatch:
         assert "verbose" in flags
 
     def test_main_char_flag_unknown_exits_1(self, tmp_path):
-        from soloquest.main import main
+        from wyrd.main import main
 
         with (
-            patch("soloquest.main.parse_args") as mock_args,
-            patch("soloquest.main.load_by_name", return_value=None),
-            patch("soloquest.main.list_saves_paths", return_value=[]),
-            patch("soloquest.main.display"),
-            patch("soloquest.config.config") as mock_cfg,
+            patch("wyrd.main.parse_args") as mock_args,
+            patch("wyrd.main.load_by_name", return_value=None),
+            patch("wyrd.main.list_saves_paths", return_value=[]),
+            patch("wyrd.main.display"),
+            patch("wyrd.config.config") as mock_cfg,
         ):
             mock_cfg.adventures_dir = tmp_path
             mock_cfg.saves_dir.return_value = tmp_path / "saves"
@@ -330,20 +330,20 @@ class TestMainOneshotDispatch:
         assert exc_info.value.code == 1
 
     def test_main_char_flag_loads_named_character(self):
-        from soloquest.engine.dice import DiceMode
-        from soloquest.main import main
-        from soloquest.models.character import Character
+        from wyrd.engine.dice import DiceMode
+        from wyrd.main import main
+        from wyrd.models.character import Character
 
         robin = Character("Robin")
 
         with (
-            patch("soloquest.main.parse_args") as mock_args,
+            patch("wyrd.main.parse_args") as mock_args,
             patch(
-                "soloquest.main.load_by_name", return_value=(robin, [], 2, DiceMode.DIGITAL, None)
+                "wyrd.main.load_by_name", return_value=(robin, [], 2, DiceMode.DIGITAL, None)
             ),
-            patch("soloquest.main.load_most_recent") as mock_load_recent,
-            patch("soloquest.loop.run_oneshot", return_value=0) as mock_oneshot,
-            patch("soloquest.config.config") as mock_cfg,
+            patch("wyrd.main.load_most_recent") as mock_load_recent,
+            patch("wyrd.loop.run_oneshot", return_value=0) as mock_oneshot,
+            patch("wyrd.config.config") as mock_cfg,
         ):
             mock_cfg.adventures_dir = Path("/tmp")
             mock_cfg.saves_dir.return_value = Path("/tmp/saves")

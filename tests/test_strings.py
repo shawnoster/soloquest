@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from soloquest.ui.strings import get_string, get_strings_section
+from wyrd.ui.strings import get_string, get_strings_section
 
 
 class TestGetString:

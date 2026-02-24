@@ -6,10 +6,10 @@ from unittest.mock import MagicMock, patch
 
 from rich.console import Console
 
-from soloquest.models.campaign import CampaignState
-from soloquest.models.session import Session
-from soloquest.sync import LocalAdapter
-from soloquest.sync.models import Event
+from wyrd.models.campaign import CampaignState
+from wyrd.models.session import Session
+from wyrd.sync import LocalAdapter
+from wyrd.sync.models import Event
 
 # ---------------------------------------------------------------------------
 # display.partner_activity
@@ -18,7 +18,7 @@ from soloquest.sync.models import Event
 
 def _capture(events: list[Event]) -> str:
     """Render partner_activity to a string for assertions."""
-    from soloquest.ui import display
+    from wyrd.ui import display
 
     console = Console(record=True, highlight=False)
     original = display.console
@@ -130,7 +130,7 @@ class TestPartnerActivityDisplay:
 
 
 def _make_game_state(campaign=None):
-    from soloquest.loop import GameState
+    from wyrd.loop import GameState
 
     state = GameState(
         character=MagicMock(),
@@ -152,7 +152,7 @@ def _make_game_state(campaign=None):
 class TestPollAndDisplay:
     def test_solo_mode_no_campaign_skips_poll(self):
         """In solo mode _poll_and_display is a no-op (campaign=None, not explicit)."""
-        from soloquest.loop import _poll_and_display
+        from wyrd.loop import _poll_and_display
 
         state = _make_game_state(campaign=None)
         mock_sync = MagicMock()
@@ -164,14 +164,14 @@ class TestPollAndDisplay:
 
     def test_explicit_sync_polls_even_without_campaign(self):
         """Explicit /sync command should poll even in solo mode."""
-        from soloquest.loop import _poll_and_display
+        from wyrd.loop import _poll_and_display
 
         state = _make_game_state(campaign=None)
         mock_sync = MagicMock()
         mock_sync.poll.return_value = []
         state.sync = mock_sync
 
-        with patch("soloquest.loop.display") as mock_display:
+        with patch("wyrd.loop.display") as mock_display:
             _poll_and_display(state, explicit=True)
 
         mock_sync.poll.assert_called_once()
@@ -179,7 +179,7 @@ class TestPollAndDisplay:
 
     def test_coop_mode_polls_after_command(self):
         """In co-op mode poll is called automatically."""
-        from soloquest.loop import _poll_and_display
+        from wyrd.loop import _poll_and_display
 
         campaign = MagicMock(spec=CampaignState)
         state = _make_game_state(campaign=campaign)
@@ -193,7 +193,7 @@ class TestPollAndDisplay:
 
     def test_displays_events_when_poll_returns_some(self):
         """When poll returns events, partner_activity is called."""
-        from soloquest.loop import _poll_and_display
+        from wyrd.loop import _poll_and_display
 
         campaign = MagicMock(spec=CampaignState)
         state = _make_game_state(campaign=campaign)
@@ -204,14 +204,14 @@ class TestPollAndDisplay:
         mock_sync.poll.return_value = events
         state.sync = mock_sync
 
-        with patch("soloquest.loop.display") as mock_display:
+        with patch("wyrd.loop.display") as mock_display:
             _poll_and_display(state, explicit=False)
 
         mock_display.partner_activity.assert_called_once_with(events)
 
     def test_no_message_when_no_events_in_auto_mode(self):
         """Auto poll with no events shows nothing."""
-        from soloquest.loop import _poll_and_display
+        from wyrd.loop import _poll_and_display
 
         campaign = MagicMock(spec=CampaignState)
         state = _make_game_state(campaign=campaign)
@@ -219,7 +219,7 @@ class TestPollAndDisplay:
         mock_sync.poll.return_value = []
         state.sync = mock_sync
 
-        with patch("soloquest.loop.display") as mock_display:
+        with patch("wyrd.loop.display") as mock_display:
             _poll_and_display(state, explicit=False)
 
         mock_display.partner_activity.assert_not_called()
@@ -227,14 +227,14 @@ class TestPollAndDisplay:
 
     def test_explicit_no_events_shows_info_message(self):
         """Explicit /sync with no events shows 'no activity' message."""
-        from soloquest.loop import _poll_and_display
+        from wyrd.loop import _poll_and_display
 
         state = _make_game_state(campaign=None)
         mock_sync = MagicMock()
         mock_sync.poll.return_value = []
         state.sync = mock_sync
 
-        with patch("soloquest.loop.display") as mock_display:
+        with patch("wyrd.loop.display") as mock_display:
             _poll_and_display(state, explicit=True)
 
         mock_display.info.assert_called_once()

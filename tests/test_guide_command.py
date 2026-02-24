@@ -4,11 +4,11 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from soloquest.commands.guide import handle_guide
-from soloquest.engine.dice import DiceMode, make_dice_provider
-from soloquest.models.character import Character, Stats
-from soloquest.models.session import Session
-from soloquest.models.vow import Vow, VowRank
+from wyrd.commands.guide import handle_guide
+from wyrd.engine.dice import DiceMode, make_dice_provider
+from wyrd.models.character import Character, Stats
+from wyrd.models.session import Session
+from wyrd.models.vow import Vow, VowRank
 
 
 @pytest.fixture

@@ -9,11 +9,11 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from soloquest.commands.oracle import handle_oracle
-from soloquest.engine.oracles import OracleResult, OracleTable, load_oracles
-from soloquest.ui.display import oracle_result_panel, oracle_result_panel_combined
+from wyrd.commands.oracle import handle_oracle
+from wyrd.engine.oracles import OracleResult, OracleTable, load_oracles
+from wyrd.ui.display import oracle_result_panel, oracle_result_panel_combined
 
-DATA_DIR = Path(__file__).parent.parent / "soloquest" / "data"
+DATA_DIR = Path(__file__).parent.parent / "wyrd" / "data"
 
 
 class TestOracleDisplay:
@@ -21,7 +21,7 @@ class TestOracleDisplay:
 
     def test_oracle_result_panel_creates_colored_panel(self):
         """Oracle results should be displayed with a └ prefix and table name."""
-        with patch("soloquest.ui.display.console") as mock_console:
+        with patch("wyrd.ui.display.console") as mock_console:
             oracle_result_panel("Action", 42, "Advance")
 
             mock_console.print.assert_called_once()
@@ -32,7 +32,7 @@ class TestOracleDisplay:
 
     def test_oracle_result_shows_roll_and_result(self):
         """Oracle output should show both the roll number and result text."""
-        with patch("soloquest.ui.display.console") as mock_console:
+        with patch("wyrd.ui.display.console") as mock_console:
             oracle_result_panel("Theme", 67, "Mystery")
 
             output = mock_console.print.call_args[0][0]
@@ -44,7 +44,7 @@ class TestOracleDisplay:
         """Oracle results with long text should display correctly."""
         long_result = "A very long oracle result that spans multiple lines and contains detailed information about the narrative outcome"
 
-        with patch("soloquest.ui.display.console") as mock_console:
+        with patch("wyrd.ui.display.console") as mock_console:
             oracle_result_panel("Descriptor", 89, long_result)
 
             # Should not crash
@@ -54,7 +54,7 @@ class TestOracleDisplay:
         """Oracle results with special characters should display correctly."""
         result_with_chars = "Test & Result [with] <special> characters!"
 
-        with patch("soloquest.ui.display.console") as mock_console:
+        with patch("wyrd.ui.display.console") as mock_console:
             oracle_result_panel("Test", 50, result_with_chars)
 
             # Should not crash
@@ -67,7 +67,7 @@ class TestOracleDisplay:
             OracleResult(table_name="Theme", roll=67, result="Mystery"),
         ]
 
-        with patch("soloquest.ui.display.console") as mock_console:
+        with patch("wyrd.ui.display.console") as mock_console:
             oracle_result_panel_combined(results)
 
             # Should have called print once per result
@@ -89,7 +89,7 @@ class TestOracleDisplay:
             OracleResult(table_name="Action", roll=42, result="Advance"),
         ]
 
-        with patch("soloquest.ui.display.console") as mock_console:
+        with patch("wyrd.ui.display.console") as mock_console:
             oracle_result_panel_combined(results)
 
             # Should not crash
@@ -103,9 +103,9 @@ class TestOracleCommand:
         self.oracles = load_oracles(DATA_DIR)
 
     def _make_state(self):
-        from soloquest.loop import GameState
-        from soloquest.models.session import Session
-        from soloquest.sync import LocalAdapter
+        from wyrd.loop import GameState
+        from wyrd.models.session import Session
+        from wyrd.sync import LocalAdapter
 
         state = MagicMock(spec=GameState)
         state.oracles = self.oracles
@@ -120,7 +120,7 @@ class TestOracleCommand:
         """Calling /oracle with no args should show the oracle table list."""
         state = self._make_state()
 
-        with patch("soloquest.commands.oracle.display.console") as mock_console:
+        with patch("wyrd.commands.oracle.display.console") as mock_console:
             handle_oracle(state, args=[], flags=set())
 
             # Should have printed the oracle list panel
@@ -128,13 +128,13 @@ class TestOracleCommand:
 
     def test_oracle_with_single_table(self):
         """Calling /oracle action should roll on action table."""
-        from soloquest.models.session import EntryKind
+        from wyrd.models.session import EntryKind
 
         state = self._make_state()
 
         with (
-            patch("soloquest.commands.oracle.roll_oracle", return_value=42),
-            patch("soloquest.commands.oracle.display.oracle_result_panel"),
+            patch("wyrd.commands.oracle.roll_oracle", return_value=42),
+            patch("wyrd.commands.oracle.display.oracle_result_panel"),
         ):
             handle_oracle(state, args=["action"], flags=set())
 
@@ -143,14 +143,14 @@ class TestOracleCommand:
 
     def test_oracle_with_multiple_tables(self):
         """Calling /oracle action theme should roll both tables."""
-        from soloquest.models.session import EntryKind
+        from wyrd.models.session import EntryKind
 
         state = self._make_state()
 
         with (
-            patch("soloquest.commands.oracle.roll_oracle", return_value=42),
+            patch("wyrd.commands.oracle.roll_oracle", return_value=42),
             patch(
-                "soloquest.commands.oracle.display.oracle_result_panel_combined"
+                "wyrd.commands.oracle.display.oracle_result_panel_combined"
             ) as mock_combined,
         ):
             handle_oracle(state, args=["action", "theme"], flags=set())
@@ -165,7 +165,7 @@ class TestOracleCommand:
         """Calling /oracle with non-existent table should show warning."""
         state = self._make_state()
 
-        with patch("soloquest.commands.oracle.display.warn") as mock_warn:
+        with patch("wyrd.commands.oracle.display.warn") as mock_warn:
             handle_oracle(state, args=["nonexistent_table"], flags=set())
 
             # Should have shown warning
@@ -178,8 +178,8 @@ class TestOracleCommand:
         state = self._make_state()
 
         with (
-            patch("soloquest.commands.oracle.roll_oracle", return_value=50),
-            patch("soloquest.commands.oracle.display"),
+            patch("wyrd.commands.oracle.roll_oracle", return_value=50),
+            patch("wyrd.commands.oracle.display"),
         ):
             # "planet" might match multiple tables
             handle_oracle(state, args=["planet"], flags=set())
@@ -192,9 +192,9 @@ class TestOracleCommand:
         state = self._make_state()
 
         with (
-            patch("soloquest.commands.oracle.roll_oracle", return_value=42),
-            patch("soloquest.commands.oracle.display.oracle_result_panel") as mock_panel,
-            patch("soloquest.commands.oracle.display.console") as mock_console,
+            patch("wyrd.commands.oracle.roll_oracle", return_value=42),
+            patch("wyrd.commands.oracle.display.oracle_result_panel") as mock_panel,
+            patch("wyrd.commands.oracle.display.console") as mock_console,
         ):
             handle_oracle(state, args=["action", "why", "did", "he", "lie"], flags=set())
 
@@ -209,14 +209,14 @@ class TestOracleCommand:
 
     def test_oracle_trailing_note_logged_once_as_note_entry(self):
         """Note is logged once as a 'note' entry, not appended to each oracle entry."""
-        from soloquest.models.session import EntryKind
+        from wyrd.models.session import EntryKind
 
         state = self._make_state()
 
         with (
-            patch("soloquest.commands.oracle.roll_oracle", return_value=42),
-            patch("soloquest.commands.oracle.display.oracle_result_panel"),
-            patch("soloquest.commands.oracle.display.console"),
+            patch("wyrd.commands.oracle.roll_oracle", return_value=42),
+            patch("wyrd.commands.oracle.display.oracle_result_panel"),
+            patch("wyrd.commands.oracle.display.console"),
         ):
             handle_oracle(state, args=["action", "why", "did", "he", "lie"], flags=set())
 
@@ -233,7 +233,7 @@ class TestOracleCommand:
         """An unmatched arg with no prior results shows a warning, not a note."""
         state = self._make_state()
 
-        with patch("soloquest.commands.oracle.display.warn") as mock_warn:
+        with patch("wyrd.commands.oracle.display.warn") as mock_warn:
             handle_oracle(state, args=["notatable"], flags=set())
 
             mock_warn.assert_called()
@@ -244,9 +244,9 @@ class TestOracleCommand:
         state = self._make_state()
 
         with (
-            patch("soloquest.commands.oracle.roll_oracle", return_value=42),
-            patch("soloquest.commands.oracle.display.oracle_result_panel"),
-            patch("soloquest.commands.oracle.display.console") as mock_console,
+            patch("wyrd.commands.oracle.roll_oracle", return_value=42),
+            patch("wyrd.commands.oracle.display.oracle_result_panel"),
+            patch("wyrd.commands.oracle.display.console") as mock_console,
         ):
             handle_oracle(state, args=["action"], flags=set())
 
@@ -255,13 +255,13 @@ class TestOracleCommand:
 
     def test_oracle_lone_integer_does_direct_lookup(self):
         """A lone integer after a table name uses it as the roll, no dice."""
-        from soloquest.models.session import EntryKind
+        from wyrd.models.session import EntryKind
 
         state = self._make_state()
 
         with (
-            patch("soloquest.commands.oracle.roll_oracle") as mock_roll,
-            patch("soloquest.commands.oracle.display.oracle_result_panel") as mock_panel,
+            patch("wyrd.commands.oracle.roll_oracle") as mock_roll,
+            patch("wyrd.commands.oracle.display.oracle_result_panel") as mock_panel,
         ):
             handle_oracle(state, args=["action", "23"], flags=set())
 
@@ -279,15 +279,15 @@ class TestOracleCommand:
 
     def test_oracle_number_in_note_text_rolls_randomly(self):
         """A number embedded in a multi-word note triggers a random roll, not direct lookup."""
-        from soloquest.models.session import EntryKind
+        from wyrd.models.session import EntryKind
 
         state = self._make_state()
 
         # Use words that don't substring-match any oracle table key
         with (
-            patch("soloquest.commands.oracle.roll_oracle", return_value=77) as mock_roll,
-            patch("soloquest.commands.oracle.display.oracle_result_panel"),
-            patch("soloquest.commands.oracle.display.console"),
+            patch("wyrd.commands.oracle.roll_oracle", return_value=77) as mock_roll,
+            patch("wyrd.commands.oracle.display.oracle_result_panel"),
+            patch("wyrd.commands.oracle.display.console"),
         ):
             handle_oracle(
                 state,
@@ -305,13 +305,13 @@ class TestOracleCommand:
 
     def test_oracle_direct_lookup_no_note_logged(self):
         """Direct lookup by number should not create a note entry."""
-        from soloquest.models.session import EntryKind
+        from wyrd.models.session import EntryKind
 
         state = self._make_state()
 
         with (
-            patch("soloquest.commands.oracle.roll_oracle"),
-            patch("soloquest.commands.oracle.display.oracle_result_panel"),
+            patch("wyrd.commands.oracle.roll_oracle"),
+            patch("wyrd.commands.oracle.display.oracle_result_panel"),
         ):
             handle_oracle(state, args=["action", "50"], flags=set())
 
@@ -326,9 +326,9 @@ class TestOracleSyncPublishing:
         self.oracles = load_oracles(DATA_DIR)
 
     def _make_state(self):
-        from soloquest.loop import GameState
-        from soloquest.models.session import Session
-        from soloquest.sync import LocalAdapter
+        from wyrd.loop import GameState
+        from wyrd.models.session import Session
+        from wyrd.sync import LocalAdapter
 
         state = MagicMock(spec=GameState)
         state.oracles = self.oracles
@@ -342,8 +342,8 @@ class TestOracleSyncPublishing:
     def test_publish_called_once_for_single_table(self):
         state = self._make_state()
         with (
-            patch("soloquest.commands.oracle.roll_oracle", return_value=42),
-            patch("soloquest.commands.oracle.display.oracle_result_panel"),
+            patch("wyrd.commands.oracle.roll_oracle", return_value=42),
+            patch("wyrd.commands.oracle.display.oracle_result_panel"),
             patch.object(state.sync, "publish") as mock_publish,
         ):
             handle_oracle(state, args=["action"], flags=set())
@@ -356,8 +356,8 @@ class TestOracleSyncPublishing:
     def test_publish_event_contains_tables_rolls_results(self):
         state = self._make_state()
         with (
-            patch("soloquest.commands.oracle.roll_oracle", return_value=55),
-            patch("soloquest.commands.oracle.display.oracle_result_panel"),
+            patch("wyrd.commands.oracle.roll_oracle", return_value=55),
+            patch("wyrd.commands.oracle.display.oracle_result_panel"),
             patch.object(state.sync, "publish") as mock_publish,
         ):
             handle_oracle(state, args=["action"], flags=set())
@@ -371,8 +371,8 @@ class TestOracleSyncPublishing:
         """Multiple tables in one command produce one event, not one per table."""
         state = self._make_state()
         with (
-            patch("soloquest.commands.oracle.roll_oracle", return_value=42),
-            patch("soloquest.commands.oracle.display.oracle_result_panel_combined"),
+            patch("wyrd.commands.oracle.roll_oracle", return_value=42),
+            patch("wyrd.commands.oracle.display.oracle_result_panel_combined"),
             patch.object(state.sync, "publish") as mock_publish,
         ):
             handle_oracle(state, args=["action", "theme"], flags=set())
@@ -387,7 +387,7 @@ class TestOracleSyncPublishing:
         """Unrecognised table → no results → no publish."""
         state = self._make_state()
         with (
-            patch("soloquest.commands.oracle.display.warn"),
+            patch("wyrd.commands.oracle.display.warn"),
             patch.object(state.sync, "publish") as mock_publish,
         ):
             handle_oracle(state, args=["zzz_nonexistent"], flags=set())
@@ -397,9 +397,9 @@ class TestOracleSyncPublishing:
     def test_note_included_in_event_data_when_present(self):
         state = self._make_state()
         with (
-            patch("soloquest.commands.oracle.roll_oracle", return_value=42),
-            patch("soloquest.commands.oracle.display.oracle_result_panel"),
-            patch("soloquest.commands.oracle.display.console"),
+            patch("wyrd.commands.oracle.roll_oracle", return_value=42),
+            patch("wyrd.commands.oracle.display.oracle_result_panel"),
+            patch("wyrd.commands.oracle.display.console"),
             patch.object(state.sync, "publish") as mock_publish,
         ):
             handle_oracle(state, args=["action", "why", "did", "he", "lie"], flags=set())
@@ -410,8 +410,8 @@ class TestOracleSyncPublishing:
     def test_note_absent_from_event_data_when_none(self):
         state = self._make_state()
         with (
-            patch("soloquest.commands.oracle.roll_oracle", return_value=42),
-            patch("soloquest.commands.oracle.display.oracle_result_panel"),
+            patch("wyrd.commands.oracle.roll_oracle", return_value=42),
+            patch("wyrd.commands.oracle.display.oracle_result_panel"),
             patch.object(state.sync, "publish") as mock_publish,
         ):
             handle_oracle(state, args=["action"], flags=set())
@@ -421,12 +421,12 @@ class TestOracleSyncPublishing:
 
     def test_session_entries_carry_player_attribution(self):
         """LogEntry records in the session carry the player name."""
-        from soloquest.models.session import EntryKind
+        from wyrd.models.session import EntryKind
 
         state = self._make_state()
         with (
-            patch("soloquest.commands.oracle.roll_oracle", return_value=42),
-            patch("soloquest.commands.oracle.display.oracle_result_panel"),
+            patch("wyrd.commands.oracle.roll_oracle", return_value=42),
+            patch("wyrd.commands.oracle.display.oracle_result_panel"),
         ):
             handle_oracle(state, args=["action"], flags=set())
 
@@ -710,7 +710,7 @@ class TestOraclePerformance:
         """Fuzzy matching should complete quickly."""
         import time
 
-        from soloquest.engine.oracles import fuzzy_match_oracle
+        from wyrd.engine.oracles import fuzzy_match_oracle
 
         start = time.time()
         for query in ["action", "theme", "planet", "character", "location"]:

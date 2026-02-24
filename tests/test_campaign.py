@@ -6,8 +6,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from soloquest.models.campaign import CampaignState, PlayerInfo
-from soloquest.state.campaign import (
+from wyrd.models.campaign import CampaignState, PlayerInfo
+from wyrd.state.campaign import (
     create_campaign,
     join_campaign,
     list_campaigns,
@@ -75,7 +75,7 @@ class TestCampaignState:
 class TestCreateCampaign:
     def test_creates_directory_structure(self, tmp_path, monkeypatch):
         monkeypatch.setattr(
-            "soloquest.state.campaign.campaigns_dir", lambda: tmp_path / "campaigns"
+            "wyrd.state.campaign.campaigns_dir", lambda: tmp_path / "campaigns"
         )
         campaign, campaign_dir = create_campaign("Iron Veil", "kira")
         assert campaign_dir.exists()
@@ -85,14 +85,14 @@ class TestCreateCampaign:
 
     def test_player_added_to_campaign(self, tmp_path, monkeypatch):
         monkeypatch.setattr(
-            "soloquest.state.campaign.campaigns_dir", lambda: tmp_path / "campaigns"
+            "wyrd.state.campaign.campaigns_dir", lambda: tmp_path / "campaigns"
         )
         campaign, _ = create_campaign("Iron Veil", "kira")
         assert "kira" in campaign.players
 
     def test_duplicate_raises(self, tmp_path, monkeypatch):
         monkeypatch.setattr(
-            "soloquest.state.campaign.campaigns_dir", lambda: tmp_path / "campaigns"
+            "wyrd.state.campaign.campaigns_dir", lambda: tmp_path / "campaigns"
         )
         create_campaign("Iron Veil", "kira")
         with pytest.raises(ValueError, match="already exists"):
@@ -100,7 +100,7 @@ class TestCreateCampaign:
 
     def test_sets_campaign_dir(self, tmp_path, monkeypatch):
         monkeypatch.setattr(
-            "soloquest.state.campaign.campaigns_dir", lambda: tmp_path / "campaigns"
+            "wyrd.state.campaign.campaigns_dir", lambda: tmp_path / "campaigns"
         )
         campaign, campaign_dir = create_campaign("Test", "kira")
         assert campaign.campaign_dir == campaign_dir
@@ -109,7 +109,7 @@ class TestCreateCampaign:
 class TestJoinCampaign:
     def test_adds_new_player(self, tmp_path, monkeypatch):
         monkeypatch.setattr(
-            "soloquest.state.campaign.campaigns_dir", lambda: tmp_path / "campaigns"
+            "wyrd.state.campaign.campaigns_dir", lambda: tmp_path / "campaigns"
         )
         _, campaign_dir = create_campaign("Iron Veil", "kira")
         campaign = join_campaign(campaign_dir, "dax")
@@ -117,7 +117,7 @@ class TestJoinCampaign:
 
     def test_duplicate_player_is_idempotent(self, tmp_path, monkeypatch):
         monkeypatch.setattr(
-            "soloquest.state.campaign.campaigns_dir", lambda: tmp_path / "campaigns"
+            "wyrd.state.campaign.campaigns_dir", lambda: tmp_path / "campaigns"
         )
         _, campaign_dir = create_campaign("Iron Veil", "kira")
         # Second join for the same player returns the campaign unchanged
@@ -128,13 +128,13 @@ class TestJoinCampaign:
 class TestListCampaigns:
     def test_empty_when_no_campaigns_dir(self, tmp_path, monkeypatch):
         monkeypatch.setattr(
-            "soloquest.state.campaign.campaigns_dir", lambda: tmp_path / "nonexistent"
+            "wyrd.state.campaign.campaigns_dir", lambda: tmp_path / "nonexistent"
         )
         assert list_campaigns() == []
 
     def test_returns_slugs(self, tmp_path, monkeypatch):
         monkeypatch.setattr(
-            "soloquest.state.campaign.campaigns_dir", lambda: tmp_path / "campaigns"
+            "wyrd.state.campaign.campaigns_dir", lambda: tmp_path / "campaigns"
         )
         create_campaign("Alpha", "kira")
         create_campaign("Beta", "kira")
@@ -171,7 +171,7 @@ class TestPlayerSavePath:
 
 class TestGameStateCampaignFields:
     def test_campaign_defaults_to_none(self):
-        from soloquest.loop import GameState
+        from wyrd.loop import GameState
 
         state = GameState(
             character=MagicMock(),
@@ -189,7 +189,7 @@ class TestGameStateCampaignFields:
         assert state.campaign_dir is None
 
     def test_campaign_can_be_set(self, tmp_path):
-        from soloquest.loop import GameState
+        from wyrd.loop import GameState
 
         campaign = CampaignState.create("Test")
         state = GameState(
@@ -218,7 +218,7 @@ class TestGameStateCampaignFields:
 class TestAutosaveRouting:
     def test_autosave_uses_player_save_path_in_campaign(self, tmp_path):
         """_autosave_state routes to campaign players/ directory."""
-        from soloquest.loop import GameState, _autosave_state
+        from wyrd.loop import GameState, _autosave_state
 
         char = MagicMock()
         char.name = "Kira"
@@ -240,7 +240,7 @@ class TestAutosaveRouting:
         )
         (tmp_path / "players").mkdir()
 
-        with patch("soloquest.loop.autosave") as mock_save:
+        with patch("wyrd.loop.autosave") as mock_save:
             _autosave_state(state)
 
         mock_save.assert_called_once()
@@ -249,7 +249,7 @@ class TestAutosaveRouting:
 
     def test_autosave_no_save_path_in_solo_mode(self):
         """_autosave_state passes save_path=None in solo mode."""
-        from soloquest.loop import GameState, _autosave_state
+        from wyrd.loop import GameState, _autosave_state
 
         state = GameState(
             character=MagicMock(),
@@ -264,7 +264,7 @@ class TestAutosaveRouting:
             truth_categories={},
         )
 
-        with patch("soloquest.loop.autosave") as mock_save:
+        with patch("wyrd.loop.autosave") as mock_save:
             _autosave_state(state)
 
         mock_save.assert_called_once()
@@ -279,9 +279,9 @@ class TestAutosaveRouting:
 
 def _make_state(tmp_path):
     """Build a minimal GameState for testing _handle_start."""
-    from soloquest.engine.dice import DiceMode, DigitalDice
-    from soloquest.loop import GameState
-    from soloquest.models.character import Character
+    from wyrd.engine.dice import DiceMode, DigitalDice
+    from wyrd.loop import GameState
+    from wyrd.models.character import Character
 
     return GameState(
         character=Character("Wanderer"),
@@ -300,10 +300,10 @@ def _make_state(tmp_path):
 class TestHandleStart:
     def test_solo_updates_state(self, tmp_path, monkeypatch):
         """Solo path replaces character and saves."""
-        from soloquest.commands.campaign import _handle_start_solo
-        from soloquest.engine.dice import DiceMode
-        from soloquest.models.character import Character
-        from soloquest.models.vow import Vow, VowRank
+        from wyrd.commands.campaign import _handle_start_solo
+        from wyrd.engine.dice import DiceMode
+        from wyrd.models.character import Character
+        from wyrd.models.vow import Vow, VowRank
 
         state = _make_state(tmp_path)
 
@@ -312,10 +312,10 @@ class TestHandleStart:
 
         with (
             patch(
-                "soloquest.commands.campaign.run_new_character_flow",
+                "wyrd.commands.campaign.run_new_character_flow",
                 return_value=(new_char, new_vows, DiceMode.DIGITAL, []),
             ),
-            patch("soloquest.commands.campaign.save_game") as mock_save,
+            patch("wyrd.commands.campaign.save_game") as mock_save,
         ):
             _handle_start_solo(state)
 
@@ -326,13 +326,13 @@ class TestHandleStart:
 
     def test_solo_cancelled_leaves_state_unchanged(self, tmp_path):
         """Solo path cancelled — state not mutated."""
-        from soloquest.commands.campaign import _handle_start_solo
+        from wyrd.commands.campaign import _handle_start_solo
 
         state = _make_state(tmp_path)
         original_name = state.character.name
 
         with patch(
-            "soloquest.commands.campaign.run_new_character_flow",
+            "wyrd.commands.campaign.run_new_character_flow",
             return_value=None,
         ):
             _handle_start_solo(state)
@@ -341,13 +341,13 @@ class TestHandleStart:
 
     def test_create_coop_updates_state(self, tmp_path, monkeypatch):
         """Create co-op path wires campaign into state and saves to players/."""
-        from soloquest.commands.campaign import _handle_start_create_coop
-        from soloquest.engine.dice import DiceMode
-        from soloquest.models.character import Character
-        from soloquest.models.vow import Vow, VowRank
+        from wyrd.commands.campaign import _handle_start_create_coop
+        from wyrd.engine.dice import DiceMode
+        from wyrd.models.character import Character
+        from wyrd.models.vow import Vow, VowRank
 
         monkeypatch.setattr(
-            "soloquest.state.campaign.campaigns_dir", lambda: tmp_path / "campaigns"
+            "wyrd.state.campaign.campaigns_dir", lambda: tmp_path / "campaigns"
         )
         state = _make_state(tmp_path)
 
@@ -356,11 +356,11 @@ class TestHandleStart:
 
         with (
             patch(
-                "soloquest.commands.campaign.run_new_character_flow",
+                "wyrd.commands.campaign.run_new_character_flow",
                 return_value=(new_char, new_vows, DiceMode.DIGITAL, []),
             ),
             patch("rich.prompt.Prompt.ask", return_value="Iron Veil"),
-            patch("soloquest.commands.campaign.save_game") as mock_save,
+            patch("wyrd.commands.campaign.save_game") as mock_save,
         ):
             _handle_start_create_coop(state)
 
@@ -374,13 +374,13 @@ class TestHandleStart:
 
     def test_join_coop_updates_state(self, tmp_path, monkeypatch):
         """Join co-op path wires campaign into state and saves to players/."""
-        from soloquest.commands.campaign import _handle_start_join_coop
-        from soloquest.engine.dice import DiceMode
-        from soloquest.models.character import Character
-        from soloquest.models.vow import Vow, VowRank
+        from wyrd.commands.campaign import _handle_start_join_coop
+        from wyrd.engine.dice import DiceMode
+        from wyrd.models.character import Character
+        from wyrd.models.vow import Vow, VowRank
 
         monkeypatch.setattr(
-            "soloquest.state.campaign.campaigns_dir", lambda: tmp_path / "campaigns"
+            "wyrd.state.campaign.campaigns_dir", lambda: tmp_path / "campaigns"
         )
         # Pre-create a campaign so list_campaigns returns it
         create_campaign("Iron Veil", "existing-player")
@@ -391,11 +391,11 @@ class TestHandleStart:
 
         with (
             patch(
-                "soloquest.commands.campaign.run_new_character_flow",
+                "wyrd.commands.campaign.run_new_character_flow",
                 return_value=(new_char, new_vows, DiceMode.DIGITAL, []),
             ),
             patch("rich.prompt.Prompt.ask", return_value="1"),
-            patch("soloquest.commands.campaign.save_game") as mock_save,
+            patch("wyrd.commands.campaign.save_game") as mock_save,
         ):
             _handle_start_join_coop(state)
 
@@ -407,12 +407,12 @@ class TestHandleStart:
 
     def test_join_coop_skips_truths(self, tmp_path, monkeypatch):
         """Join co-op calls run_new_character_flow with include_truths=False."""
-        from soloquest.commands.campaign import _handle_start_join_coop
-        from soloquest.engine.dice import DiceMode
-        from soloquest.models.character import Character
+        from wyrd.commands.campaign import _handle_start_join_coop
+        from wyrd.engine.dice import DiceMode
+        from wyrd.models.character import Character
 
         monkeypatch.setattr(
-            "soloquest.state.campaign.campaigns_dir", lambda: tmp_path / "campaigns"
+            "wyrd.state.campaign.campaigns_dir", lambda: tmp_path / "campaigns"
         )
         create_campaign("Iron Veil", "existing-player")
         state = _make_state(tmp_path)
@@ -420,11 +420,11 @@ class TestHandleStart:
 
         with (
             patch(
-                "soloquest.commands.campaign.run_new_character_flow",
+                "wyrd.commands.campaign.run_new_character_flow",
                 return_value=(new_char, [], DiceMode.DIGITAL, []),
             ) as mock_flow,
             patch("rich.prompt.Prompt.ask", return_value="1"),
-            patch("soloquest.commands.campaign.save_game"),
+            patch("wyrd.commands.campaign.save_game"),
         ):
             _handle_start_join_coop(state)
 

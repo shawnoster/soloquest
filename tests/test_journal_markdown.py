@@ -2,8 +2,8 @@
 
 from unittest.mock import patch
 
-from soloquest.models.session import EntryKind, LogEntry
-from soloquest.ui.display import log_entry
+from wyrd.models.session import EntryKind, LogEntry
+from wyrd.ui.display import log_entry
 
 
 class TestJournalMarkdown:
@@ -13,7 +13,7 @@ class TestJournalMarkdown:
         """Journal entries with *italic* should render with emphasis."""
         entry = LogEntry(kind=EntryKind.JOURNAL, text="This is *italic* text")
 
-        with patch("soloquest.ui.display.console") as mock_console:
+        with patch("wyrd.ui.display.console") as mock_console:
             log_entry(entry)
 
             # Should have called console.print at least once for the Markdown object
@@ -23,7 +23,7 @@ class TestJournalMarkdown:
         """Journal entries with **bold** should render with strong emphasis."""
         entry = LogEntry(kind=EntryKind.JOURNAL, text="This is **bold** text")
 
-        with patch("soloquest.ui.display.console") as mock_console:
+        with patch("wyrd.ui.display.console") as mock_console:
             log_entry(entry)
 
             assert mock_console.print.called
@@ -32,7 +32,7 @@ class TestJournalMarkdown:
         """Journal entries can combine *italic* and **bold** formatting."""
         entry = LogEntry(kind=EntryKind.JOURNAL, text="This has *italic* and **bold** together")
 
-        with patch("soloquest.ui.display.console") as mock_console:
+        with patch("wyrd.ui.display.console") as mock_console:
             log_entry(entry)
 
             assert mock_console.print.called
@@ -41,7 +41,7 @@ class TestJournalMarkdown:
         """Journal entries with > quote syntax should render as quote blocks."""
         entry = LogEntry(kind=EntryKind.JOURNAL, text="> This is a quote block")
 
-        with patch("soloquest.ui.display.console") as mock_console:
+        with patch("wyrd.ui.display.console") as mock_console:
             log_entry(entry)
 
             assert mock_console.print.called
@@ -50,7 +50,7 @@ class TestJournalMarkdown:
         """Journal entries without markdown should render normally."""
         entry = LogEntry(kind=EntryKind.JOURNAL, text="This is plain text")
 
-        with patch("soloquest.ui.display.console") as mock_console:
+        with patch("wyrd.ui.display.console") as mock_console:
             log_entry(entry)
 
             assert mock_console.print.called
@@ -59,7 +59,7 @@ class TestJournalMarkdown:
         """Journal entries with show_label=True should display the label."""
         entry = LogEntry(kind=EntryKind.JOURNAL, text="Test entry")
 
-        with patch("soloquest.ui.display.console") as mock_console:
+        with patch("wyrd.ui.display.console") as mock_console:
             log_entry(entry, show_label=True)
 
             # Should print label separately, then the Markdown content
@@ -87,7 +87,7 @@ class TestJournalMarkdown:
         oracle_entry = LogEntry(kind=EntryKind.ORACLE, text="Action: *Attack*")
         note_entry = LogEntry(kind=EntryKind.NOTE, text="NPC: **Commander** Vex")
 
-        with patch("soloquest.ui.display.console") as mock_console:
+        with patch("wyrd.ui.display.console") as mock_console:
             log_entry(move_entry)
             log_entry(oracle_entry)
             log_entry(note_entry)

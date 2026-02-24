@@ -4,10 +4,10 @@ from pathlib import Path
 
 from prompt_toolkit.document import Document
 
-from soloquest.commands.new_character import AssetCompleter
-from soloquest.engine.assets import load_assets
+from wyrd.commands.new_character import AssetCompleter
+from wyrd.engine.assets import load_assets
 
-DATA_DIR = Path(__file__).parent.parent / "soloquest" / "data"
+DATA_DIR = Path(__file__).parent.parent / "wyrd" / "data"
 
 
 class TestAssetCompleter:

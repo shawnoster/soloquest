@@ -4,11 +4,11 @@ from pathlib import Path
 
 from prompt_toolkit.document import Document
 
-from soloquest.commands.completion import CommandCompleter
-from soloquest.commands.move import fuzzy_match_move
-from soloquest.loop import load_move_data
+from wyrd.commands.completion import CommandCompleter
+from wyrd.commands.move import fuzzy_match_move
+from wyrd.loop import load_move_data
 
-DATA_DIR = Path(__file__).parent.parent / "soloquest" / "data"
+DATA_DIR = Path(__file__).parent.parent / "wyrd" / "data"
 
 
 class TestMoveCategoryFiltering:

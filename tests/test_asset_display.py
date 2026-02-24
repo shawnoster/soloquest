@@ -7,13 +7,13 @@ including the new Panel-based display with colored borders.
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-from soloquest.commands.asset import _display_asset_details, handle_asset
-from soloquest.engine.assets import load_assets
-from soloquest.models.asset import Asset, AssetAbility
-from soloquest.ui.display import render_game_text
-from soloquest.ui.theme import BORDER_ASSET
+from wyrd.commands.asset import _display_asset_details, handle_asset
+from wyrd.engine.assets import load_assets
+from wyrd.models.asset import Asset, AssetAbility
+from wyrd.ui.display import render_game_text
+from wyrd.ui.theme import BORDER_ASSET
 
-DATA_DIR = Path(__file__).parent.parent / "soloquest" / "data"
+DATA_DIR = Path(__file__).parent.parent / "wyrd" / "data"
 
 
 class TestAssetDisplay:
@@ -36,7 +36,7 @@ class TestAssetDisplay:
         )
 
         # Mock the console to capture output
-        with patch("soloquest.commands.asset.display.console") as mock_console:
+        with patch("wyrd.commands.asset.display.console") as mock_console:
             _display_asset_details(asset)
 
             # Should have called print with a Panel
@@ -59,7 +59,7 @@ class TestAssetDisplay:
             inputs=[],
         )
 
-        with patch("soloquest.commands.asset.display.console") as mock_console:
+        with patch("wyrd.commands.asset.display.console") as mock_console:
             _display_asset_details(asset)
 
             # Should still create a panel
@@ -77,7 +77,7 @@ class TestAssetDisplay:
             ],
         )
 
-        with patch("soloquest.commands.asset.display.console") as mock_console:
+        with patch("wyrd.commands.asset.display.console") as mock_console:
             _display_asset_details(asset)
 
             panel_arg = mock_console.print.call_args[0][0]
@@ -100,7 +100,7 @@ class TestAssetDisplay:
             },
         )
 
-        with patch("soloquest.commands.asset.display.console") as mock_console:
+        with patch("wyrd.commands.asset.display.console") as mock_console:
             _display_asset_details(asset)
 
             panel_arg = mock_console.print.call_args[0][0]
@@ -120,7 +120,7 @@ class TestAssetDisplay:
             shared=True,
         )
 
-        with patch("soloquest.commands.asset.display.console") as mock_console:
+        with patch("wyrd.commands.asset.display.console") as mock_console:
             _display_asset_details(asset)
 
             panel_arg = mock_console.print.call_args[0][0]
@@ -130,7 +130,7 @@ class TestAssetDisplay:
 
     def test_display_non_asset_object_returns_early(self):
         """Passing a non-Asset object should return without error."""
-        with patch("soloquest.commands.asset.display.console") as mock_console:
+        with patch("wyrd.commands.asset.display.console") as mock_console:
             _display_asset_details("not an asset")
             _display_asset_details(None)
             _display_asset_details(123)
@@ -147,13 +147,13 @@ class TestAssetCommandIntegration:
 
     def test_handle_asset_with_no_args_lists_all(self):
         """Calling /asset with no args should list all assets by category."""
-        from soloquest.loop import GameState
+        from wyrd.loop import GameState
 
         # Create minimal mock state
         mock_state = MagicMock(spec=GameState)
         mock_state.assets = self.assets
 
-        with patch("soloquest.commands.asset.display.console"):
+        with patch("wyrd.commands.asset.display.console"):
             handle_asset(mock_state, args=[], _flags=set())
             # Should not raise exception
 
@@ -172,7 +172,7 @@ class TestAssetCommandIntegration:
 
         mock_state = self._make_state_no_assets(self.assets)
 
-        with patch("soloquest.commands.asset._display_asset_details") as mock_display:
+        with patch("wyrd.commands.asset._display_asset_details") as mock_display:
             handle_asset(mock_state, args=["starship"], _flags=set())
 
             # Should have called display with the starship asset
@@ -184,7 +184,7 @@ class TestAssetCommandIntegration:
         """Calling /asset with non-existent asset should show error."""
         mock_state = self._make_state_no_assets(self.assets)
 
-        with patch("soloquest.commands.asset.display.error") as mock_error:
+        with patch("wyrd.commands.asset.display.error") as mock_error:
             handle_asset(mock_state, args=["nonexistent_asset_xyz"], _flags=set())
 
             # Should have shown error
@@ -197,7 +197,7 @@ class TestAssetCommandIntegration:
         mock_state = self._make_state_no_assets(self.assets)
 
         # Find a query that matches multiple assets
-        with patch("soloquest.commands.asset.display.warn"):
+        with patch("wyrd.commands.asset.display.warn"):
             handle_asset(mock_state, args=["module"], _flags=set())
 
             # Might show warning if multiple matches
@@ -212,13 +212,13 @@ class TestAssetCategoryDisplay:
 
     def test_assets_grouped_by_category(self):
         """Assets should be grouped by category when listing all."""
-        from soloquest.loop import GameState
+        from wyrd.loop import GameState
 
         mock_state = MagicMock(spec=GameState)
         mock_state.assets = self.assets
 
-        with patch("soloquest.commands.asset.display.console") as mock_console:
-            from soloquest.commands.asset import _list_assets
+        with patch("wyrd.commands.asset.display.console") as mock_console:
+            from wyrd.commands.asset import _list_assets
 
             _list_assets(mock_state)
 
@@ -228,13 +228,13 @@ class TestAssetCategoryDisplay:
 
     def test_empty_assets_shows_warning(self):
         """Empty asset dictionary should show warning."""
-        from soloquest.loop import GameState
+        from wyrd.loop import GameState
 
         mock_state = MagicMock(spec=GameState)
         mock_state.assets = {}
 
-        with patch("soloquest.commands.asset.display.warn") as mock_warn:
-            from soloquest.commands.asset import _list_assets
+        with patch("wyrd.commands.asset.display.warn") as mock_warn:
+            from wyrd.commands.asset import _list_assets
 
             _list_assets(mock_state)
 
@@ -255,7 +255,7 @@ class TestAssetEdgeCases:
             abilities=[AssetAbility(text=long_text, enabled=True)],
         )
 
-        with patch("soloquest.commands.asset.display.console"):
+        with patch("wyrd.commands.asset.display.console"):
             # Should not crash
             _display_asset_details(asset)
 
@@ -267,7 +267,7 @@ class TestAssetEdgeCases:
             category="test",
         )
 
-        with patch("soloquest.commands.asset.display.console") as mock_console:
+        with patch("wyrd.commands.asset.display.console") as mock_console:
             _display_asset_details(asset)
 
             # Should have created panel without error
@@ -282,7 +282,7 @@ class TestAssetEdgeCases:
             abilities=[AssetAbility(text="Ability with emoji ⚡ and symbols ●", enabled=True)],
         )
 
-        with patch("soloquest.commands.asset.display.console"):
+        with patch("wyrd.commands.asset.display.console"):
             # Should not crash
             _display_asset_details(asset)
 
@@ -295,7 +295,7 @@ class TestAssetEdgeCases:
             tracks={"": (0, 5)},  # Empty track name
         )
 
-        with patch("soloquest.commands.asset.display.console"):
+        with patch("wyrd.commands.asset.display.console"):
             # Should not crash
             _display_asset_details(asset)
 
@@ -307,7 +307,7 @@ class TestAssetEdgeCases:
             category="command_vehicle_module",
         )
 
-        with patch("soloquest.commands.asset.display.console") as mock_console:
+        with patch("wyrd.commands.asset.display.console") as mock_console:
             _display_asset_details(asset)
 
             panel_arg = mock_console.print.call_args[0][0]

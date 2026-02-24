@@ -6,8 +6,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from soloquest.commands.roll import DICE_PATTERN, handle_roll
-from soloquest.models.session import Session
+from wyrd.commands.roll import DICE_PATTERN, handle_roll
+from wyrd.models.session import Session
 
 
 class TestDicePattern:
@@ -87,7 +87,7 @@ class TestHandleRollNote:
         self.state.dice.roll.return_value = 42
         self.state.session = Session(number=1)
 
-    @patch("soloquest.commands.roll.display.console")
+    @patch("wyrd.commands.roll.display.console")
     def test_note_displayed_before_result(self, mock_console):
         """Note is shown with a │ pipe above the └ result line."""
         handle_roll(self.state, ["d100", "inciting", "incident"], flags=set())
@@ -100,7 +100,7 @@ class TestHandleRollNote:
         result_idx = next(i for i, c in enumerate(calls) if "🎲" in c)
         assert note_idx < result_idx
 
-    @patch("soloquest.commands.roll.display.console")
+    @patch("wyrd.commands.roll.display.console")
     def test_note_appended_to_session_log(self, mock_console):
         """Note is appended to session log entry with ' — ' separator."""
         handle_roll(self.state, ["d100", "inciting", "incident"], flags=set())
@@ -109,7 +109,7 @@ class TestHandleRollNote:
         assert "inciting incident" in self.state.session.entries[0].text
         assert " — " in self.state.session.entries[0].text
 
-    @patch("soloquest.commands.roll.display.console")
+    @patch("wyrd.commands.roll.display.console")
     def test_no_note_no_dim_italic_line(self, mock_console):
         """With no trailing note, no extra dim italic line is printed."""
         handle_roll(self.state, ["d6"], flags=set())
@@ -117,14 +117,14 @@ class TestHandleRollNote:
         calls = [c[0][0] for c in mock_console.print.call_args_list]
         assert not any("dim italic" in c for c in calls)
 
-    @patch("soloquest.commands.roll.display.console")
+    @patch("wyrd.commands.roll.display.console")
     def test_no_note_log_has_no_separator(self, mock_console):
         """With no note, session log entry has no ' — ' separator."""
         handle_roll(self.state, ["d6"], flags=set())
 
         assert " — " not in self.state.session.entries[0].text
 
-    @patch("soloquest.commands.roll.display.console")
+    @patch("wyrd.commands.roll.display.console")
     def test_multiword_note(self, mock_console):
         """Multi-word notes are joined with spaces."""
         handle_roll(self.state, ["d6", "what", "caused", "the", "fire"], flags=set())

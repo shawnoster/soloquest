@@ -126,7 +126,7 @@ Soloquest uses the [dataforged](https://github.com/rsek/dataforged) package for 
 
 ### Custom Data
 
-Soloquest can override dataforged entries via TOML files in `soloquest/data/`:
+Soloquest can override dataforged entries via TOML files in `wyrd/data/`:
 - `moves.toml` - Custom or house-ruled moves
 - `oracles.toml` - Additional oracle tables
 - `truths.toml` - Custom truth categories

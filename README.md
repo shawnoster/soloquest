@@ -27,9 +27,9 @@ This is a companion tool for players who own the Ironsworn rulebooks.
 uv sync
 
 # Run
-uv run soloquest
+uv run wyrd
 # or
-uv run python -m soloquest.main
+uv run python -m wyrd.main
 ```
 
 **New to Soloquest?** See the [Getting Started Guide](docs/user-guide/getting-started.md) for a complete walkthrough.
@@ -162,7 +162,7 @@ Anything typed without a `/` prefix is added to your journal.
 
 ## Adventures Directory
 
-By default, all your adventure data is stored in `~/soloquest-adventures/`:
+By default, all your adventure data is stored in `~/wyrd-adventures/`:
 - `saves/` — character save files
 - `sessions/` — individual session markdown
 - `journal/` — cumulative journal markdown
@@ -171,12 +171,12 @@ By default, all your adventure data is stored in `~/soloquest-adventures/`:
 
 ```bash
 # Option 1: Command-line argument (recommended)
-soloquest -d ~/Documents/ObsidianVault/Ironsworn
-soloquest --adventures-dir ./my-campaign
+wyrd -d ~/Documents/ObsidianVault/Ironsworn
+wyrd --adventures-dir ./my-campaign
 
 # Option 2: Environment variable
 export SOLOQUEST_ADVENTURES_DIR="$HOME/Documents/ObsidianVault/Ironsworn"
-soloquest
+wyrd
 ```
 
 See [Adventures Directory Configuration](docs/user-guide/adventures-directory.md) for details.
@@ -207,7 +207,7 @@ See [Adventures Directory Configuration](docs/user-guide/adventures-directory.md
 ## Project Structure
 
 ```
-soloquest/
+wyrd/
 ├── main.py          # Entry point
 ├── loop.py          # REPL game loop
 ├── commands/        # Command handlers

@@ -1,6 +1,6 @@
 """Tests for the dice engine."""
 
-from soloquest.engine.dice import (
+from wyrd.engine.dice import (
     DiceMode,
     Die,
     DigitalDice,

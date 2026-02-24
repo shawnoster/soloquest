@@ -42,7 +42,7 @@ make format     # Format code
 ## Project Structure
 
 ```
-soloquest/
+wyrd/
 ├── main.py             # Entry point
 ├── loop.py             # REPL game loop
 ├── commands/           # Command handlers
@@ -76,11 +76,11 @@ soloquest/
 
 Game content (moves, oracles, assets) comes from the [dataforged](https://github.com/rsek/dataforged) package:
 
-- JSON files in `soloquest/data/dataforged/`
+- JSON files in `wyrd/data/dataforged/`
 - Loaded at runtime by `dataforged_loader.py`
 - 200+ oracle tables, 90+ assets, 56 moves
 
-**License:** CC BY 4.0 / CC BY-NC 4.0 / MIT (see `soloquest/data/dataforged/LICENSE.md`)
+**License:** CC BY 4.0 / CC BY-NC 4.0 / MIT (see `wyrd/data/dataforged/LICENSE.md`)
 
 ---
 
@@ -88,7 +88,7 @@ Game content (moves, oracles, assets) comes from the [dataforged](https://github
 
 ### Adding a New Command
 
-1. Create command handler in `soloquest/commands/`
+1. Create command handler in `wyrd/commands/`
 2. Register in command registry
 3. Add tests in `tests/`
 4. Update help text
@@ -99,7 +99,7 @@ Game content (moves, oracles, assets) comes from the [dataforged](https://github
 Moves come from dataforged. To customize:
 
 1. Check if move exists in dataforged JSON
-2. If not, add custom TOML in `soloquest/data/`
+2. If not, add custom TOML in `wyrd/data/`
 3. Update move loader to handle custom moves
 
 ### Adding a New Oracle Table
@@ -107,7 +107,7 @@ Moves come from dataforged. To customize:
 Oracle tables come from dataforged. To customize:
 
 1. Check dataforged JSON first
-2. For custom tables, add TOML in `soloquest/data/`
+2. For custom tables, add TOML in `wyrd/data/`
 3. Update oracle loader
 
 ---
@@ -130,7 +130,7 @@ pytest tests/test_moves.py::test_strong_hit -vv
 ### Checking Coverage
 
 ```bash
-pytest --cov=soloquest --cov-report=html
+pytest --cov=wyrd --cov-report=html
 # Open htmlcov/index.html in browser
 ```
 

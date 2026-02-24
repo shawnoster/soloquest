@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from soloquest.models.session import EntryKind, LogEntry, Session
+from wyrd.models.session import EntryKind, LogEntry, Session
 
 
 class TestLogEntry:

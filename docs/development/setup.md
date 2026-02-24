@@ -1,6 +1,6 @@
 # Development Setup Guide
 
-Complete guide to setting up your development environment for soloquest.
+Complete guide to setting up your development environment for wyrd.
 
 ---
 
@@ -17,14 +17,14 @@ Complete guide to setting up your development environment for soloquest.
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/soloquest.git
-cd soloquest
+git clone https://github.com/yourusername/wyrd.git
+cd wyrd
 
 # Install dependencies
 uv sync
 
 # Run the CLI
-uv run soloquest
+uv run wyrd
 
 # Run tests
 uv run pytest
@@ -139,8 +139,8 @@ make run          # Run the CLI
 
 ```bash
 # Clone and enter the repository
-git clone https://github.com/yourusername/soloquest.git
-cd soloquest
+git clone https://github.com/yourusername/wyrd.git
+cd wyrd
 
 # Install dependencies (including dev dependencies)
 uv sync
@@ -235,12 +235,12 @@ You can also run commands directly with `uv`:
 
 ```bash
 # Run the CLI
-uv run soloquest
-uv run python -m soloquest.main
+uv run wyrd
+uv run python -m wyrd.main
 
 # Run tests
 uv run pytest
-uv run pytest --cov=soloquest --cov-report=html
+uv run pytest --cov=wyrd --cov-report=html
 
 # Linting and formatting
 uv run ruff check .
@@ -267,7 +267,7 @@ uv run pytest tests/test_moves.py::test_strong_hit
 uv run pytest -v
 
 # With coverage report
-uv run pytest --cov=soloquest --cov-report=html
+uv run pytest --cov=wyrd --cov-report=html
 # Open htmlcov/index.html in browser
 ```
 
@@ -309,7 +309,7 @@ uv run ruff format .
 Type hints are encouraged but not enforced. If you want to check types:
 
 ```bash
-uv run mypy soloquest
+uv run mypy wyrd
 ```
 
 ---
@@ -317,8 +317,8 @@ uv run mypy soloquest
 ## Project Structure
 
 ```
-soloquest/
-├── soloquest/          # Main package
+wyrd/
+├── wyrd/          # Main package
 │   ├── commands/       # Command handlers
 │   ├── engine/         # Game mechanics
 │   ├── models/         # Data models
@@ -360,17 +360,17 @@ Make sure you've installed dependencies:
 uv sync
 ```
 
-### `ModuleNotFoundError: No module named 'soloquest'`
+### `ModuleNotFoundError: No module named 'wyrd'`
 
 Run commands with `uv run`:
 ```bash
 uv run pytest
-uv run soloquest
+uv run wyrd
 ```
 
 ### Tests fail with "dataforged not found"
 
-The dataforged JSON files should be in `soloquest/data/dataforged/`. If missing:
+The dataforged JSON files should be in `wyrd/data/dataforged/`. If missing:
 ```bash
 git status  # Check if files are tracked
 git submodule update --init  # If it's a submodule
@@ -416,7 +416,7 @@ Recommended extensions:
 
 ### PyCharm
 
-1. Mark `soloquest/` as "Sources Root"
+1. Mark `wyrd/` as "Sources Root"
 2. Configure pytest as the test runner
 3. Install ruff plugin
 
@@ -433,6 +433,6 @@ Recommended extensions:
 
 ## Getting Help
 
-- **Questions:** Open a [GitHub Discussion](https://github.com/yourusername/soloquest/discussions)
-- **Bugs:** Open a [GitHub Issue](https://github.com/yourusername/soloquest/issues)
+- **Questions:** Open a [GitHub Discussion](https://github.com/yourusername/wyrd/discussions)
+- **Bugs:** Open a [GitHub Issue](https://github.com/yourusername/wyrd/issues)
 - **Chat:** Join the [Ironsworn Discord](https://discord.gg/ironsworn)

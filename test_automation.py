@@ -13,16 +13,16 @@ from pathlib import Path
 # Add project to path
 sys.path.insert(0, str(Path(__file__).parent))
 
-from soloquest.engine.dice import DiceMode
-from soloquest.engine.moves import resolve_move
-from soloquest.engine.oracles import load_oracles
-from soloquest.journal.exporter import append_to_journal, export_session
-from soloquest.models.character import Character, Stats
-from soloquest.models.session import Session
-from soloquest.models.vow import Vow, VowRank
-from soloquest.state.save import load_game, save_game
+from wyrd.engine.dice import DiceMode
+from wyrd.engine.moves import resolve_move
+from wyrd.engine.oracles import load_oracles
+from wyrd.journal.exporter import append_to_journal, export_session
+from wyrd.models.character import Character, Stats
+from wyrd.models.session import Session
+from wyrd.models.vow import Vow, VowRank
+from wyrd.state.save import load_game, save_game
 
-DATA_DIR = Path(__file__).parent / "soloquest" / "data"
+DATA_DIR = Path(__file__).parent / "wyrd" / "data"
 
 
 def test_character_creation():

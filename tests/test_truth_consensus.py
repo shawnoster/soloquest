@@ -4,10 +4,10 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
 
-from soloquest.models.campaign import CampaignState, TruthProposal
-from soloquest.models.session import Session
-from soloquest.models.truths import ChosenTruth, TruthCategory, TruthOption
-from soloquest.sync import LocalAdapter
+from wyrd.models.campaign import CampaignState, TruthProposal
+from wyrd.models.session import Session
+from wyrd.models.truths import ChosenTruth, TruthCategory, TruthOption
+from wyrd.sync import LocalAdapter
 
 
 def _make_truth_category(name: str = "Cataclysm") -> TruthCategory:
@@ -24,7 +24,7 @@ def _make_truth_category(name: str = "Cataclysm") -> TruthCategory:
 
 
 def _make_state(campaign=None, campaign_dir=None):
-    from soloquest.loop import GameState
+    from wyrd.loop import GameState
 
     character = MagicMock()
     character.name = "Kira"
@@ -148,27 +148,27 @@ class TestCampaignStateTruths:
 class TestHandleTruthPropose:
     def test_solo_mode_applies_truth_immediately(self):
         """In solo mode, propose auto-accepts."""
-        from soloquest.commands.truths import _handle_truth_propose
+        from wyrd.commands.truths import _handle_truth_propose
 
         state = _make_state(campaign=None)
 
         chosen = ChosenTruth(category="Cataclysm", option_summary="The Sun Plague")
-        with patch("soloquest.commands.truths._get_truth_choice", return_value=chosen):
+        with patch("wyrd.commands.truths._get_truth_choice", return_value=chosen):
             _handle_truth_propose(state, ["Cataclysm"])
 
         assert len(state.truths) == 1
         assert state.truths[0].option_summary == "The Sun Plague"
 
     def test_coop_creates_pending_proposal(self, tmp_path):
-        from soloquest.commands.truths import _handle_truth_propose
+        from wyrd.commands.truths import _handle_truth_propose
 
         campaign = _make_campaign()
         state = _make_state(campaign=campaign, campaign_dir=tmp_path)
 
         chosen = ChosenTruth(category="Cataclysm", option_summary="The Sun Plague")
         with (
-            patch("soloquest.commands.truths._get_truth_choice", return_value=chosen),
-            patch("soloquest.state.campaign.save_campaign"),
+            patch("wyrd.commands.truths._get_truth_choice", return_value=chosen),
+            patch("wyrd.state.campaign.save_campaign"),
         ):
             _handle_truth_propose(state, ["Cataclysm"])
 
@@ -178,22 +178,22 @@ class TestHandleTruthPropose:
         assert proposal.proposer == "Kira"
 
     def test_coop_does_not_apply_truth_to_character(self, tmp_path):
-        from soloquest.commands.truths import _handle_truth_propose
+        from wyrd.commands.truths import _handle_truth_propose
 
         campaign = _make_campaign()
         state = _make_state(campaign=campaign, campaign_dir=tmp_path)
 
         chosen = ChosenTruth(category="Cataclysm", option_summary="The Sun Plague")
         with (
-            patch("soloquest.commands.truths._get_truth_choice", return_value=chosen),
-            patch("soloquest.state.campaign.save_campaign"),
+            patch("wyrd.commands.truths._get_truth_choice", return_value=chosen),
+            patch("wyrd.state.campaign.save_campaign"),
         ):
             _handle_truth_propose(state, ["Cataclysm"])
 
         assert state.truths == []
 
     def test_coop_publishes_propose_truth_event(self, tmp_path):
-        from soloquest.commands.truths import _handle_truth_propose
+        from wyrd.commands.truths import _handle_truth_propose
 
         campaign = _make_campaign()
         state = _make_state(campaign=campaign, campaign_dir=tmp_path)
@@ -202,8 +202,8 @@ class TestHandleTruthPropose:
 
         chosen = ChosenTruth(category="Cataclysm", option_summary="The Sun Plague")
         with (
-            patch("soloquest.commands.truths._get_truth_choice", return_value=chosen),
-            patch("soloquest.state.campaign.save_campaign"),
+            patch("wyrd.commands.truths._get_truth_choice", return_value=chosen),
+            patch("wyrd.state.campaign.save_campaign"),
         ):
             _handle_truth_propose(state, ["Cataclysm"])
 
@@ -213,10 +213,10 @@ class TestHandleTruthPropose:
         assert event.data["category"] == "Cataclysm"
 
     def test_unknown_category_shows_error(self):
-        from soloquest.commands.truths import _handle_truth_propose
+        from wyrd.commands.truths import _handle_truth_propose
 
         state = _make_state()
-        with patch("soloquest.commands.truths.display") as mock_display:
+        with patch("wyrd.commands.truths.display") as mock_display:
             _handle_truth_propose(state, ["NonExistentCategory"])
         mock_display.error.assert_called_once()
 
@@ -228,23 +228,23 @@ class TestHandleTruthPropose:
 
 class TestHandleTruthReview:
     def test_solo_shows_info(self):
-        from soloquest.commands.truths import _handle_truth_review
+        from wyrd.commands.truths import _handle_truth_review
 
         state = _make_state(campaign=None)
-        with patch("soloquest.commands.truths.display") as mock_display:
+        with patch("wyrd.commands.truths.display") as mock_display:
             _handle_truth_review(state)
         mock_display.info.assert_called_once()
 
     def test_coop_no_pending_shows_info(self):
-        from soloquest.commands.truths import _handle_truth_review
+        from wyrd.commands.truths import _handle_truth_review
 
         state = _make_state(campaign=_make_campaign())
-        with patch("soloquest.commands.truths.display") as mock_display:
+        with patch("wyrd.commands.truths.display") as mock_display:
             _handle_truth_review(state)
         mock_display.info.assert_called_once()
 
     def test_coop_shows_pending_proposals(self):
-        from soloquest.commands.truths import _handle_truth_review
+        from wyrd.commands.truths import _handle_truth_review
 
         campaign = _make_campaign()
         campaign.pending_truth_proposals["Cataclysm"] = TruthProposal(
@@ -255,7 +255,7 @@ class TestHandleTruthReview:
         )
         state = _make_state(campaign=campaign)
 
-        with patch("soloquest.commands.truths.display") as mock_display:
+        with patch("wyrd.commands.truths.display") as mock_display:
             mock_display.console = MagicMock()
             mock_display.rule = MagicMock()
             _handle_truth_review(state)
@@ -271,23 +271,23 @@ class TestHandleTruthReview:
 
 class TestHandleTruthAccept:
     def test_solo_shows_info(self):
-        from soloquest.commands.truths import _handle_truth_accept
+        from wyrd.commands.truths import _handle_truth_accept
 
         state = _make_state(campaign=None)
-        with patch("soloquest.commands.truths.display") as mock_display:
+        with patch("wyrd.commands.truths.display") as mock_display:
             _handle_truth_accept(state, [])
         mock_display.info.assert_called_once()
 
     def test_no_pending_shows_info(self):
-        from soloquest.commands.truths import _handle_truth_accept
+        from wyrd.commands.truths import _handle_truth_accept
 
         state = _make_state(campaign=_make_campaign())
-        with patch("soloquest.commands.truths.display") as mock_display:
+        with patch("wyrd.commands.truths.display") as mock_display:
             _handle_truth_accept(state, [])
         mock_display.info.assert_called_once()
 
     def test_accept_applies_to_character_truths(self, tmp_path):
-        from soloquest.commands.truths import _handle_truth_accept
+        from wyrd.commands.truths import _handle_truth_accept
 
         campaign = _make_campaign()
         campaign.pending_truth_proposals["Cataclysm"] = TruthProposal(
@@ -298,14 +298,14 @@ class TestHandleTruthAccept:
         )
         state = _make_state(campaign=campaign, campaign_dir=tmp_path)
 
-        with patch("soloquest.state.campaign.save_campaign"):
+        with patch("wyrd.state.campaign.save_campaign"):
             _handle_truth_accept(state, ["Cataclysm"])
 
         assert len(state.truths) == 1
         assert state.truths[0].option_summary == "The Sun Plague"
 
     def test_accept_removes_from_pending(self, tmp_path):
-        from soloquest.commands.truths import _handle_truth_accept
+        from wyrd.commands.truths import _handle_truth_accept
 
         campaign = _make_campaign()
         campaign.pending_truth_proposals["Cataclysm"] = TruthProposal(
@@ -316,13 +316,13 @@ class TestHandleTruthAccept:
         )
         state = _make_state(campaign=campaign, campaign_dir=tmp_path)
 
-        with patch("soloquest.state.campaign.save_campaign"):
+        with patch("wyrd.state.campaign.save_campaign"):
             _handle_truth_accept(state, ["Cataclysm"])
 
         assert "Cataclysm" not in state.campaign.pending_truth_proposals
 
     def test_accept_adds_to_campaign_truths(self, tmp_path):
-        from soloquest.commands.truths import _handle_truth_accept
+        from wyrd.commands.truths import _handle_truth_accept
 
         campaign = _make_campaign()
         campaign.pending_truth_proposals["Cataclysm"] = TruthProposal(
@@ -333,14 +333,14 @@ class TestHandleTruthAccept:
         )
         state = _make_state(campaign=campaign, campaign_dir=tmp_path)
 
-        with patch("soloquest.state.campaign.save_campaign"):
+        with patch("wyrd.state.campaign.save_campaign"):
             _handle_truth_accept(state, [])
 
         assert len(state.campaign.truths) == 1
         assert state.campaign.truths[0].option_summary == "The Sun Plague"
 
     def test_accept_publishes_event(self, tmp_path):
-        from soloquest.commands.truths import _handle_truth_accept
+        from wyrd.commands.truths import _handle_truth_accept
 
         campaign = _make_campaign()
         campaign.pending_truth_proposals["Cataclysm"] = TruthProposal(
@@ -353,7 +353,7 @@ class TestHandleTruthAccept:
         mock_sync = MagicMock()
         state.sync = mock_sync
 
-        with patch("soloquest.state.campaign.save_campaign"):
+        with patch("wyrd.state.campaign.save_campaign"):
             _handle_truth_accept(state, [])
 
         mock_sync.publish.assert_called_once()
@@ -362,7 +362,7 @@ class TestHandleTruthAccept:
         assert event.data["category"] == "Cataclysm"
 
     def test_accept_by_category_name(self, tmp_path):
-        from soloquest.commands.truths import _handle_truth_accept
+        from wyrd.commands.truths import _handle_truth_accept
 
         campaign = _make_campaign()
         campaign.pending_truth_proposals["Cataclysm"] = TruthProposal(
@@ -373,7 +373,7 @@ class TestHandleTruthAccept:
         )
         state = _make_state(campaign=campaign, campaign_dir=tmp_path)
 
-        with patch("soloquest.state.campaign.save_campaign"):
+        with patch("wyrd.state.campaign.save_campaign"):
             _handle_truth_accept(state, ["cata"])  # partial match
 
         assert "Cataclysm" not in state.campaign.pending_truth_proposals
@@ -387,8 +387,8 @@ class TestHandleTruthAccept:
 class TestPollAppliesAcceptedTruth:
     def test_accept_truth_from_partner_applies_to_character(self):
         """When a partner accepts our proposed truth via poll, apply it to character."""
-        from soloquest.loop import _poll_and_display
-        from soloquest.sync.models import Event
+        from wyrd.loop import _poll_and_display
+        from wyrd.sync.models import Event
 
         campaign = _make_campaign()
         state = _make_state(campaign=campaign)
@@ -402,7 +402,7 @@ class TestPollAppliesAcceptedTruth:
         mock_sync.poll.return_value = [accept_event]
         state.sync = mock_sync
 
-        with patch("soloquest.loop.display"):
+        with patch("wyrd.loop.display"):
             _poll_and_display(state, explicit=False)
 
         assert len(state.truths) == 1
@@ -410,8 +410,8 @@ class TestPollAppliesAcceptedTruth:
 
     def test_accept_truth_from_self_not_applied_again(self):
         """When we accept our own truth (shouldn't happen), don't double-apply."""
-        from soloquest.loop import _poll_and_display
-        from soloquest.sync.models import Event
+        from wyrd.loop import _poll_and_display
+        from wyrd.sync.models import Event
 
         campaign = _make_campaign()
         state = _make_state(campaign=campaign)
@@ -426,7 +426,7 @@ class TestPollAppliesAcceptedTruth:
         mock_sync.poll.return_value = [accept_event]
         state.sync = mock_sync
 
-        with patch("soloquest.loop.display"):
+        with patch("wyrd.loop.display"):
             _poll_and_display(state, explicit=False)
 
         # Not applied (same player)
@@ -434,9 +434,9 @@ class TestPollAppliesAcceptedTruth:
 
     def test_accept_truth_not_applied_if_already_have_it(self):
         """If we already have a truth for this category, don't overwrite it."""
-        from soloquest.loop import _poll_and_display
-        from soloquest.models.truths import ChosenTruth
-        from soloquest.sync.models import Event
+        from wyrd.loop import _poll_and_display
+        from wyrd.models.truths import ChosenTruth
+        from wyrd.sync.models import Event
 
         campaign = _make_campaign()
         state = _make_state(campaign=campaign)
@@ -452,7 +452,7 @@ class TestPollAppliesAcceptedTruth:
         mock_sync.poll.return_value = [accept_event]
         state.sync = mock_sync
 
-        with patch("soloquest.loop.display"):
+        with patch("wyrd.loop.display"):
             _poll_and_display(state, explicit=False)
 
         # Still has original truth

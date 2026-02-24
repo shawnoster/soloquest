@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 from datetime import UTC
 
-from soloquest.sync import Event, FileLogAdapter, LocalAdapter, Proposal, Resolution, SyncPort
+from wyrd.sync import Event, FileLogAdapter, LocalAdapter, Proposal, Resolution, SyncPort
 
 # ---------------------------------------------------------------------------
 # Models
@@ -233,7 +233,7 @@ class TestGameStateSyncField:
         """GameState.sync defaults to LocalAdapter without any extra args."""
         from unittest.mock import MagicMock
 
-        from soloquest.loop import GameState
+        from wyrd.loop import GameState
 
         state = GameState(
             character=MagicMock(),
@@ -252,7 +252,7 @@ class TestGameStateSyncField:
     def test_game_state_accepts_custom_sync(self, tmp_path):
         from unittest.mock import MagicMock
 
-        from soloquest.loop import GameState
+        from wyrd.loop import GameState
 
         adapter = FileLogAdapter(tmp_path, "kira")
         state = GameState(

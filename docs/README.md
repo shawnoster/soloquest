@@ -16,7 +16,7 @@ Start here if you want to use Soloquest to play solo RPGs.
 
 ## For Developers
 
-Start here if you want to contribute to soloquest development.
+Start here if you want to contribute to wyrd development.
 
 - **[Setup Guide](development/setup.md)** - Development environment setup, including Just installation
 - **[Contributing](development/contributing.md)** - How to contribute to the project

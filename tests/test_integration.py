@@ -10,19 +10,19 @@ from pathlib import Path
 
 import pytest
 
-from soloquest.engine.dice import Die
-from soloquest.engine.moves import (
+from wyrd.engine.dice import Die
+from wyrd.engine.moves import (
     OutcomeTier,
     check_match,
     resolve_move,
     resolve_outcome,
     would_momentum_improve,
 )
-from soloquest.engine.oracles import load_oracles
-from soloquest.models.character import Character, Stats
-from soloquest.models.vow import SPIRIT_COST, Vow, VowRank
+from wyrd.engine.oracles import load_oracles
+from wyrd.models.character import Character, Stats
+from wyrd.models.vow import SPIRIT_COST, Vow, VowRank
 
-DATA_DIR = Path(__file__).parent.parent / "soloquest" / "data"
+DATA_DIR = Path(__file__).parent.parent / "wyrd" / "data"
 
 
 # ── Deterministic dice stub ────────────────────────────────────────────────────
@@ -235,7 +235,7 @@ class TestVowCharacterIntegration:
         assert self.vow.fulfilled is True
 
     def test_progress_to_max(self):
-        from soloquest.models.vow import MAX_TICKS
+        from wyrd.models.vow import MAX_TICKS
 
         # Fill all the way
         while self.vow.ticks < MAX_TICKS:

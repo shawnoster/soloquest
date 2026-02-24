@@ -147,24 +147,24 @@ as constants; the rest are documented here for completeness when adapting a new 
 
 ### Implementation
 
-Color constants live in `soloquest/ui/themes/` — one module per theme. Each theme
+Color constants live in `wyrd/ui/themes/` — one module per theme. Each theme
 module exports the same set of named constants with palette-specific values.
 
-The active theme is selected by a single import in `soloquest/ui/theme.py`:
+The active theme is selected by a single import in `wyrd/ui/theme.py`:
 
 ```python
-# soloquest/ui/theme.py — change this one line to swap themes
-from soloquest.ui.themes.github_dark import *   # current default
-# from soloquest.ui.themes.ayu_dark import *    # uncomment to switch
+# wyrd/ui/theme.py — change this one line to swap themes
+from wyrd.ui.themes.github_dark import *   # current default
+# from wyrd.ui.themes.ayu_dark import *    # uncomment to switch
 ```
 
-Call sites in `display.py` and command modules import from `soloquest.ui.theme`:
+Call sites in `display.py` and command modules import from `wyrd.ui.theme`:
 
 ```python
-from soloquest.ui.theme import OUTCOME_STRONG, FEEDBACK_ERROR, BORDER_ORACLE, ...
+from wyrd.ui.theme import OUTCOME_STRONG, FEEDBACK_ERROR, BORDER_ORACLE, ...
 ```
 
-To add a new theme, create `soloquest/ui/themes/<theme_name>.py` exporting all the
+To add a new theme, create `wyrd/ui/themes/<theme_name>.py` exporting all the
 same constant names with new values.
 
 ---
@@ -178,7 +178,7 @@ same constant names with new values.
 
 ## Consequences
 
-- One place to swap a full theme: the import line in `soloquest/ui/theme.py`.
+- One place to swap a full theme: the import line in `wyrd/ui/theme.py`.
 - New features get color guidance without needing to read all of `display.py`.
 - `display.py` call sites become self-documenting — `OUTCOME_STRONG` is clearer than `"bold green"`.
 - Future: a `--theme` flag or config key can select Light/Mirage variants of Ayu or other palettes entirely.

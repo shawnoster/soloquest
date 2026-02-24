@@ -9,11 +9,11 @@ from prompt_toolkit.history import FileHistory
 
 class TestFileHistory:
     def test_history_file_created_in_adventures_dir(self, tmp_path):
-        """FileHistory creates .soloquest_history in adventures directory."""
-        from soloquest.config import config
-        from soloquest.engine.dice import DiceMode
-        from soloquest.loop import run_session
-        from soloquest.models.character import Character
+        """FileHistory creates .wyrd_history in adventures directory."""
+        from wyrd.config import config
+        from wyrd.engine.dice import DiceMode
+        from wyrd.loop import run_session
+        from wyrd.models.character import Character
 
         # Set up temporary config directory
         config.set_adventures_dir(tmp_path)
@@ -25,8 +25,8 @@ class TestFileHistory:
 
         # Mock the PromptSession to avoid actually prompting
         with (
-            patch("soloquest.loop.PromptSession") as mock_prompt,
-            patch("soloquest.loop.display"),
+            patch("wyrd.loop.PromptSession") as mock_prompt,
+            patch("wyrd.loop.display"),
         ):
             # Mock prompt to immediately quit
             mock_session = MagicMock()
@@ -44,19 +44,19 @@ class TestFileHistory:
             assert isinstance(history, FileHistory)
 
             # Verify the history file path is correct
-            expected_path = tmp_path / ".soloquest_history"
+            expected_path = tmp_path / ".wyrd_history"
             assert history.filename == str(expected_path)
 
     def test_history_persists_across_sessions(self, tmp_path):
         """Commands are persisted and available in next session."""
-        from soloquest.config import config
-        from soloquest.engine.dice import DiceMode
-        from soloquest.loop import run_session
-        from soloquest.models.character import Character
+        from wyrd.config import config
+        from wyrd.engine.dice import DiceMode
+        from wyrd.loop import run_session
+        from wyrd.models.character import Character
 
         # Set up temporary config directory
         config.set_adventures_dir(tmp_path)
-        history_file = tmp_path / ".soloquest_history"
+        history_file = tmp_path / ".wyrd_history"
 
         character = Character(name="Test")
         vows = []
@@ -65,8 +65,8 @@ class TestFileHistory:
 
         # First session: verify FileHistory is created
         with (
-            patch("soloquest.loop.PromptSession") as mock_prompt,
-            patch("soloquest.loop.display"),
+            patch("wyrd.loop.PromptSession") as mock_prompt,
+            patch("wyrd.loop.display"),
         ):
             mock_session = MagicMock()
             mock_session.prompt.side_effect = EOFError
@@ -82,8 +82,8 @@ class TestFileHistory:
 
         # Second session: verify FileHistory points to same file
         with (
-            patch("soloquest.loop.PromptSession") as mock_prompt2,
-            patch("soloquest.loop.display"),
+            patch("wyrd.loop.PromptSession") as mock_prompt2,
+            patch("wyrd.loop.display"),
         ):
             mock_session2 = MagicMock()
             mock_session2.prompt.side_effect = EOFError
@@ -101,10 +101,10 @@ class TestFileHistory:
 
     def test_adventures_dir_created_if_missing(self, tmp_path):
         """Adventures directory is created if it doesn't exist."""
-        from soloquest.config import config
-        from soloquest.engine.dice import DiceMode
-        from soloquest.loop import run_session
-        from soloquest.models.character import Character
+        from wyrd.config import config
+        from wyrd.engine.dice import DiceMode
+        from wyrd.loop import run_session
+        from wyrd.models.character import Character
 
         # Use a non-existent subdirectory
         non_existent = tmp_path / "new_adventures"
@@ -116,8 +116,8 @@ class TestFileHistory:
         dice_mode = DiceMode.DIGITAL
 
         with (
-            patch("soloquest.loop.PromptSession") as mock_prompt,
-            patch("soloquest.loop.display"),
+            patch("wyrd.loop.PromptSession") as mock_prompt,
+            patch("wyrd.loop.display"),
         ):
             mock_session = MagicMock()
             mock_session.prompt.side_effect = EOFError
@@ -130,5 +130,5 @@ class TestFileHistory:
             assert non_existent.is_dir()
 
             # Verify history file can be created in this directory
-            history_file = non_existent / ".soloquest_history"
+            history_file = non_existent / ".wyrd_history"
             assert history_file.parent.exists()

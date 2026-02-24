@@ -38,7 +38,7 @@ This is the **living specification** for the entire CLI. For detailed informatio
 > **Detailed architecture documentation:** See [architecture.md](architecture.md)
 
 ```
-soloquest/
+wyrd/
 ├── main.py               # Entry point, session bootstrap
 ├── loop.py               # Main REPL loop
 ├── commands/             # Command handlers (UI layer)

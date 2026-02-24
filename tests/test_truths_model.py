@@ -1,6 +1,6 @@
 """Tests for the ChosenTruth model, including the note field."""
 
-from soloquest.models.truths import ChosenTruth
+from wyrd.models.truths import ChosenTruth
 
 
 class TestChosenTruthNote:

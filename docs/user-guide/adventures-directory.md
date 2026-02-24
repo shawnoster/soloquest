@@ -1,11 +1,11 @@
 # Adventures Directory Configuration
 
-By default, Starforged CLI stores all your adventure data (saves, sessions, journal) in `~/soloquest-adventures/`. This keeps your game data separate from the CLI tool itself.
+By default, Starforged CLI stores all your adventure data (saves, sessions, journal) in `~/wyrd-adventures/`. This keeps your game data separate from the CLI tool itself.
 
 ## Directory Structure
 
 ```
-~/soloquest-adventures/
+~/wyrd-adventures/
 ├── saves/      # Character save files (.json)
 ├── sessions/   # Individual session markdown files
 └── journal/    # Cumulative journal markdown files
@@ -28,13 +28,13 @@ Pass the directory path directly when launching:
 
 ```bash
 # Use short flag
-soloquest -d ~/Documents/ObsidianVault/Starforged
+wyrd -d ~/Documents/ObsidianVault/Starforged
 
 # Or long flag
-soloquest --adventures-dir ~/my-campaigns
+wyrd --adventures-dir ~/my-campaigns
 
 # Relative paths work too
-soloquest -d ./test-campaign
+wyrd -d ./test-campaign
 ```
 
 **Benefits:**
@@ -51,7 +51,7 @@ Set `SOLOQUEST_ADVENTURES_DIR` in your shell:
 export SOLOQUEST_ADVENTURES_DIR="$HOME/Documents/ObsidianVault/Starforged"
 
 # Or run one-time
-SOLOQUEST_ADVENTURES_DIR="$HOME/my-campaigns" soloquest
+SOLOQUEST_ADVENTURES_DIR="$HOME/my-campaigns" wyrd
 ```
 
 **Benefits:**
@@ -61,17 +61,17 @@ SOLOQUEST_ADVENTURES_DIR="$HOME/my-campaigns" soloquest
 ### Option 3: Default Location
 
 If no configuration is provided, adventures are stored in:
-- `~/soloquest-adventures/`
+- `~/wyrd-adventures/`
 
 ## Example: Obsidian Integration
 
 ```bash
 # Option A: Use command-line argument
-soloquest -d ~/Documents/ObsidianVault/TTRPG/Starforged
+wyrd -d ~/Documents/ObsidianVault/TTRPG/Starforged
 
 # Option B: Set environment variable
 export SOLOQUEST_ADVENTURES_DIR="$HOME/Documents/ObsidianVault/TTRPG/Starforged"
-soloquest
+wyrd
 ```
 
 Your Obsidian vault will now contain:
@@ -89,8 +89,8 @@ TTRPG/Starforged/
 
 - **Multiple campaigns?** Create shell aliases:
   ```bash
-  alias starforged-main='soloquest -d ~/campaigns/starforged-main'
-  alias starforged-test='soloquest -d ~/campaigns/test-game'
+  alias starforged-main='wyrd -d ~/campaigns/starforged-main'
+  alias starforged-test='wyrd -d ~/campaigns/test-game'
   ```
 - **Use absolute paths** for consistency
 - **Backup regularly** if storing in a cloud-synced folder
@@ -99,7 +99,7 @@ TTRPG/Starforged/
 
 ## Future: Config File Support
 
-A future update will add support for `~/.config/soloquest/config.toml`:
+A future update will add support for `~/.config/wyrd/config.toml`:
 
 ```toml
 adventures_dir = "~/Documents/ObsidianVault/Starforged"
