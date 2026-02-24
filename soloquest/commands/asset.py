@@ -253,6 +253,11 @@ def _display_char_asset_details(char_asset: CharacterAsset, asset_def: Asset) ->
     )
 
 
+def display_asset_card(asset: Asset) -> None:
+    """Display a catalog asset card panel (public interface for use during character creation)."""
+    _display_asset_details(asset)
+
+
 def _display_asset_details(asset: Asset) -> None:
     """Display detailed information about a catalog asset."""
     if not isinstance(asset, Asset):
