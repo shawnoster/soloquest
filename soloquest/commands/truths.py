@@ -9,6 +9,7 @@ import textwrap
 from collections.abc import Callable
 from typing import TYPE_CHECKING
 
+from prompt_toolkit import PromptSession
 from prompt_toolkit.shortcuts import prompt
 from rich.padding import Padding
 from rich.panel import Panel
@@ -91,6 +92,8 @@ def run_truths_wizard(
     truth_categories: dict[str, TruthCategory],
     existing_truths: list[ChosenTruth] | None = None,
     on_truth_saved: Callable[[ChosenTruth], None] | None = None,
+    *,
+    state: GameState | None = None,
 ) -> list[ChosenTruth] | None:
     """Run the interactive truths wizard. Returns chosen truths or None if cancelled.
 
@@ -129,6 +132,12 @@ def run_truths_wizard(
         )
         display.console.print()
 
+    from soloquest.commands.wizard_oracle import make_oracle_key_bindings
+
+    _oracles = state.oracles if state is not None else {}
+    _kb = make_oracle_key_bindings(state, _oracles)
+    _session: PromptSession = PromptSession(key_bindings=_kb)
+
     try:
         for idx, category in enumerate(categories_to_do, start=1):
             display.console.print()
@@ -150,7 +159,7 @@ def run_truths_wizard(
                 )
 
             # Get user choice
-            chosen_truth = _get_truth_choice(category)
+            chosen_truth = _get_truth_choice(category, state=state, session=_session)
             if chosen_truth:
                 chosen_truths.append(chosen_truth)
                 if on_truth_saved:
@@ -248,6 +257,7 @@ def _start_truths_wizard(state: GameState) -> None:
         state.truth_categories,
         existing_truths=existing if resume else None,
         on_truth_saved=_on_truth_saved,
+        state=state,
     )
     if result is not None:
         state.character.truths = result
@@ -272,6 +282,10 @@ takes place.
   • Type [bold]c[/bold] to write your own custom truth
   • Type [bold]s[/bold] to skip (you can come back later)
 
+[bold cyan]Oracle lookups (anytime):[/bold cyan]
+  • Type [bold]?action theme[/bold] or [bold]/oracle action[/bold] to consult the oracle
+  • Press [bold]Alt+O[/bold] to open an oracle sub-prompt with tab-completion
+
 [dim]Press Enter to continue...[/dim]
 """
     display.console.print(Panel(intro, border_style=BORDER_REFERENCE, padding=(1, 2)))
@@ -280,7 +294,33 @@ takes place.
     display.console.print()
 
 
-def _get_subchoice(subchoices: list[str]) -> str:
+def _truth_prompt(
+    label: str,
+    default: str = "",
+    state: GameState | None = None,
+    session: PromptSession | None = None,
+) -> str:
+    """Prompt for wizard input with oracle interception.
+
+    Loops on oracle queries (?table, /oracle table, /o table) so the caller
+    always receives a non-oracle string or a raised exception on cancel.
+    Raises KeyboardInterrupt / EOFError — callers handle cancellation.
+    """
+    from soloquest.commands.wizard_oracle import check_oracle_prefix
+
+    while True:
+        if session is not None:
+            suffix = f" [{default}]" if default else ""
+            raw = (session.prompt(f"{label}{suffix}: ").strip() or default)
+        else:
+            raw = Prompt.ask(label, default=default, show_default=bool(default))
+        checked = check_oracle_prefix(raw, state)
+        if checked is not None:
+            return checked
+        # oracle ran — re-prompt the same question
+
+
+def _get_subchoice(subchoices: list[str], state: GameState | None = None, session: PromptSession | None = None) -> str:
     """Prompt user to select a subchoice.
 
     Returns the chosen subchoice text (without roll range).
@@ -288,9 +328,11 @@ def _get_subchoice(subchoices: list[str]) -> str:
     while True:
         try:
             display.console.print()
-            choice = Prompt.ask(
-                f"  Choose (1-{len(subchoices)}), or roll (r)",
+            choice = _truth_prompt(
+                f"  Choose (1-{len(subchoices)}), roll (r), or ?<oracle>",
                 default="r",
+                state=state,
+                session=session,
             ).lower()
 
             # Handle roll
@@ -333,15 +375,15 @@ def _get_subchoice(subchoices: list[str]) -> str:
             return ""
 
 
-def _prompt_note() -> str:
+def _prompt_note(state: GameState | None = None, session: PromptSession | None = None) -> str:
     """Prompt for an optional personal note about this truth."""
     try:
-        note = Prompt.ask(
+        return _truth_prompt(
             "  [dim italic]What does this truth mean for your story?[/dim italic]",
             default="",
-            show_default=False,
+            state=state,
+            session=session,
         )
-        return note
     except (KeyboardInterrupt, EOFError):
         return ""
 
@@ -360,14 +402,20 @@ def _create_chosen_truth(
     )
 
 
-def _get_truth_choice(category: TruthCategory) -> ChosenTruth | None:
+def _get_truth_choice(
+    category: TruthCategory,
+    state: GameState | None = None,
+    session: PromptSession | None = None,
+) -> ChosenTruth | None:
     """Get the user's choice for a truth category."""
     while True:
         try:
             display.console.print()
-            choice = Prompt.ask(
-                "  Choose (1-3), roll (r), custom (c), or skip (s)",
+            choice = _truth_prompt(
+                "  Choose (1-3), roll (r), custom (c), skip (s), or ?<oracle>",
                 default="r",
+                state=state,
+                session=session,
             ).lower()
 
             # Handle skip
@@ -391,8 +439,8 @@ def _get_truth_choice(category: TruthCategory) -> ChosenTruth | None:
                     display.console.print(f"  [{ORACLE_RESULT}]Rolled: {roll}[/{ORACLE_RESULT}]")
                     display.console.print(f"  [bold]Result:[/bold] {option.summary}")
                     display.console.print()
-                    subchoice = _show_option_details(option)
-                    note = _prompt_note()
+                    subchoice = _show_option_details(option, state=state, session=session)
+                    note = _prompt_note(state=state, session=session)
                     return _create_chosen_truth(category, option, subchoice, note)
                 else:
                     display.error(f"  No option found for roll {roll}. Please try again.")
@@ -402,12 +450,12 @@ def _get_truth_choice(category: TruthCategory) -> ChosenTruth | None:
             if choice == "c":
                 display.console.print()
                 display.console.print("  [bold]Write your custom truth:[/bold]")
-                custom = Prompt.ask("  ")
+                custom = _truth_prompt("  ", state=state, session=session)
                 if custom:
                     display.console.print()
                     display.console.print(f"  [bold]Your truth:[/bold] {custom}")
                     display.console.print()
-                    note = _prompt_note()
+                    note = _prompt_note(state=state, session=session)
                     return ChosenTruth(
                         category=category.name,
                         option_summary=custom,
@@ -426,8 +474,8 @@ def _get_truth_choice(category: TruthCategory) -> ChosenTruth | None:
                     display.console.print()
                     display.console.print(f"  [bold]You chose:[/bold] {option.summary}")
                     display.console.print()
-                    subchoice = _show_option_details(option)
-                    note = _prompt_note()
+                    subchoice = _show_option_details(option, state=state, session=session)
+                    note = _prompt_note(state=state, session=session)
                     return _create_chosen_truth(category, option, subchoice, note)
 
             display.error("  Invalid choice. Try again.")
@@ -437,7 +485,11 @@ def _get_truth_choice(category: TruthCategory) -> ChosenTruth | None:
             raise
 
 
-def _show_option_details(option: TruthOption) -> str:
+def _show_option_details(
+    option: TruthOption,
+    state: GameState | None = None,
+    session: PromptSession | None = None,
+) -> str:
     """Show detailed information about a chosen option.
 
     Returns the chosen subchoice if applicable, empty string otherwise.
@@ -453,7 +505,7 @@ def _show_option_details(option: TruthOption) -> str:
             styled = re.sub(r"\[(\d+-\d+)\]", r"[dim][\1][/dim]", subchoice)
             display.console.print(f"  [bold][{idx}][/bold] {styled}")
 
-        chosen_subchoice = _get_subchoice(option.subchoices)
+        chosen_subchoice = _get_subchoice(option.subchoices, state=state, session=session)
 
     if option.quest_starter:
         display.console.print()

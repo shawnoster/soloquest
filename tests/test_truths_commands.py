@@ -209,7 +209,7 @@ class TestStartTruthsWizard:
         _start_truths_wizard(mock_state)
 
         mock_run_wizard.assert_called_once_with(
-            mock_state.truth_categories, existing_truths=None, on_truth_saved=ANY
+            mock_state.truth_categories, existing_truths=None, on_truth_saved=ANY, state=mock_state
         )
         assert mock_state.character.truths == chosen_truths
         mock_display.success.assert_called_once()
@@ -570,7 +570,7 @@ class TestShowOptionDetails:
         result = _show_option_details(option)
 
         assert result == "chosen sub"
-        mock_subchoice.assert_called_once_with(option.subchoices)
+        mock_subchoice.assert_called_once_with(option.subchoices, state=None, session=None)
 
     @patch("soloquest.commands.truths.display")
     def test_show_option_details_without_subchoices(self, mock_display):

@@ -5,6 +5,7 @@ from __future__ import annotations
 import random
 import tomllib
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from prompt_toolkit import PromptSession
 from prompt_toolkit.completion import Completer, Completion
@@ -12,6 +13,9 @@ from rich.panel import Panel
 
 from soloquest.commands.asset import display_asset_card
 from soloquest.commands.truths import run_truths_wizard
+
+if TYPE_CHECKING:
+    from soloquest.loop import GameState
 from soloquest.engine.assets import fuzzy_match_asset, load_assets
 from soloquest.engine.dice import DiceMode
 from soloquest.models.asset import Asset, CharacterAsset
@@ -94,18 +98,41 @@ class AssetCompleter(Completer):
         yield from sorted(completions, key=lambda c: c.text)
 
 
-def _wprompt(session: PromptSession, label: str, default: str = "") -> str:
-    """Plain-text prompt via prompt_toolkit. Returns stripped input or default."""
+def _wprompt(
+    session: PromptSession,
+    label: str,
+    default: str = "",
+    state: GameState | None = None,
+) -> str:
+    """Plain-text prompt via prompt_toolkit. Loops on oracle queries."""
+    from soloquest.commands.wizard_oracle import check_oracle_prefix
+
     suffix = f" [{default}]" if default else ""
-    result = session.prompt(f"{label}{suffix}: ")
-    return result.strip() or default
+    while True:
+        raw = (session.prompt(f"{label}{suffix}: ").strip() or default)
+        checked = check_oracle_prefix(raw, state)
+        if checked is not None:
+            return checked
+        # oracle ran — re-prompt
 
 
-def _wconfirm(session: PromptSession, label: str, default: bool = True) -> bool:
-    """Yes/no prompt via prompt_toolkit."""
+def _wconfirm(
+    session: PromptSession,
+    label: str,
+    default: bool = True,
+    state: GameState | None = None,
+) -> bool:
+    """Yes/no prompt via prompt_toolkit. Intercepts oracle queries."""
+    from soloquest.commands.wizard_oracle import check_oracle_prefix
+
     hint = "[Y/n]" if default else "[y/N]"
     while True:
         raw = session.prompt(f"{label} {hint}: ").strip().lower()
+        if raw:
+            checked = check_oracle_prefix(raw, state)
+            if checked is None:
+                continue  # oracle ran — re-prompt
+            raw = checked.lower()
         if not raw:
             return default
         if raw in ("y", "yes"):
@@ -114,9 +141,14 @@ def _wconfirm(session: PromptSession, label: str, default: bool = True) -> bool:
             return False
 
 
-def _prompt_oracle_roll(table: list[tuple], table_name: str, session: PromptSession) -> None:
+def _prompt_oracle_roll(
+    table: list[tuple],
+    table_name: str,
+    session: PromptSession,
+    state: GameState | None = None,
+) -> None:
     """Offer to roll on an oracle table and display the result."""
-    roll_it = _wconfirm(session, f"  Roll on the {table_name} table?", default=False)
+    roll_it = _wconfirm(session, f"  Roll on the {table_name} table?", default=False, state=state)
     if roll_it:
         result = _roll_table(table)
         roll = result[0]
@@ -302,6 +334,7 @@ def run_new_character_flow(
     data_dir: Path,
     truth_categories: dict,
     include_truths: bool = True,
+    state: GameState | None = None,
 ) -> tuple[Character, list[Vow], DiceMode] | None:
     """Run the full new-game flow: (optionally Truths →) character wizard.
 
@@ -309,13 +342,13 @@ def run_new_character_flow(
     Set include_truths=False for co-op joiners who skip world setup.
     """
     if include_truths:
-        truths = run_truths_wizard(truth_categories)
+        truths = run_truths_wizard(truth_categories, state=state)
         if truths is None:
             return None  # cancelled during truths
     else:
         truths = []
 
-    result = run_creation_wizard(data_dir)
+    result = run_creation_wizard(data_dir, state=state)
     if result is None:
         return None  # cancelled during character creation
 
@@ -324,7 +357,10 @@ def run_new_character_flow(
     return character, vows, dice_mode
 
 
-def run_creation_wizard(data_dir: Path) -> tuple[Character, list[Vow], DiceMode] | None:
+def run_creation_wizard(
+    data_dir: Path,
+    state: GameState | None = None,
+) -> tuple[Character, list[Vow], DiceMode] | None:
     """Full 10-step character creation wizard (Starforged p.103–112).
 
     Returns (Character, vows, dice_mode) on success, or None if cancelled.
@@ -342,7 +378,11 @@ def run_creation_wizard(data_dir: Path) -> tuple[Character, list[Vow], DiceMode]
     # Single session for the entire wizard — avoids mixing prompt_toolkit with
     # Rich's input()-based Prompt.ask/Confirm.ask, which leaves the terminal in
     # application-keypad mode between prompts and breaks numpad arrow keys.
-    session: PromptSession = PromptSession()
+    from soloquest.commands.wizard_oracle import make_oracle_key_bindings
+
+    _oracles = state.oracles if state is not None else {}
+    _kb = make_oracle_key_bindings(state, _oracles)
+    session: PromptSession = PromptSession(key_bindings=_kb)
 
     try:
         available_assets = load_assets(data_dir)
@@ -362,10 +402,10 @@ def run_creation_wizard(data_dir: Path) -> tuple[Character, list[Vow], DiceMode]
         display.console.print()
         display.rule(get_string("character_creation.wizard_steps.step2_title"))
         display.console.print()
-        _prompt_oracle_roll(BACKSTORY_TABLE, "Backstory", session)
+        _prompt_oracle_roll(BACKSTORY_TABLE, "Backstory", session, state=state)
         display.console.print()
         backstory = _wprompt(
-            session, f"  {get_string('character_creation.prompts.backstory_prompt')}"
+            session, f"  {get_string('character_creation.prompts.backstory_prompt')}", state=state
         )
 
         # ── Step 3: Background vow ──────────────────────────────────────────
@@ -374,7 +414,7 @@ def run_creation_wizard(data_dir: Path) -> tuple[Character, list[Vow], DiceMode]
         display.console.print()
         display.info(f"  {get_string('character_creation.prompts.background_vow_intro')}")
         bg_vow_text = _wprompt(
-            session, f"  {get_string('character_creation.prompts.background_vow_prompt')}"
+            session, f"  {get_string('character_creation.prompts.background_vow_prompt')}", state=state
         )
         vows = [Vow(description=bg_vow_text, rank=VowRank.EPIC)]
 
@@ -384,10 +424,10 @@ def run_creation_wizard(data_dir: Path) -> tuple[Character, list[Vow], DiceMode]
         display.console.print()
         display.info(f"  {get_string('character_creation.prompts.starship_auto_grant')}")
         ship_name = _wprompt(
-            session, f"  {get_string('character_creation.prompts.starship_name_prompt')}"
+            session, f"  {get_string('character_creation.prompts.starship_name_prompt')}", state=state
         )
-        _prompt_oracle_roll(STARSHIP_HISTORY_TABLE, "Starship History", session)
-        _prompt_oracle_roll(STARSHIP_QUIRK_TABLE, "Starship Quirk", session)
+        _prompt_oracle_roll(STARSHIP_HISTORY_TABLE, "Starship History", session, state=state)
+        _prompt_oracle_roll(STARSHIP_QUIRK_TABLE, "Starship Quirk", session, state=state)
         starship_asset = CharacterAsset(
             asset_key="starship",
             input_values={"name": ship_name} if ship_name else {},
@@ -436,27 +476,27 @@ def run_creation_wizard(data_dir: Path) -> tuple[Character, list[Vow], DiceMode]
         display.rule(get_string("character_creation.wizard_steps.step8_title"))
         display.console.print()
         display.info(f"  {get_string('character_creation.instructions.envision_optional')}")
-        look = _wprompt(session, "  Look (appearance, one or two facts)")
-        act = _wprompt(session, "  Act (how you behave)")
-        wear = _wprompt(session, "  Wear (what you wear)")
+        look = _wprompt(session, "  Look (appearance, one or two facts)", state=state)
+        act = _wprompt(session, "  Act (how you behave)", state=state)
+        wear = _wprompt(session, "  Wear (what you wear)", state=state)
 
         # ── Step 9: Name your character ────────────────────────────────────
         display.console.print()
         display.rule(get_string("character_creation.wizard_steps.step9_title"))
         display.console.print()
         name = _wprompt(
-            session, f"  {get_string('character_creation.prompts.character_name_prompt')}"
+            session, f"  {get_string('character_creation.prompts.character_name_prompt')}", state=state
         )
         if name.lower() in {"back", "cancel", "quit", "exit"}:
             return None
         pronouns = _wprompt(
-            session, f"  {get_string('character_creation.prompts.pronouns_prompt')}"
+            session, f"  {get_string('character_creation.prompts.pronouns_prompt')}", state=state
         )
         callsign = _wprompt(
-            session, f"  {get_string('character_creation.prompts.callsign_prompt')}"
+            session, f"  {get_string('character_creation.prompts.callsign_prompt')}", state=state
         )
         homeworld = _wprompt(
-            session, f"  {get_string('character_creation.prompts.homeworld_prompt')}"
+            session, f"  {get_string('character_creation.prompts.homeworld_prompt')}", state=state
         )
 
         # ── Step 10: Gear up ────────────────────────────────────────────────
@@ -478,7 +518,7 @@ def run_creation_wizard(data_dir: Path) -> tuple[Character, list[Vow], DiceMode]
         display.info(f"  {get_string('character_creation.prompts.gear_prompt')}")
         gear: list[str] = []
         while len(gear) < 5:
-            item = _wprompt(session, f"  Personal item {len(gear) + 1} (or Enter when done)")
+            item = _wprompt(session, f"  Personal item {len(gear) + 1} (or Enter when done)", state=state)
             if not item:
                 break
             gear.append(item)
@@ -491,7 +531,7 @@ def run_creation_wizard(data_dir: Path) -> tuple[Character, list[Vow], DiceMode]
         display.info(f"    {get_string('character_creation.dice_modes.option1')}")
         display.info(f"    {get_string('character_creation.dice_modes.option2')}")
         display.info(f"    {get_string('character_creation.dice_modes.option3')}")
-        raw = _wprompt(session, "  Choose", default="1")
+        raw = _wprompt(session, "  Choose", default="1", state=state)
         mode_map = {"1": DiceMode.DIGITAL, "2": DiceMode.PHYSICAL, "3": DiceMode.MIXED}
         dice_mode = mode_map.get(raw, DiceMode.DIGITAL)
 
@@ -539,7 +579,7 @@ def run_creation_wizard(data_dir: Path) -> tuple[Character, list[Vow], DiceMode]
         )
 
         if not _wconfirm(
-            session, f"  {get_string('character_creation.prompts.begin_journey')}", default=True
+            session, f"  {get_string('character_creation.prompts.begin_journey')}", default=True, state=state
         ):
             return None
 
