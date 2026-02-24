@@ -11,6 +11,7 @@ from wyrd.engine.dice import DiceMode
 from wyrd.models.character import Character
 from wyrd.models.session import Session
 from wyrd.models.vow import Vow
+from wyrd.state.character_md import read_character_md, write_character_md
 
 
 def _saves_dir() -> Path:
@@ -79,6 +80,13 @@ def load_by_name(
         session = None
         if "session" in data:
             session = Session.from_dict(data["session"])
+
+        # Apply narrative overrides from companion character.md
+        md = read_character_md(path)
+        if md is not None:
+            narrative, _assets = md
+            narrative.apply_to(character)
+
         return character, vows, session_count, dice_mode, session
     except (KeyError, ValueError):
         return None
@@ -118,6 +126,11 @@ def save_game(
         data["session"] = session.to_dict()
 
     path.write_text(json.dumps(data, indent=2), encoding="utf-8")
+
+    # Write companion character.md (canonical for narrative fields).
+    # Round-trip is safe: load applies the markdown overrides onto the Character
+    # object, so saving it back faithfully preserves any hand-edits.
+    write_character_md(character, path)
 
     return path
 
@@ -167,6 +180,12 @@ def load_game(
     if "session" in data:
         session = Session.from_dict(data["session"])
 
+    # Apply narrative overrides from companion character.md
+    md = read_character_md(path)
+    if md is not None:
+        narrative, _assets = md
+        narrative.apply_to(character)
+
     return character, vows, session_count, dice_mode, session
 
 
@@ -183,7 +202,8 @@ def load_most_recent() -> tuple[Character, list[Vow], int, DiceMode, Session | N
         return None
 
     try:
-        data = json.loads(saves[0].read_text(encoding="utf-8"))
+        save_path = saves[0]
+        data = json.loads(save_path.read_text(encoding="utf-8"))
         character = Character.from_dict(data["character"])
         vows = [Vow.from_dict(v) for v in data.get("vows", [])]
         session_count = data.get("session_count", 0)
@@ -193,6 +213,12 @@ def load_most_recent() -> tuple[Character, list[Vow], int, DiceMode, Session | N
         session = None
         if "session" in data:
             session = Session.from_dict(data["session"])
+
+        # Apply narrative overrides from companion character.md
+        md = read_character_md(save_path)
+        if md is not None:
+            narrative, _assets = md
+            narrative.apply_to(character)
 
         return character, vows, session_count, dice_mode, session
     except (json.JSONDecodeError, KeyError, ValueError):

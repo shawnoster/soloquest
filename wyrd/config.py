@@ -1,8 +1,7 @@
-"""Configuration management for SoloQuest CLI."""
+"""Configuration management for wyrd CLI."""
 
 from __future__ import annotations
 
-import os
 from pathlib import Path
 
 CONFIG_DIR = Path.home() / ".config" / "wyrd"
@@ -14,9 +13,8 @@ class Config:
 
     Priority order for adventures_dir:
     1. CLI argument (set via set_adventures_dir())
-    2. SOLOQUEST_ADVENTURES_DIR environment variable
-    3. Config file setting (future)
-    4. Default: ~/wyrd-adventures
+    2. Config file setting (future)
+    3. Default: ~/wyrd-adventures
     """
 
     _instance: Config | None = None
@@ -32,10 +30,6 @@ class Config:
         """Get the adventures directory path."""
         if self._adventures_dir is not None:
             return self._adventures_dir
-
-        env_path = os.environ.get("SOLOQUEST_ADVENTURES_DIR")
-        if env_path:
-            return Path(env_path).expanduser().resolve()
 
         return Path.home() / "wyrd-adventures"
 

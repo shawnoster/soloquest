@@ -1,4 +1,4 @@
-# Soloquest
+# Wyrd
 
 A solo journaling companion CLI for [Ironsworn](https://www.ironswornrpg.com/) games by Shawn Tomkin.
 
@@ -170,13 +170,8 @@ By default, all your adventure data is stored in `~/wyrd-adventures/`:
 **Use a custom location** to integrate with Obsidian, Logseq, or any personal wiki:
 
 ```bash
-# Option 1: Command-line argument (recommended)
 wyrd -d ~/Documents/ObsidianVault/Ironsworn
 wyrd --adventures-dir ./my-campaign
-
-# Option 2: Environment variable
-export SOLOQUEST_ADVENTURES_DIR="$HOME/Documents/ObsidianVault/Ironsworn"
-wyrd
 ```
 
 See [Adventures Directory Configuration](docs/user-guide/adventures-directory.md) for details.

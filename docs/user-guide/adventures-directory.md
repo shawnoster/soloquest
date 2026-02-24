@@ -20,7 +20,7 @@ By default, Starforged CLI stores all your adventure data (saves, sessions, jour
 
 ## Configuration
 
-The adventures directory can be configured in three ways (in priority order):
+The adventures directory can be configured in two ways (in priority order):
 
 ### Option 1: Command-Line Argument (Recommended)
 
@@ -42,23 +42,7 @@ wyrd -d ./test-campaign
 - ✅ Easy to switch between campaigns
 - ✅ Works great with shell aliases
 
-### Option 2: Environment Variable
-
-Set `SOLOQUEST_ADVENTURES_DIR` in your shell:
-
-```bash
-# In your ~/.bashrc or ~/.zshrc
-export SOLOQUEST_ADVENTURES_DIR="$HOME/Documents/ObsidianVault/Starforged"
-
-# Or run one-time
-SOLOQUEST_ADVENTURES_DIR="$HOME/my-campaigns" wyrd
-```
-
-**Benefits:**
-- ✅ Set once, use everywhere
-- ✅ Good for a single primary campaign
-
-### Option 3: Default Location
+### Option 2: Default Location
 
 If no configuration is provided, adventures are stored in:
 - `~/wyrd-adventures/`
@@ -66,12 +50,7 @@ If no configuration is provided, adventures are stored in:
 ## Example: Obsidian Integration
 
 ```bash
-# Option A: Use command-line argument
 wyrd -d ~/Documents/ObsidianVault/TTRPG/Starforged
-
-# Option B: Set environment variable
-export SOLOQUEST_ADVENTURES_DIR="$HOME/Documents/ObsidianVault/TTRPG/Starforged"
-wyrd
 ```
 
 Your Obsidian vault will now contain:
