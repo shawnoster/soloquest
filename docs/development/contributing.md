@@ -17,22 +17,10 @@ This page provides additional context for developers.
 
 ## Development Commands
 
-### Using Just (Recommended)
-
 ```bash
-just            # Show all available commands
-just run        # Launch the CLI
-just test       # Run tests with coverage
-just check      # Lint + tests
-just format     # Format code
-```
-
-### Using Make
-
-```bash
-make            # Show help
+make            # Show all available commands
 make run        # Launch the CLI
-make test       # Run tests
+make test       # Run tests with coverage
 make check      # Lint + tests
 make format     # Format code
 ```

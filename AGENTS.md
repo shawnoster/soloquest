@@ -8,14 +8,14 @@ This file provides guidance for AI agents working in this repository.
 
 ### Running the CLI
 ```bash
-just run          # Launch the CLI
-just install      # Install package with uv sync
-just dev          # Install with dev dependencies
+make run          # Launch the CLI
+make install      # Install package with uv sync
+make dev          # Install with dev dependencies
 ```
 
 ### Running Tests
 ```bash
-just test         # Run all tests with coverage
+make test                        # Run all tests with coverage
 pytest                           # Run all tests
 pytest tests/test_character.py   # Run specific test file
 pytest tests/test_character.py::TestCharacter::test_adjust_track_up  # Run specific test
@@ -26,16 +26,16 @@ pytest --cov=wyrd --cov-report=term-missing  # With coverage
 
 ### Linting and Formatting
 ```bash
-just check       # Run lint + tests
-just lint        # Run ruff check
-just format      # Auto-format with ruff
+make check       # Run lint + tests
+make lint        # Run ruff check
+make format      # Auto-format with ruff
 ```
 
 ### Other Commands
 ```bash
-just clean       # Remove build artifacts and caches
-just branch NAME # Create new feature branch
-just pr          # Create pull request
+make clean            # Remove build artifacts and caches
+make branch NAME=x    # Create new feature branch (e.g., make branch NAME=feat/my-feature)
+make pr               # Create pull request
 ```
 
 ---
@@ -195,7 +195,7 @@ Different modules have different coverage expectations based on their testabilit
 
 ```bash
 # Run all tests with coverage
-just test
+make test
 
 # Run specific test file
 pytest tests/test_character.py
@@ -268,7 +268,7 @@ wyrd/
 │   └── data/            # Game data (JSON, TOML)
 ├── tests/               # Test suite
 ├── pyproject.toml       # Project configuration
-└── justfile             # Development commands
+└── Makefile             # Development commands
 ```
 
 ---

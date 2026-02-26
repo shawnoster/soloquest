@@ -47,7 +47,7 @@ Thank you for your interest in contributing to wyrd! This document provides guid
 
 3. **Run quality checks:**
    ```bash
-   just check  # or: make check
+   make check
    ```
 
    This runs:
@@ -84,7 +84,7 @@ Thank you for your interest in contributing to wyrd! This document provides guid
 
 - **Before submitting:**
   - [ ] Code follows project conventions (see CLAUDE.md)
-  - [ ] All tests pass (`just check`)
+  - [ ] All tests pass (`make check`)
   - [ ] New features include tests
   - [ ] Documentation is updated
   - [ ] PR title follows Conventional Commits
@@ -104,8 +104,7 @@ ruff check .
 # Auto-format code
 ruff format .
 
-# Or use just/make
-just check
+# Or use make
 make check
 ```
 
@@ -120,8 +119,7 @@ pytest
 # With coverage report
 pytest --cov=wyrd --cov-report=html
 
-# Or use just/make
-just test
+# Or use make
 make test
 ```
 

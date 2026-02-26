@@ -1,3 +1,6 @@
+# Works on Ubuntu/Linux natively and Windows via Git Bash or WSL.
+# Install make: Ubuntu: sudo apt install make | Windows: included in Git Bash, or winget install GnuWin32.Make
+
 .DEFAULT_GOAL := help
 
 .PHONY: help install install-hooks dev run test lint format check clean branch pr
@@ -44,18 +47,12 @@ format: ## Auto-format code with ruff
 
 check: lint test ## Run lint + tests
 
-clean: ## Remove build artifacts and caches
-	rm -rf __pycache__
-	rm -rf .pytest_cache
-	rm -f .coverage
-	rm -rf htmlcov
-	rm -rf dist
-	rm -rf build
-	find . -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true
+clean: ## Remove build artifacts and caches (works on Ubuntu and Windows)
+	uv run python -c "import shutil, pathlib; [shutil.rmtree(p, ignore_errors=True) for p in ['__pycache__', '.pytest_cache', 'htmlcov', 'dist', 'build'] + [str(p) for p in pathlib.Path('.').rglob('__pycache__')]]; pathlib.Path('.coverage').unlink(missing_ok=True)"
 
 branch: ## Create and switch to new feature branch (e.g., make branch NAME=fix/something)
 	@if [ -z "$(NAME)" ]; then \
-		echo "❌ Error: NAME is required"; \
+		echo "Error: NAME is required"; \
 		echo "Usage: make branch NAME=feat/description"; \
 		echo ""; \
 		echo "Prefixes: feat/, fix/, refactor/, docs/, chore/"; \
@@ -63,12 +60,12 @@ branch: ## Create and switch to new feature branch (e.g., make branch NAME=fix/s
 	fi
 	@echo "Creating branch: $(NAME)"
 	@git checkout -b $(NAME)
-	@echo "✅ Switched to new branch: $(NAME)"
+	@echo "Switched to new branch: $(NAME)"
 
 pr: ## Create pull request for current branch
 	@current=$$(git branch --show-current); \
 	if [ "$$current" = "main" ]; then \
-		echo "❌ Error: You're on main branch"; \
+		echo "Error: You're on main branch"; \
 		echo "Create a feature branch first: make branch NAME=feat/description"; \
 		exit 1; \
 	fi

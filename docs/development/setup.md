@@ -9,7 +9,7 @@ Complete guide to setting up your development environment for wyrd.
 - **Python 3.13+** - Check with `python --version` or `python3 --version`
 - **uv** - Python package installer ([installation guide](https://github.com/astral-sh/uv))
 - **git** - Version control
-- **just** (recommended) or **make** - Task runner
+- **make** - Task runner (see [Installing Make](#installing-make) below)
 
 ---
 
@@ -54,82 +54,47 @@ uv --version
 
 ---
 
-## Installing Just (Recommended)
+## Installing Make
 
-`just` is a cross-platform command runner that makes development easier.
+### Ubuntu / Linux
 
-### Why Just?
+`make` is typically pre-installed. If not:
 
-- **Cross-platform** - Works identically on Windows (PowerShell), WSL, Linux, and macOS
-- **Modern syntax** - Cleaner than Makefiles
-- **Better errors** - More helpful error messages
-- **Used widely** - Projects like uv, ruff, and other modern Python tools use it
-
-### Installation Options
-
-**Option 1: Pre-built Binaries (Recommended for WSL/Linux)**
 ```bash
-curl --proto '=https' --tlsv1.2 -sSf https://just.systems/install.sh | bash -s -- --to ~/bin
-
-# Add to PATH if needed
-echo 'export PATH="$HOME/bin:$PATH"' >> ~/.bashrc
-source ~/.bashrc
+sudo apt install make
 ```
 
-**Option 2: Using Cargo (Rust)**
+Verify:
 ```bash
-cargo install just
+make --version
 ```
 
-**Option 3: Package Managers**
+### Windows
 
-*Windows (PowerShell):*
+On Windows, run `make` through one of these options:
+
+**Option 1: Git Bash (Recommended)**
+Git Bash is included with [Git for Windows](https://git-scm.com/download/win) and includes `make`. Open "Git Bash" from the Start menu and all `make` commands work identically to Linux.
+
+**Option 2: WSL (Windows Subsystem for Linux)**
+Install WSL and Ubuntu, then follow the Ubuntu instructions above.
+
+**Option 3: Standalone make**
 ```powershell
-winget install --id Casey.Just
-# or
-choco install just
-# or
-scoop install just
+# winget
+winget install GnuWin32.Make
+
+# or Chocolatey
+choco install make
+
+# or Scoop
+scoop install make
 ```
 
-*Linux:*
+Verify:
 ```bash
-# Arch
-sudo pacman -S just
-
-# Homebrew (macOS/Linux)
-brew install just
+make --version
 ```
-
-**Verify Installation:**
-```bash
-just --version
-```
-
-### Using Just
-
-```bash
-just              # Show all available commands
-just test         # Run tests
-just check        # Run lint + tests
-just run          # Run the CLI
-just branch feat/my-feature  # Create a feature branch
-```
-
----
-
-## Alternative: Using Make
-
-If you prefer `make` or can't install `just`, a Makefile is also provided:
-
-```bash
-make              # Show help
-make test         # Run tests
-make check        # Run lint + tests
-make run          # Run the CLI
-```
-
-**Note:** The Makefile and justfile are functionally equivalent. Choose whichever you prefer.
 
 ---
 
@@ -155,8 +120,8 @@ make check
 ### 2. Create a Feature Branch
 
 ```bash
-# Using just (provides guided prompts)
-just branch feat/my-feature
+# Using make
+make branch NAME=feat/my-feature
 
 # Or manually
 git checkout -b feat/my-feature
@@ -176,13 +141,13 @@ Edit code, add tests, update documentation.
 ### 4. Run Quality Checks
 
 ```bash
-# Run all checks (lint + format + tests)
-just check
+# Run all checks (lint + tests)
+make check
 
 # Or individually
-just lint      # Check for issues
-just format    # Auto-format code
-just test      # Run tests with coverage
+make lint      # Check for issues
+make format    # Auto-format code
+make test      # Run tests with coverage
 ```
 
 ### 5. Commit and Push
@@ -207,30 +172,19 @@ Create a PR on GitHub with:
 
 ## Available Commands
 
-### Using Just
-
 | Command | Description |
 |---------|-------------|
-| `just` | List all commands |
-| `just install` | Install dependencies |
-| `just dev` | Install with dev dependencies |
-| `just run` | Run the CLI |
-| `just test` | Run tests with coverage |
-| `just lint` | Check code with ruff |
-| `just format` | Auto-format code |
-| `just check` | Lint + format + tests |
-| `just clean` | Remove build artifacts |
-| `just branch <name>` | Create a new feature branch |
-| `just pr` | Create a pull request (requires gh CLI) |
-
-### Using Make
-
-All the same commands work with `make`:
-```bash
-make test
-make check
-make run
-```
+| `make` | Show all commands |
+| `make install` | Install dependencies |
+| `make dev` | Install with dev dependencies |
+| `make run` | Run the CLI |
+| `make test` | Run tests with coverage |
+| `make lint` | Check code with ruff |
+| `make format` | Auto-format code |
+| `make check` | Lint + tests |
+| `make clean` | Remove build artifacts |
+| `make branch NAME=<name>` | Create a new feature branch |
+| `make pr` | Create a pull request (requires gh CLI) |
 
 ### Direct uv Commands
 
@@ -258,7 +212,7 @@ uv run ruff format .
 
 ```bash
 # All tests
-just test
+make test
 
 # Specific test file
 uv run pytest tests/test_moves.py
@@ -287,7 +241,7 @@ For interactive features and UI testing, see [testing.md](testing.md) for the co
 We use `ruff` for linting:
 
 ```bash
-just lint
+make lint
 # or
 uv run ruff check .
 ```
@@ -302,7 +256,7 @@ uv run ruff check . --fix
 We use `ruff` for formatting:
 
 ```bash
-just format
+make format
 # or
 uv run ruff format .
 ```
@@ -331,8 +285,7 @@ wyrd/
 │   └── data/           # Game content
 ├── tests/              # Test suite
 ├── docs/               # Documentation
-├── justfile            # Task runner config
-├── Makefile            # Alternative task runner
+├── Makefile            # Task runner (Ubuntu and Windows)
 ├── pyproject.toml      # Project configuration
 └── uv.lock             # Dependency lock file
 ```
@@ -348,13 +301,11 @@ Install uv:
 curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 
-### `just: command not found`
+### `make: command not found`
 
-Either install just (see above) or use `make` instead:
-```bash
-make test
-make check
-```
+On Ubuntu: `sudo apt install make`
+
+On Windows: Use Git Bash (bundled with Git for Windows) or install make via `winget install GnuWin32.Make`.
 
 ### Import errors when running tests
 
@@ -381,33 +332,6 @@ git submodule update --init  # If it's a submodule
 
 ---
 
-## Migrating from Make to Just
-
-If you've been using `make` and want to switch to `just`:
-
-### Command Equivalents
-
-| Make | Just |
-|------|------|
-| `make` | `just` |
-| `make test` | `just test` |
-| `make check` | `just check` |
-| `make run` | `just run` |
-| `make branch NAME=feat/x` | `just branch feat/x` |
-| `make pr` | `just pr` |
-
-### What Changed
-
-1. **Better cross-platform support** - Works identically on Windows, WSL, and Linux
-2. **Cleaner syntax** - No `.PHONY` declarations needed
-3. **Better parameter handling** - `just branch feat/x` vs `make branch NAME=feat/x`
-
-### CI/CD Impact
-
-**None!** CI workflows use `uv run` commands directly and don't depend on make or just.
-
----
-
 ## IDE Setup
 
 ### VS Code
@@ -415,7 +339,6 @@ If you've been using `make` and want to switch to `just`:
 Recommended extensions:
 - Python (Microsoft)
 - Ruff
-- Just (skellock.just)
 
 ### PyCharm
 
