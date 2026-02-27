@@ -74,9 +74,7 @@ class TestCampaignState:
 
 class TestCreateCampaign:
     def test_creates_directory_structure(self, tmp_path, monkeypatch):
-        monkeypatch.setattr(
-            "wyrd.state.campaign.campaigns_dir", lambda: tmp_path / "campaigns"
-        )
+        monkeypatch.setattr("wyrd.state.campaign.campaigns_dir", lambda: tmp_path / "campaigns")
         campaign, campaign_dir = create_campaign("Iron Veil", "kira")
         assert campaign_dir.exists()
         assert (campaign_dir / "events").is_dir()
@@ -84,41 +82,31 @@ class TestCreateCampaign:
         assert (campaign_dir / "campaign.toml").exists()
 
     def test_player_added_to_campaign(self, tmp_path, monkeypatch):
-        monkeypatch.setattr(
-            "wyrd.state.campaign.campaigns_dir", lambda: tmp_path / "campaigns"
-        )
+        monkeypatch.setattr("wyrd.state.campaign.campaigns_dir", lambda: tmp_path / "campaigns")
         campaign, _ = create_campaign("Iron Veil", "kira")
         assert "kira" in campaign.players
 
     def test_duplicate_raises(self, tmp_path, monkeypatch):
-        monkeypatch.setattr(
-            "wyrd.state.campaign.campaigns_dir", lambda: tmp_path / "campaigns"
-        )
+        monkeypatch.setattr("wyrd.state.campaign.campaigns_dir", lambda: tmp_path / "campaigns")
         create_campaign("Iron Veil", "kira")
         with pytest.raises(ValueError, match="already exists"):
             create_campaign("Iron Veil", "dax")
 
     def test_sets_campaign_dir(self, tmp_path, monkeypatch):
-        monkeypatch.setattr(
-            "wyrd.state.campaign.campaigns_dir", lambda: tmp_path / "campaigns"
-        )
+        monkeypatch.setattr("wyrd.state.campaign.campaigns_dir", lambda: tmp_path / "campaigns")
         campaign, campaign_dir = create_campaign("Test", "kira")
         assert campaign.campaign_dir == campaign_dir
 
 
 class TestJoinCampaign:
     def test_adds_new_player(self, tmp_path, monkeypatch):
-        monkeypatch.setattr(
-            "wyrd.state.campaign.campaigns_dir", lambda: tmp_path / "campaigns"
-        )
+        monkeypatch.setattr("wyrd.state.campaign.campaigns_dir", lambda: tmp_path / "campaigns")
         _, campaign_dir = create_campaign("Iron Veil", "kira")
         campaign = join_campaign(campaign_dir, "dax")
         assert "dax" in campaign.players
 
     def test_duplicate_player_is_idempotent(self, tmp_path, monkeypatch):
-        monkeypatch.setattr(
-            "wyrd.state.campaign.campaigns_dir", lambda: tmp_path / "campaigns"
-        )
+        monkeypatch.setattr("wyrd.state.campaign.campaigns_dir", lambda: tmp_path / "campaigns")
         _, campaign_dir = create_campaign("Iron Veil", "kira")
         # Second join for the same player returns the campaign unchanged
         campaign = join_campaign(campaign_dir, "kira")
@@ -127,15 +115,11 @@ class TestJoinCampaign:
 
 class TestListCampaigns:
     def test_empty_when_no_campaigns_dir(self, tmp_path, monkeypatch):
-        monkeypatch.setattr(
-            "wyrd.state.campaign.campaigns_dir", lambda: tmp_path / "nonexistent"
-        )
+        monkeypatch.setattr("wyrd.state.campaign.campaigns_dir", lambda: tmp_path / "nonexistent")
         assert list_campaigns() == []
 
     def test_returns_slugs(self, tmp_path, monkeypatch):
-        monkeypatch.setattr(
-            "wyrd.state.campaign.campaigns_dir", lambda: tmp_path / "campaigns"
-        )
+        monkeypatch.setattr("wyrd.state.campaign.campaigns_dir", lambda: tmp_path / "campaigns")
         create_campaign("Alpha", "kira")
         create_campaign("Beta", "kira")
         slugs = list_campaigns()
@@ -346,9 +330,7 @@ class TestHandleStart:
         from wyrd.models.character import Character
         from wyrd.models.vow import Vow, VowRank
 
-        monkeypatch.setattr(
-            "wyrd.state.campaign.campaigns_dir", lambda: tmp_path / "campaigns"
-        )
+        monkeypatch.setattr("wyrd.state.campaign.campaigns_dir", lambda: tmp_path / "campaigns")
         state = _make_state(tmp_path)
 
         new_char = Character("Kira")
@@ -379,9 +361,7 @@ class TestHandleStart:
         from wyrd.models.character import Character
         from wyrd.models.vow import Vow, VowRank
 
-        monkeypatch.setattr(
-            "wyrd.state.campaign.campaigns_dir", lambda: tmp_path / "campaigns"
-        )
+        monkeypatch.setattr("wyrd.state.campaign.campaigns_dir", lambda: tmp_path / "campaigns")
         # Pre-create a campaign so list_campaigns returns it
         create_campaign("Iron Veil", "existing-player")
 
@@ -411,9 +391,7 @@ class TestHandleStart:
         from wyrd.engine.dice import DiceMode
         from wyrd.models.character import Character
 
-        monkeypatch.setattr(
-            "wyrd.state.campaign.campaigns_dir", lambda: tmp_path / "campaigns"
-        )
+        monkeypatch.setattr("wyrd.state.campaign.campaigns_dir", lambda: tmp_path / "campaigns")
         create_campaign("Iron Veil", "existing-player")
         state = _make_state(tmp_path)
         new_char = Character("Dax")

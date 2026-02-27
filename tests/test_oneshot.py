@@ -338,9 +338,7 @@ class TestMainOneshotDispatch:
 
         with (
             patch("wyrd.main.parse_args") as mock_args,
-            patch(
-                "wyrd.main.load_by_name", return_value=(robin, [], 2, DiceMode.DIGITAL, None)
-            ),
+            patch("wyrd.main.load_by_name", return_value=(robin, [], 2, DiceMode.DIGITAL, None)),
             patch("wyrd.main.load_most_recent") as mock_load_recent,
             patch("wyrd.loop.run_oneshot", return_value=0) as mock_oneshot,
             patch("wyrd.config.config") as mock_cfg,

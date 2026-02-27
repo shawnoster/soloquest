@@ -149,9 +149,7 @@ class TestOracleCommand:
 
         with (
             patch("wyrd.commands.oracle.roll_oracle", return_value=42),
-            patch(
-                "wyrd.commands.oracle.display.oracle_result_panel_combined"
-            ) as mock_combined,
+            patch("wyrd.commands.oracle.display.oracle_result_panel_combined") as mock_combined,
         ):
             handle_oracle(state, args=["action", "theme"], flags=set())
 
