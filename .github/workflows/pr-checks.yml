@@ -19,14 +19,10 @@ jobs:
         uses: astral-sh/setup-uv@v7
         with:
           version: "latest"
-
-      - name: Set up Python
-        uses: actions/setup-python@v6
-        with:
-          python-version: "3.13"
+          python-version-file: ".python-version"
 
       - name: Install dependencies
-        run: uv sync --all-groups
+        run: uv sync --frozen --all-groups
 
       - name: Run linting
         run: uv run ruff check wyrd tests
