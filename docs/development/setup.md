@@ -145,8 +145,11 @@ cd wyrd
 # Install dependencies (including dev dependencies)
 uv sync
 
+# Install git hooks (runs format, lint, and tests before each commit)
+make install-hooks
+
 # Verify everything works
-just check  # or: make check
+make check
 ```
 
 ### 2. Create a Feature Branch

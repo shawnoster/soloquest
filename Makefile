@@ -1,6 +1,6 @@
 .DEFAULT_GOAL := help
 
-.PHONY: help install dev run test lint format check clean branch pr
+.PHONY: help install install-hooks dev run test lint format check clean branch pr
 
 help: ## Show this help message
 	@echo "Usage: make [target]"
@@ -8,6 +8,7 @@ help: ## Show this help message
 	@echo "Targets:"
 	@echo "  help            Show this help message"
 	@echo "  install         Install the package"
+	@echo "  install-hooks   Configure git to use tracked hooks in .githooks/"
 	@echo "  dev             Install with dev dependencies"
 	@echo "  run             Run the CLI"
 	@echo "  test            Run tests with coverage"
@@ -21,21 +22,25 @@ help: ## Show this help message
 install: ## Install the package
 	uv sync
 
+install-hooks: ## Configure git to use tracked hooks in .githooks/
+	git config core.hooksPath .githooks
+	@echo "✅ Git hooks configured (.githooks/)"
+
 dev: ## Install with dev dependencies
 	uv sync --group dev
 
 run: ## Run the CLI
-	uv run soloquest
+	uv run wyrd
 
 test: ## Run tests with coverage
 	uv run python -m pytest
 
 lint: ## Lint with ruff
-	uv run ruff check soloquest tests
+	uv run ruff check wyrd tests
 
 format: ## Auto-format code with ruff
-	uv run ruff format soloquest tests
-	uv run ruff check --fix soloquest tests
+	uv run ruff format wyrd tests
+	uv run ruff check --fix wyrd tests
 
 check: lint test ## Run lint + tests
 

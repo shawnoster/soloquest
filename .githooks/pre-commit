@@ -1,0 +1,63 @@
+#!/bin/bash
+# Pre-commit hook: ensure code quality before committing
+set -e
+
+echo "🔍 Running pre-commit checks..."
+echo ""
+
+# 1. Format check
+echo "📝 Formatting code..."
+if ! uv run ruff format wyrd tests; then
+    echo "❌ Formatting failed"
+    exit 1
+fi
+echo "✅ Formatting passed"
+echo ""
+
+# 2. Lint check
+echo "🔎 Linting code..."
+if ! uv run ruff check wyrd tests; then
+    echo "❌ Linting failed"
+    exit 1
+fi
+echo "✅ Linting passed"
+echo ""
+
+# 3. Get baseline coverage (if exists)
+baseline_coverage=""
+if [ -f .coverage ]; then
+    baseline_coverage=$(uv run python -m coverage report --format=total 2>/dev/null || echo "")
+fi
+
+# 4. Run tests with coverage
+echo "🧪 Running tests with coverage..."
+if ! uv run python -m pytest; then
+    echo "❌ Tests failed"
+    exit 1
+fi
+echo "✅ Tests passed"
+echo ""
+
+# 5. Check coverage hasn't dropped more than 1%
+if [ -n "$baseline_coverage" ]; then
+    new_coverage=$(uv run python -m coverage report --format=total)
+    baseline_int=$(printf "%.0f" "$baseline_coverage")
+    new_int=$(printf "%.0f" "$new_coverage")
+    diff=$((new_int - baseline_int))
+
+    echo "📊 Coverage: ${baseline_coverage}% → ${new_coverage}% (${diff:+"+"}${diff}%)"
+
+    if [ "$diff" -lt -1 ]; then
+        echo "❌ Coverage dropped by more than 1% (${diff}%)"
+        echo "   Baseline: ${baseline_coverage}%"
+        echo "   Current:  ${new_coverage}%"
+        exit 1
+    fi
+    echo "✅ Coverage check passed"
+else
+    new_coverage=$(uv run python -m coverage report --format=total)
+    echo "📊 Coverage: ${new_coverage}% (no baseline to compare)"
+fi
+
+echo ""
+echo "✨ All pre-commit checks passed!"
