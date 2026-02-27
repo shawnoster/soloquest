@@ -38,7 +38,7 @@ The issue leverages existing project infrastructure:
    - Ready for API or sync serialization
 
 3. **Configurable Storage** - Already supports custom adventures directory
-   - `-d` flag or `SOLOQUEST_ADVENTURES_DIR` environment variable
+   - `-d` flag to specify a custom directory
    - Used for Obsidian/Logseq integration
 
 4. **Event Log Model** - Already designed for append-only events

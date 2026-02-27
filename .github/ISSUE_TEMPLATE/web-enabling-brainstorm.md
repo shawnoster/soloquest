@@ -18,7 +18,7 @@ Currently, all session data is stored locally in `~/wyrd-adventures/`, making cr
 ## Current Architecture
 
 ### Storage Layer
-- **Location:** `~/wyrd-adventures/` (configurable via `-d` flag or `SOLOQUEST_ADVENTURES_DIR`)
+- **Location:** `~/wyrd-adventures/` (configurable via `-d` flag)
 - **Format:** JSON for character saves, Markdown for journals
 - **Structure:**
   ```

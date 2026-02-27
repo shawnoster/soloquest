@@ -13,8 +13,7 @@ class Config:
 
     Priority order for adventures_dir:
     1. CLI argument (set via set_adventures_dir())
-    2. Config file setting (future)
-    3. Default: ~/wyrd-adventures
+    2. Default: ~/wyrd-adventures
     """
 
     _instance: Config | None = None
