@@ -1,4 +1,4 @@
-# Soloquest Architecture
+# wyrd Architecture
 
 **Version:** 2.0
 **Language:** Python 3.13
@@ -8,7 +8,7 @@
 
 ## Overview
 
-Soloquest is a terminal-based companion for playing solo RPGs. The CLI handles the mechanical layer — move resolution, oracle lookups, dice rolling, character tracking — while keeping the journaling experience as the primary surface. Every session produces a Markdown artifact the player can keep.
+wyrd is a terminal-based companion for playing solo RPGs. The CLI handles the mechanical layer — move resolution, oracle lookups, dice rolling, character tracking — while keeping the journaling experience as the primary surface. Every session produces a Markdown artifact the player can keep.
 
 ### Core Design Principles
 

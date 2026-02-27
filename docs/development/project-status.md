@@ -8,7 +8,7 @@
 
 ## Overview
 
-Soloquest is a **functionally complete** CLI companion for playing Ironsworn: Starforged solo. The POC is done, and the project is now in active development for enhancements and polish.
+wyrd is a **functionally complete** CLI companion for playing Ironsworn: Starforged solo. The POC is done, and the project is now in active development for enhancements and polish.
 
 ---
 

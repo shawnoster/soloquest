@@ -6,7 +6,7 @@ Documentation for cross-system integration and hybrid session support.
 
 ## Overview
 
-As Soloquest grows to support multiple game systems, we need clear patterns for:
+As wyrd grows to support multiple game systems, we need clear patterns for:
 - Switching between systems mid-session
 - Running multiple systems simultaneously
 - Sharing data between systems

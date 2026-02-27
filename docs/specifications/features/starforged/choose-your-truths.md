@@ -293,7 +293,7 @@ def get_truth_category(name: str) -> TruthCategory | None:
 ```
 $ wyrd
 
-Welcome to Soloquest!
+Welcome to wyrd!
 
 You don't have a character yet. Let's create one!
 

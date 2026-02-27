@@ -1,4 +1,4 @@
-# Soloquest Documentation
+# wyrd Documentation
 
 Complete documentation for the solo RPG companion CLI.
 
@@ -6,7 +6,7 @@ Complete documentation for the solo RPG companion CLI.
 
 ## For Users
 
-Start here if you want to use Soloquest to play solo RPGs.
+Start here if you want to use wyrd to play solo RPGs.
 
 - **[Getting Started](user-guide/getting-started.md)** - Complete walkthrough from installation to your first session
 - **[Adventures Directory Configuration](user-guide/adventures-directory.md)** - How to configure where your game data is stored

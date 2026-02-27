@@ -1,6 +1,6 @@
 # Adding Systems and Features - Process Guide
 
-Step-by-step processes for extending Soloquest with new game systems and features.
+Step-by-step processes for extending wyrd with new game systems and features.
 
 ---
 

@@ -1,4 +1,4 @@
-"""Active theme for SoloQuest.
+"""Active theme for wyrd.
 
 To switch themes, change the import below to any module in wyrd/ui/themes/:
     from wyrd.ui.themes.github_dark import *  # default

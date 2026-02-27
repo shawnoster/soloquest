@@ -59,7 +59,7 @@ See [ironsworn-starforged.md](ironsworn-starforged.md) for complete specificatio
 
 ## Adding a New System
 
-To add a new game system to Soloquest:
+To add a new game system to wyrd:
 
 1. **Research** - Study the game's mechanics and licensing
 2. **System Spec** - Create `[system-name].md` in this directory

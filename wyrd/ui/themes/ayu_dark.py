@@ -1,4 +1,4 @@
-"""Ayu Dark palette — semantic color constants for SoloQuest.
+"""Ayu Dark palette — semantic color constants for wyrd.
 
 See docs/adr/003-color-system-and-theming.md for the full semantic color spec.
 All constants are raw hex strings or Rich style strings usable directly in

@@ -147,7 +147,7 @@ session_saved = "Session saved. Resume with 'wyrd' or start a new session with '
 # ── Display Labels ────────────────────────────────────────────────────────────
 
 [display]
-splash_title = "SOLOQUEST"
+splash_title = "WYRD"
 strong_hit = "◆ STRONG HIT"
 weak_hit = "◇ WEAK HIT"
 miss = "✕ MISS"

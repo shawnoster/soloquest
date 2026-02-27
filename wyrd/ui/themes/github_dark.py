@@ -1,4 +1,4 @@
-"""GitHub Dark palette — semantic color constants for SoloQuest.
+"""GitHub Dark palette — semantic color constants for wyrd.
 
 Source: OpenCode github theme (sst/opencode).
 GitHub Dark reference palette:

@@ -11,7 +11,7 @@
 
 Ironsworn: Starforged is a standalone tabletop RPG about spacefarers in a dangerous frontier. Players take on the role of adventurers exploring the Forge, a vast expanse of space settled by humans who fled a dying Earth.
 
-Soloquest provides mechanical support for Starforged's core systems:
+wyrd provides mechanical support for Starforged's core systems:
 - Move-based resolution
 - Oracle-driven narrative generation
 - Character progression and assets
@@ -113,7 +113,7 @@ Each category offers 3-4 preset options or the ability to write custom truths. P
 
 ### Dataforged
 
-Soloquest uses the [dataforged](https://github.com/rsek/dataforged) package for comprehensive Starforged content:
+wyrd uses the [dataforged](https://github.com/rsek/dataforged) package for comprehensive Starforged content:
 - All 56 moves with full text
 - 200+ oracle tables with roll ranges
 - 90 asset cards with abilities
@@ -126,7 +126,7 @@ Soloquest uses the [dataforged](https://github.com/rsek/dataforged) package for 
 
 ### Custom Data
 
-Soloquest can override dataforged entries via TOML files in `wyrd/data/`:
+wyrd can override dataforged entries via TOML files in `wyrd/data/`:
 - `moves.toml` - Custom or house-ruled moves
 - `oracles.toml` - Additional oracle tables
 - `truths.toml` - Custom truth categories

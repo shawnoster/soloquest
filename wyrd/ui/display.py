@@ -96,7 +96,7 @@ def splash(character: Character | None = None, vows: list[Vow] | None = None) ->
             )
             content += f"\n\n{vow_lines}"
     else:
-        content = "[bold white]SOLOQUEST[/bold white]"
+        content = "[bold white]WYRD[/bold white]"
     console.print()
     console.print(Panel(content, border_style=BORDER_ACTION, padding=(1, 4)))
     console.print()

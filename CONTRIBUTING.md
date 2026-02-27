@@ -1,4 +1,4 @@
-# Contributing to Soloquest
+# Contributing to wyrd
 
 Thank you for your interest in contributing to wyrd! This document provides guidelines and instructions for contributing.
 

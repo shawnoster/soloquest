@@ -1,6 +1,6 @@
 # Specifications
 
-Technical specifications and design documents for Soloquest.
+Technical specifications and design documents for wyrd.
 
 **📋 [Process Guide](PROCESS.md)** - Step-by-step guide for adding systems and features
 

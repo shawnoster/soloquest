@@ -32,7 +32,7 @@ uv run wyrd
 uv run python -m wyrd.main
 ```
 
-**New to Soloquest?** See the [Getting Started Guide](docs/user-guide/getting-started.md) for a complete walkthrough.
+**New to wyrd?** See the [Getting Started Guide](docs/user-guide/getting-started.md) for a complete walkthrough.
 
 ---
 

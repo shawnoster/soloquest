@@ -1,4 +1,4 @@
-# Soloquest — CLI Specification
+# wyrd — CLI Specification
 
 **Version:** 2.0
 **Language:** Python 3.13
@@ -8,7 +8,7 @@
 
 ## 1. Overview
 
-Soloquest is a terminal-based companion for playing solo RPGs. The CLI handles the mechanical layer — move resolution, oracle lookups, dice rolling, character tracking — while keeping the journaling experience as the primary surface. Every session produces a Markdown artifact the player can keep.
+wyrd is a terminal-based companion for playing solo RPGs. The CLI handles the mechanical layer — move resolution, oracle lookups, dice rolling, character tracking — while keeping the journaling experience as the primary surface. Every session produces a Markdown artifact the player can keep.
 
 ### Design Philosophy
 
@@ -480,7 +480,7 @@ See [features/](features/) for detailed feature specifications.
 
 ## 9. Living Document
 
-This specification evolves as Soloquest grows:
+This specification evolves as wyrd grows:
 
 - **Use cases** remain stable — they define core workflows
 - **Architecture** grows as new systems are added

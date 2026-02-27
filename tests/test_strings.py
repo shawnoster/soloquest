@@ -12,7 +12,7 @@ class TestGetString:
 
     def test_simple_key(self):
         result = get_string("display.splash_title")
-        assert result == "SOLOQUEST"
+        assert result == "WYRD"
 
     def test_nested_key(self):
         result = get_string("character_creation.wizard_steps.step1_title")
