@@ -20,7 +20,7 @@
 
 ## Code Quality
 
-- Run `just check` (lint + tests) before pushing.
+- Run `make check` (lint + tests) before pushing.
 - All new features should include tests.
 - Formatter: `ruff format`. Linter: `ruff check`.
 
@@ -54,7 +54,7 @@
 
 ## Quick Reference
 
-- `just` — show all available commands
-- `just run` — launch the CLI
-- `just check` — lint + test
-- `just branch feat/name` — create feature branch
+- `make` — show all available commands
+- `make run` — launch the CLI
+- `make check` — lint + test
+- `make branch NAME=feat/name` — create feature branch
