@@ -1,6 +1,6 @@
 [project]
 name = "wyrd"
-version = "2.35.0"
+version = "2.36.0"
 description = "A solo journaling CLI for tabletop RPGs (Ironsworn: Starforged, Mythic GME, and more)"
 readme = "README.md"
 requires-python = ">=3.13"
