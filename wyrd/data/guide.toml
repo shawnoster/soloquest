@@ -135,3 +135,118 @@ content = """[bold]OUTCOMES[/bold] determine what happens after you make a move.
   • Mechanical effects follow fictional description
   • Weak hits and misses drive the story forward
   • Momentum burn ([cyan]/burn[/cyan]) can upgrade outcomes"""
+
+[sector]
+title = "Build a Starting Sector (pp. 114–126)"
+content = """[bold]BUILD A STARTING SECTOR[/bold] prepares the area of space where your campaign begins.
+Allow about 30–45 minutes. Work through each step in order.
+
+[bold cyan]STEP 1: CHOOSE YOUR STARTING REGION[/bold cyan]
+  Pick one — this drives settlement counts, encounter tables, and passage counts:
+
+  [bold]Terminus[/bold]   — Settled space. Common communities, well-charted routes.
+                 [dim]Best if you want to focus on people and politics.[/dim]
+  [bold]Outlands[/bold]   — Frontier. Scattered settlements, perilous navigation.
+                 [dim]Best if you want a wild spacer feel.[/dim]
+  [bold]Expanse[/bold]    — Deep unknown. Few pioneers, uncharted and dangerous.
+                 [dim]Best if you want lonely exploration.[/dim]
+
+  Note your region — you'll need it for steps 2, 3, and 7.
+
+[bold cyan]STEP 2: DETERMINE NUMBER OF SETTLEMENTS[/bold cyan]
+  Fixed by your region:
+  Terminus → 4 settlements   Outlands → 3 settlements   Expanse → 2 settlements
+
+[bold cyan]STEP 3: GENERATE EACH SETTLEMENT[/bold cyan]
+  For each settlement, roll all of these:
+
+  [cyan]/oracle settlement_name[/cyan]                  — What is it called?
+  [cyan]/oracle settlement_location[/cyan]               — Planetside / Orbital / Deep Space
+  [cyan]/oracle population_terminus[/cyan]               — (or outlands / expanse)
+  [cyan]/oracle settlement_authority[/cyan]              — Who's in charge?
+  [cyan]/oracle settlement_projects[/cyan]               — Roll 1–2 times: what drives this place?
+
+  Write name, location, population, authority, and project(s) as a short note.
+  Example: [dim]Bleakhold (Orbital) — Pop: Hundreds — Auth: Corrupt — Mining, Black market[/dim]
+
+[bold cyan]STEP 4: GENERATE PLANETS[/bold cyan]
+  For each Planetside or Orbital settlement, roll:
+
+  [cyan]/oracle planet_class[/cyan]                      — What kind of world?
+
+  Give the planet a name if you like (see planet type name tables, pp. 308–318).
+  Add the planet type to your settlement note.
+
+[bold cyan]STEP 5: GENERATE STARS (optional)[/bold cyan]
+  For each settlement, roll if you want atmospheric detail:
+
+  [cyan]/oracle stellar_object[/cyan]                    — What star do they orbit?
+
+  A corrupted star or impending supernova can shape your opening situation.
+
+[bold cyan]STEP 6: CREATE A SECTOR MAP[/bold cyan]
+  Sketch a simple hex grid. Place each settlement as a dot or symbol:
+    ⊕ Planetside settlement    ⊙ Orbital settlement    □ Deep Space settlement
+
+  Keep it loose — the map tracks connections, not literal distances.
+
+[bold cyan]STEP 7: CREATE PASSAGES[/bold cyan]
+  Passages are charted routes between settlements or to neighboring sectors.
+  Fixed by region:
+  Terminus → 3 passages   Outlands → 2 passages   Expanse → 1 passage
+
+  Each passage must either connect two settlements or reach the sector edge.
+  Draw them as lines on your map.
+
+  [bold yellow]Why passages matter:[/bold yellow]
+  • [bold]On a passage[/bold]: use [cyan]/move set a course[/cyan] — single roll, faster travel
+  • [bold]Off a passage[/bold]: use [cyan]/move undertake an expedition[/cyan] — harder, but you earn XP
+    and can blaze a new passage when complete
+
+[bold cyan]STEP 8: ZOOM IN ON ONE SETTLEMENT[/bold cyan]
+  Pick the settlement most interesting to you. Roll:
+
+  [cyan]/oracle settlement_first_look[/cyan]              — Roll 1–2 times: what's the vibe?
+  [cyan]/oracle settlement_trouble[/cyan]                 — What's the local problem?
+
+  If it's Planetside or Orbital, also roll for the planet:
+  [cyan]/oracle descriptor focus[/cyan]                   — Atmosphere, feature, or hazard
+
+  Note anything evocative in your journal.
+
+[bold cyan]STEP 9: CREATE A LOCAL CONNECTION[/bold cyan]
+  You have one connection at campaign start — an important NPC relationship.
+  [bold green]Make a Connection is an automatic strong hit. No dice needed.[/bold green]
+
+  Roll to build them out:
+  [cyan]/oracle given_name[/cyan]                         — Their name (or /oracle callsign)
+  [cyan]/oracle role[/cyan]                              — Their duty or expertise
+  [cyan]/oracle character_goal[/cyan]                    — What do they want?
+  [cyan]/oracle character_first_look[/cyan]              — How do they present?
+  [cyan]/oracle character_aspect[/cyan]                  — A revealed trait (optional)
+
+  Assign them a rank: Troublesome or Dangerous is right for a starting connection.
+  Choose one of your settlements as their home.
+  Note them on your connections worksheet or journal.
+
+[bold cyan]STEP 10: INTRODUCE A SECTOR TROUBLE[/bold cyan]
+  Roll for the sector-wide threat or situation:
+
+  [cyan]/oracle sector_trouble[/cyan]                     — What shadow hangs over this region?
+
+  Envision how this trouble might manifest and note it in your journal.
+
+[bold cyan]STEP 11: NAME THE SECTOR[/bold cyan]
+  Roll both and combine:
+
+  [cyan]/oracle sector_name_prefix sector_name_suffix[/cyan]
+
+  Example results: [dim]Fallen + Maw → "The Fallen Maw"[/dim]
+                   [dim]Crimson + Drift → "Crimson Drift"[/dim]
+
+  Write the name on your sector map. Your starting sector is ready.
+
+[bold yellow]You're done! Next steps:[/bold yellow]
+  • Jump to p. 128 to begin your first adventure
+  • Use [cyan]/vow[/cyan] to swear your first iron vow
+  • Use [cyan]/guide[/cyan] to review the core gameplay loop"""

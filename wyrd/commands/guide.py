@@ -49,11 +49,15 @@ def handle_guide(state: GameState, args: list[str], flags: set[str]) -> None:
         start_guided_mode(state)
         return
 
+    if len(args) >= 2 and args[0].lower() == "sector" and args[1].lower() == "start":
+        start_guided_mode(state, mode="sector")
+        return
+
     if args and args[0].lower() == "stop":
         stop_guided_mode(state)
         return
 
-    if args and args[0].lower() in ["envision", "oracle", "move", "outcome"]:
+    if args and args[0].lower() in ["envision", "oracle", "move", "outcome", "sector"]:
         _show_step_detail(args[0].lower(), state)
         return
 
@@ -141,6 +145,9 @@ def _show_game_loop(state: GameState) -> None:
     display.console.print(
         f"    [{HINT_COMMAND}]/guide outcome[/{HINT_COMMAND}]   — Learn about outcomes"
     )
+    display.console.print(
+        f"    [{HINT_COMMAND}]/guide sector[/{HINT_COMMAND}]    — Build a starting sector (pp. 114–126)"
+    )
     display.console.print()
 
 
@@ -198,6 +205,8 @@ def _show_step_detail(step: str, state: GameState) -> None:
         _show_move_help(state)
     elif step == "outcome":
         _show_outcome_help(state)
+    elif step == "sector":
+        _show_sector_help(state)
 
 
 def _show_step_help(step: str, state: GameState, **format_kwargs: int) -> None:
@@ -224,3 +233,7 @@ def _show_move_help(state: GameState) -> None:
 
 def _show_outcome_help(state: GameState) -> None:
     _show_step_help("outcome", state)
+
+
+def _show_sector_help(state: GameState) -> None:
+    _show_step_help("sector", state)

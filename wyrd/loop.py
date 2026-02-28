@@ -92,7 +92,10 @@ class GameState:
     last_result: object = field(default=None, repr=False)
     _unsaved_entries: int = field(default=0, repr=False)
     guided_mode: bool = field(default=False, repr=False)
-    guided_phase: str = field(default="envision", repr=False)  # envision, oracle, move, outcome
+    guided_phase: str = field(
+        default="envision", repr=False
+    )  # envision, oracle, move, outcome, sector_*
+    sector_region: str | None = field(default=None, repr=False)  # terminus, outlands, expanse
     sync: SyncPort = field(default_factory=lambda: LocalAdapter("solo"), repr=False)
     campaign: CampaignState | None = field(default=None, repr=False)
     campaign_dir: Path | None = field(default=None, repr=False)

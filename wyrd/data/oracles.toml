@@ -294,6 +294,478 @@ results = [
   [96, 100, "Roll twice and apply both"]
 ]
 
+# ── Sector building oracles ─────────────────────────────────────────────────
+
+[settlement_location]
+name = "Settlement Location"
+die = "d100"
+results = [
+  [1, 40, "Planetside"],
+  [41, 75, "Orbital"],
+  [76, 100, "Deep Space"],
+]
+
+[population_terminus]
+name = "Population (Terminus)"
+die = "d100"
+results = [
+  [1, 10, "Few"],
+  [11, 25, "Dozens"],
+  [26, 55, "Hundreds"],
+  [56, 85, "Thousands"],
+  [86, 100, "Tens of thousands"],
+]
+
+[population_outlands]
+name = "Population (Outlands)"
+die = "d100"
+results = [
+  [1, 15, "Few"],
+  [16, 35, "Dozens"],
+  [36, 65, "Hundreds"],
+  [66, 90, "Thousands"],
+  [91, 100, "Tens of thousands"],
+]
+
+[population_expanse]
+name = "Population (Expanse)"
+die = "d100"
+results = [
+  [1, 20, "Few"],
+  [21, 50, "Dozens"],
+  [51, 80, "Hundreds"],
+  [81, 95, "Thousands"],
+  [96, 100, "Tens of thousands"],
+]
+
+[settlement_authority]
+name = "Settlement Authority"
+die = "d100"
+results = [
+  [1, 15, "None / lawless"],
+  [16, 30, "Ineffectual"],
+  [31, 45, "Tolerant"],
+  [46, 55, "Fair"],
+  [56, 70, "Unyielding"],
+  [71, 85, "Corrupt"],
+  [86, 100, "Oppressive"],
+]
+
+[settlement_projects]
+name = "Settlement Projects"
+die = "d100"
+results = [
+  [1, 5, "Agriculture"],
+  [6, 7, "Archeology"],
+  [8, 9, "Automation"],
+  [10, 11, "Black market"],
+  [12, 13, "Command"],
+  [14, 17, "Defense"],
+  [18, 22, "Energy"],
+  [23, 25, "Engineering"],
+  [26, 27, "Entertainment"],
+  [28, 29, "Environmentalism"],
+  [30, 31, "Evacuation"],
+  [32, 33, "Expansion"],
+  [34, 37, "Exploration"],
+  [38, 39, "Festival"],
+  [40, 41, "History"],
+  [42, 43, "Hunting"],
+  [44, 46, "Manufacturing"],
+  [47, 49, "Medical"],
+  [50, 51, "Migration"],
+  [52, 57, "Mining"],
+  [58, 59, "Pacifism"],
+  [60, 62, "Raiding"],
+  [63, 65, "Research"],
+  [66, 69, "Salvage"],
+  [70, 72, "Secrecy"],
+  [73, 75, "Shipbuilding"],
+  [76, 78, "Spirituality"],
+  [79, 84, "Subsistence"],
+  [85, 86, "Surveillance"],
+  [87, 88, "Terraforming"],
+  [89, 92, "Trade"],
+  [93, 95, "Warfare"],
+  [96, 100, "Action + Theme"],
+]
+
+[settlement_first_look]
+name = "Settlement First Look"
+die = "d100"
+results = [
+  [1, 3, "Beautiful architecture"],
+  [4, 9, "Built from organic materials"],
+  [10, 15, "Built from random scrap"],
+  [16, 21, "Built within repurposed ship"],
+  [22, 26, "Built within terrain or asteroid"],
+  [27, 31, "Defensible location"],
+  [32, 35, "Elevated or multi-level construction"],
+  [36, 40, "Hidden or subsurface location"],
+  [41, 43, "High-tech construction"],
+  [44, 49, "Industrial architecture"],
+  [50, 53, "Intimidating defenses"],
+  [54, 56, "Moving or transforming"],
+  [57, 61, "Obvious social stratification"],
+  [62, 66, "Precarious location"],
+  [67, 72, "Rustic architecture"],
+  [73, 76, "Significant structural damage"],
+  [77, 80, "Sprawling or dispersed structures"],
+  [81, 83, "Temporary or seasonal location"],
+  [84, 87, "Toxic or polluted habitat"],
+  [88, 90, "Near a Precursor Vault"],
+  [91, 100, "Descriptor + Focus"],
+]
+
+[settlement_trouble]
+name = "Settlement Trouble"
+die = "d100"
+results = [
+  [1, 3, "Battle for leadership"],
+  [4, 6, "Betrayal from within"],
+  [7, 8, "Caught in the crossfire"],
+  [9, 11, "Changing environment"],
+  [12, 13, "Clash of cultures"],
+  [14, 17, "Dangerous discovery"],
+  [18, 21, "Depleted supplies"],
+  [22, 24, "Deprived of a resource"],
+  [25, 28, "Failing technology"],
+  [29, 32, "Feuding factions"],
+  [33, 34, "Ghostly visitations"],
+  [35, 38, "Hazardous environment"],
+  [39, 42, "Hostile lifeforms"],
+  [43, 45, "Impassable route"],
+  [46, 48, "Impending attack"],
+  [49, 51, "Impending natural disaster"],
+  [52, 53, "Invasive organisms"],
+  [54, 55, "Mounting debt"],
+  [56, 57, "Mysterious deaths"],
+  [58, 60, "Overdue delivery"],
+  [61, 62, "Plagued by sickness"],
+  [63, 65, "Preyed upon by raiders"],
+  [66, 67, "Revolt against leadership"],
+  [68, 69, "Sabotaged technology"],
+  [70, 71, "Shunned by others"],
+  [72, 74, "Social strife"],
+  [75, 76, "Someone is ill or injured"],
+  [77, 78, "Someone is missing"],
+  [79, 80, "Stolen technology or object"],
+  [81, 83, "Strange phenomenon"],
+  [84, 86, "Toxic waste or pollution"],
+  [87, 88, "Volatile energy source"],
+  [89, 90, "Vulnerable lifeforms"],
+  [91, 100, "Action + Theme"],
+]
+
+[character_first_look]
+name = "Character First Look"
+die = "d100"
+results = [
+  [1, 3, "Accented"],
+  [4, 6, "Accompanied"],
+  [7, 8, "Adorned"],
+  [9, 11, "Aged"],
+  [12, 13, "Alluring"],
+  [14, 15, "Armed"],
+  [16, 17, "Armored"],
+  [18, 20, "Athletic"],
+  [21, 23, "Attractive"],
+  [24, 25, "Augmented"],
+  [26, 27, "Concealed"],
+  [28, 30, "Distracted"],
+  [31, 33, "Eccentric"],
+  [34, 35, "Energetic"],
+  [36, 37, "Flashy"],
+  [38, 40, "Graceful"],
+  [41, 43, "Grim"],
+  [44, 46, "Haggard"],
+  [47, 49, "Ill-equipped"],
+  [50, 52, "Imposing"],
+  [53, 55, "Large"],
+  [56, 57, "Mutated"],
+  [58, 60, "Plain"],
+  [61, 62, "Poised"],
+  [63, 65, "Scarred"],
+  [66, 68, "Scruffy"],
+  [69, 71, "Shifty"],
+  [72, 73, "Sickly"],
+  [74, 76, "Slight"],
+  [77, 78, "Swaggering"],
+  [79, 81, "Tattooed"],
+  [82, 83, "Threatened"],
+  [84, 85, "Uncanny"],
+  [86, 87, "Visibly disabled"],
+  [88, 90, "Weathered"],
+  [91, 92, "Well-equipped"],
+  [93, 95, "Wiry"],
+  [96, 97, "Wounded"],
+  [98, 100, "Youthful"],
+]
+
+[character_goal]
+name = "Character Goal"
+die = "d100"
+results = [
+  [1, 2, "Avenge a wrong"],
+  [3, 4, "Build a home"],
+  [5, 7, "Build a relationship"],
+  [8, 10, "Claim a resource"],
+  [11, 12, "Collect a debt"],
+  [13, 14, "Craft an object"],
+  [15, 16, "Cure an ill"],
+  [17, 18, "Defeat a rival"],
+  [19, 20, "Defend a person"],
+  [21, 23, "Defend a place"],
+  [24, 25, "Discover a truth"],
+  [26, 27, "End a conflict"],
+  [28, 29, "Escape a captor"],
+  [30, 31, "Fight injustice"],
+  [32, 33, "Find a person"],
+  [34, 35, "Forge an alliance"],
+  [36, 37, "Gain knowledge"],
+  [38, 39, "Gain riches"],
+  [40, 41, "Maintain order"],
+  [42, 43, "Make an agreement"],
+  [44, 45, "Obtain an object"],
+  [46, 47, "Pay a debt"],
+  [48, 49, "Protect a lifeform"],
+  [50, 51, "Protect a secret"],
+  [52, 53, "Prove worthiness"],
+  [54, 55, "Rebel against power"],
+  [56, 57, "Refute a falsehood"],
+  [58, 59, "Repair a technology"],
+  [60, 61, "Resolve a dispute"],
+  [62, 63, "Restore a relationship"],
+  [64, 65, "Sabotage a technology"],
+  [66, 68, "Secure a resource"],
+  [69, 70, "Seek redemption"],
+  [71, 72, "Seize power"],
+  [73, 74, "Solve a mystery"],
+  [75, 76, "Spread faith"],
+  [77, 78, "Travel to a place"],
+  [79, 80, "Undermine a relationship"],
+  [81, 90, "Action + Theme"],
+  [91, 100, "Roll twice"],
+]
+
+[character_aspect]
+name = "Revealed Character Aspect"
+die = "d100"
+results = [
+  [1, 1, "Addicted"],
+  [2, 2, "Adventurous"],
+  [3, 3, "Afflicted"],
+  [4, 4, "Aggressive"],
+  [5, 5, "Ambitious"],
+  [6, 6, "Angry"],
+  [7, 7, "Anxious"],
+  [8, 8, "Apathetic"],
+  [9, 9, "Bitter"],
+  [10, 10, "Boastful"],
+  [11, 11, "Boisterous"],
+  [12, 12, "Bold"],
+  [13, 13, "Brave"],
+  [14, 14, "Careless"],
+  [15, 15, "Cautious"],
+  [16, 16, "Charismatic"],
+  [17, 17, "Clever"],
+  [18, 18, "Conceited"],
+  [19, 19, "Confident"],
+  [20, 20, "Confused"],
+  [21, 21, "Connected"],
+  [22, 22, "Corrupted"],
+  [23, 23, "Cowardly"],
+  [24, 24, "Creative"],
+  [25, 25, "Critical"],
+  [26, 26, "Cruel"],
+  [27, 27, "Cunning"],
+  [28, 28, "Dangerous"],
+  [29, 29, "Deceitful"],
+  [30, 30, "Defiant"],
+  [31, 31, "Determined"],
+  [32, 32, "Disabled"],
+  [33, 33, "Doomed"],
+  [34, 34, "Driven"],
+  [35, 35, "Dying"],
+  [36, 36, "Envious"],
+  [37, 37, "Experienced"],
+  [38, 38, "Faithful"],
+  [39, 39, "Generous"],
+  [40, 40, "Gifted"],
+  [41, 41, "Greedy"],
+  [42, 42, "Grief-stricken"],
+  [43, 43, "Handy"],
+  [44, 44, "Hardhearted"],
+  [45, 45, "Haunted"],
+  [46, 46, "Honorable"],
+  [47, 47, "Hot-tempered"],
+  [48, 48, "Impulsive"],
+  [49, 49, "Incompetent"],
+  [50, 50, "Independent"],
+  [51, 51, "Infamous"],
+  [52, 52, "Influential"],
+  [53, 53, "Insensitive"],
+  [54, 54, "Insightful"],
+  [55, 55, "Intelligent"],
+  [56, 56, "Intolerant"],
+  [57, 57, "Ironsworn"],
+  [58, 58, "Kind"],
+  [59, 59, "Law-abiding"],
+  [60, 60, "Lonely"],
+  [61, 61, "Loving"],
+  [62, 62, "Loyal"],
+  [63, 63, "Manipulative"],
+  [64, 64, "Oblivious"],
+  [65, 65, "Obsessed"],
+  [66, 66, "Oppressed"],
+  [67, 67, "Passive"],
+  [68, 68, "Powerful"],
+  [69, 69, "Proud"],
+  [70, 70, "Quiet"],
+  [71, 71, "Quirky"],
+  [72, 72, "Rebellious"],
+  [73, 73, "Reclusive"],
+  [74, 74, "Relaxed"],
+  [75, 75, "Remorseful"],
+  [76, 76, "Resourceful"],
+  [77, 77, "Secretive"],
+  [78, 78, "Selfish"],
+  [79, 79, "Sociable"],
+  [80, 80, "Stealthy"],
+  [81, 81, "Stern"],
+  [82, 82, "Stingy"],
+  [83, 83, "Stoic"],
+  [84, 84, "Strong"],
+  [85, 85, "Stubborn"],
+  [86, 86, "Successful"],
+  [87, 87, "Suspicious"],
+  [88, 88, "Talented"],
+  [89, 89, "Technical"],
+  [90, 90, "Timid"],
+  [91, 91, "Tolerant"],
+  [92, 92, "Tough"],
+  [93, 93, "Vengeful"],
+  [94, 94, "Violent"],
+  [95, 95, "Wary"],
+  [96, 96, "Watchful"],
+  [97, 97, "Weak"],
+  [98, 98, "Weary"],
+  [99, 99, "Wild"],
+  [100, 100, "Wise"],
+]
+
+[sector_name_prefix]
+name = "Sector Name Prefix"
+die = "d100"
+results = [
+  [1, 2, "Accursed"],
+  [3, 4, "Ashen"],
+  [5, 6, "Asteria"],
+  [7, 8, "Bitter"],
+  [9, 10, "Blighted"],
+  [11, 12, "Bloodied"],
+  [13, 14, "Boundless"],
+  [15, 16, "Burning"],
+  [17, 18, "Cortana"],
+  [19, 20, "Corvus"],
+  [21, 22, "Crimson"],
+  [23, 24, "Cygnus"],
+  [25, 26, "Delphi"],
+  [27, 28, "Delphian"],
+  [29, 30, "Devil's"],
+  [31, 32, "Ebon"],
+  [33, 34, "Essus"],
+  [35, 36, "Fallen"],
+  [37, 38, "Ferrous"],
+  [39, 40, "Fool's"],
+  [41, 42, "Forgotten"],
+  [43, 44, "Haunted"],
+  [45, 46, "Hidden"],
+  [47, 48, "Hollow"],
+  [49, 50, "Igneous"],
+  [51, 52, "Infernal"],
+  [53, 54, "Invidia"],
+  [55, 56, "Iron"],
+  [57, 58, "Kalidas"],
+  [59, 60, "Kronos"],
+  [61, 62, "Lacuna"],
+  [63, 64, "Lumen"],
+  [65, 66, "Mobius"],
+  [67, 68, "Morien"],
+  [69, 70, "Onyx"],
+  [71, 72, "Outer"],
+  [73, 74, "Sanguis"],
+  [75, 76, "Scarred"],
+  [77, 78, "Scorched"],
+  [79, 80, "Shattered"],
+  [81, 82, "Shrouded"],
+  [83, 84, "Sindri"],
+  [85, 86, "Solana"],
+  [87, 88, "Stygian"],
+  [89, 90, "Sulaco"],
+  [91, 92, "Sundered"],
+  [93, 94, "Thunor"],
+  [95, 96, "Vanguard"],
+  [97, 98, "Veiled"],
+  [99, 100, "Wasted"],
+]
+
+[sector_name_suffix]
+name = "Sector Name Suffix"
+die = "d100"
+results = [
+  [1, 2, "Abyss"],
+  [3, 4, "Anvil"],
+  [5, 6, "Arch"],
+  [7, 8, "Breach"],
+  [9, 10, "Chain"],
+  [11, 12, "Channel"],
+  [13, 14, "Chasm"],
+  [15, 16, "Circlet"],
+  [17, 18, "Cluster"],
+  [19, 20, "Crossing"],
+  [21, 22, "Crown"],
+  [23, 24, "Currents"],
+  [25, 26, "Deep"],
+  [27, 28, "Desolation"],
+  [29, 30, "Drift"],
+  [31, 32, "Flow"],
+  [33, 34, "Flux"],
+  [35, 36, "Gap"],
+  [37, 38, "Gate"],
+  [39, 40, "Gyre"],
+  [41, 42, "Heart"],
+  [43, 44, "Helix"],
+  [45, 46, "Juncture"],
+  [47, 48, "Limits"],
+  [49, 50, "Locus"],
+  [51, 52, "Maelstrom"],
+  [53, 54, "Margin"],
+  [55, 56, "Maw"],
+  [57, 58, "Maze"],
+  [59, 60, "Nexus"],
+  [61, 62, "Oasis"],
+  [63, 64, "Pass"],
+  [65, 66, "Pit"],
+  [67, 68, "Pyre"],
+  [69, 70, "Reach"],
+  [71, 72, "Rest"],
+  [73, 74, "Rift"],
+  [75, 76, "Sanctum"],
+  [77, 78, "Shallows"],
+  [79, 80, "Shoal"],
+  [81, 82, "Spine"],
+  [83, 84, "Straits"],
+  [85, 86, "Threshold"],
+  [87, 88, "Tide"],
+  [89, 90, "Verge"],
+  [91, 92, "Vertex"],
+  [93, 94, "Vigil"],
+  [95, 96, "Void"],
+  [97, 98, "Web"],
+  [99, 100, "Zenith"],
+]
+
 # ── Display configuration ───────────────────────────────────────────────────
 [[display.categories]]
 name = "Core"
@@ -301,7 +773,7 @@ keys = ["action", "theme", "descriptor", "focus"]
 
 [[display.categories]]
 name = "Characters"
-keys = ["given_name", "family_name", "callsign", "role", "goal", "quirks", "disposition", "backstory_prompts", "identity"]
+keys = ["given_name", "family_name", "callsign", "role", "goal", "quirks", "disposition", "backstory_prompts", "identity", "character_first_look", "character_goal", "character_aspect"]
 
 [[display.categories]]
 name = "NPCs"
@@ -312,8 +784,12 @@ name = "Places"
 keys = ["location", "settlement", "settlement_name", "environment"]
 
 [[display.categories]]
+name = "Settlements"
+keys = ["settlement_location", "population_terminus", "population_outlands", "population_expanse", "settlement_authority", "settlement_projects", "settlement_first_look", "settlement_trouble"]
+
+[[display.categories]]
 name = "Space"
-keys = ["space", "deep_space", "expanse", "terminus", "outlands", "planetside", "stellar_object"]
+keys = ["space", "deep_space", "expanse", "terminus", "outlands", "planetside", "stellar_object", "sector_name_prefix", "sector_name_suffix"]
 
 [[display.categories]]
 name = "Planets"
@@ -362,3 +838,7 @@ cmd = "/oracle inciting_incident"
 [[display.inspirations]]
 label = "Discover something unexpected"
 cmd = "/oracle make_a_discovery"
+
+[[display.inspirations]]
+label = "Name a sector"
+cmd = "/oracle sector_name_prefix sector_name_suffix"
