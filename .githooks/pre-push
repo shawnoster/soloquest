@@ -1,0 +1,11 @@
+#!/bin/bash
+# Pre-push hook: block direct pushes to main
+set -e
+
+current_branch=$(git symbolic-ref HEAD 2>/dev/null | sed 's|refs/heads/||')
+
+if [ "$current_branch" = "main" ]; then
+    echo "❌ Direct pushes to main are not allowed."
+    echo "   Create a feature branch and open a pull request."
+    exit 1
+fi
