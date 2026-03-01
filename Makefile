@@ -22,7 +22,7 @@ help: ## Show this help message
 	@echo "  branch NAME=x   Create and switch to new feature branch"
 	@echo "  pr              Create pull request for current branch"
 
-install: ## Install the package
+install: install-hooks ## Install the package
 	uv sync
 
 install-hooks: ## Configure git to use tracked hooks in .githooks/
